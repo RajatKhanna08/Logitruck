@@ -1,20 +1,20 @@
 import express from 'express';
 
 import {
-    userLoginController,
-    userLogoutController,
-    userProfileController,
-    userSignupController
+    adminLoginController,
+    adminLogoutController,
+    adminProfileController,
+    adminSignupController
 } from '../controllers/admin.controller.js';
 
 const router = express.Router();
 
-router.post('/signup', userSignupController);
+router.post('/signup', adminSignupController);
 
-router.post('/login', userLoginController);
+router.post('/login', adminLoginController);
 
-router.post('/logout', userLogoutController);
+router.post('/logout', adminLogoutController);
 
-router.get('/profile', userProfileController);
+router.get('/profile', adminProfileController);
 
 export default router;
