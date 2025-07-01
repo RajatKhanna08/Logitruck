@@ -1,62 +1,70 @@
 import mongoose from "mongoose";
 
 const paymentsSchema = new  mongoose.Schema({
-    orderId : {
+    orderId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref : 'orders',
+        ref: 'orders',
         required: true,
     },
-    customerId : {
+    
+    customerId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref : 'company',
+        ref: 'company',
         required: true
     },
-    transporterId : {
+    
+    transporterId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref : 'transporter',       
+        ref: 'transporter',       
         required: true
     },
-    amount : {
+    
+    amount: {
         type: Number,
         required:true
     },
-    currency : {
+    
+    currency: {
         type: String,
         default: "INR",
         required:true
     },
-    paymenmtMode : {
+    
+    paymenmtMode: {
         type: String,
         required: true,
         enum: ["UPI", "Cash", "Net Banking", "Credit Card"],
         default: "Cash"
     },
-    paymentGateway : {
-        name : {
+    
+    paymentGateway: {
+        name: {
             type: String,
             required: true
         },
-        transactionId : {
+        transactionId: {
             type: String,
             required: true
         },
-        orderRef : {
+        orderRef: {
             type: mongoose.Schema.Types.ObjectId,
-            ref : 'orders',
+            ref: 'orders',
             required: true
         },
-        response : {
+        response: {
             type: String,
             required: true
         },
     },
+    
     paymentInvoice: {
         type: String,
         required: true,
         unique: true
     },
-    paidAt : Date,
-    refundedAt : Date
+    
+    paidAt: Date,
+    refundedAt: Date
     
 });
 

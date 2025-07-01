@@ -1,23 +1,26 @@
 import mongoose, { mongo } from "mongoose";
 
 const ordersSchema = new  mongoose.Schema({
-    customerId : {
+    customerId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref : 'company',
+        re : 'company',
         required: true
     },
-    transporterId : {
+    
+    transporterId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref : 'transporter',
+        ref: 'transporter',
         required: true
     },
-    driverId : {
+    
+    driverId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'driver',     
         required: true
     },
+    
     pickupLocation: {
-        address : {
+        address: {
             type: String,
             required:true
         },
@@ -30,8 +33,9 @@ const ordersSchema = new  mongoose.Schema({
             required:true
         }
     },
-    dropLocations : {
-        stopIndex : {
+    
+    dropLocations: {
+        stopIndex: {
             type: String,
             required: true
         },
@@ -47,8 +51,8 @@ const ordersSchema = new  mongoose.Schema({
             type: String,
             required: true
         },
-        contactName : {
-            type :String,
+        contactName: {
+            type:String,
             required: true
         },
         contactPhone: {
@@ -60,133 +64,151 @@ const ordersSchema = new  mongoose.Schema({
             required: true
         }
     },
-    scheduleAt : Date,
+    
+    scheduleAt: Date,
     startTime: Date,
     endTime: Date,
-    status : {
+    
+    status: {
         type: String,
         enum: ["pending","delivered","cancelled","paused","in-transit","delayed"],
         default: "pending"
     },
-    loadDetails : {
-        weightInKg : {
+    
+    loadDetails: {
+        weightInKg: {
             type: Number,
             required: true
         },
-        volumeInCubicMeters : {
+        volumeInCubicMeters: {
             type: Number,
             required: true
         },
-        type : {
-            type :String ,
+        type: {
+            type:String ,
             enum:["general","fragile","perishable","bulk","electronics","furniture","others"],
-            default : "general"
+            default: "general"
         },
-        quantity : {
-            type : Number,
+        quantity: {
+            type: Number,
             required: true
         },
-        description : {
+        description: {
             type: String,
             required: true
         }
     },
-    completedStops : {
-        type : Number,
-        required: true
-    },
-    distance : {
-        type : Number,
-        required: true
-    },
-    duration : {
+    
+    completedStops: {
         type: Number,
         required: true
     },
-    fare : {
+    
+    distance: {
         type: Number,
         required: true
     },
-    paymentMode : {
-        type : String,
+    
+    duration: {
+        type: Number,
+        required: true
+    },
+    
+    fare: {
+        type: Number,
+        required: true
+    },
+    
+    paymentMode: {
+        type: String,
         enum: ["UPI", "Cash","Credit Card", "Net-Banking"],
         default: "Cash",
     },
-    paymentStatus : {
+    
+    paymentStatus: {
         type: String,
         enum:["paid", "unpaid", "failed"],
         default: "unpaid"
     },
-    currentLocation : {
+    
+    currentLocation: {
         latitude: {
-            type : String,
+            type: String,
         },
         longitude: {
-            type : String
+            type: String
         },
-        updatedAt : Date
+        updatedAt: Date
     },
-    trackingHistory : {
-        latitude : {
-            type : String,
+    
+    trackingHistory: {
+        latitude: {
+            type: String,
             required: true
         },
         longitude: {
             type: String,
             required: true
         },
-        timeStamp : {
-            type : Date
+        timeStamp: {
+            type: Date
         },
-        stars : {
-            type : Number
+        stars: {
+            type: Number
         },
-        review : {
+        review: {
             type: String
         }
     },
-    ratingByCustomer : {
-        type : mongoose.Schema.Types.ObjectId,
+    
+    ratingByCustomer: {
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'company',
     },
-    ratingByDriver : {
+    
+    ratingByDriver: {
         stars: {
-            type : Number,
+            type: Number,
             required: true
         },
-        reviews : {
+        reviews: {
             type: mongoose.Schema.Types.ObjectId,
-            ref : 'ratings',
+            ref: 'ratings',
         }
     },
-    currentStatus : {
+    
+    currentStatus: {
         type: String,
         enum:["pending","delivered","in-progress", "cancelled"],
         default: "pending"
-    }, 
-    deliveryTimeline : {
-        startedAt : Date,
+    },
+     
+    deliveryTimeline: {
+        startedAt: Date,
         lastknownProgress: {
             type: String,
             enum: ["pending","delivered","in-progress"],
             required: true
         },
-        completedAt : Date
+        completedAt: Date
     },
-    isStalledAt : {
+    
+    isStalledAt: {
         type: Boolean,
         default: false
     },
-    isDelayed : {
+    
+    isDelayed: {
         type: Boolean,
     },
+    
     eWayBill: {
         fileURL: {
             type: String,
             required: true
         },
         billNumber: {
-            type : Number,
+            type: Number,
             required: true
         },
         uploadedBy: {
@@ -196,6 +218,7 @@ const ordersSchema = new  mongoose.Schema({
         },
         uploadedAt: Date
     },
+    
     billty: {
         fileURL: {
             type: String,

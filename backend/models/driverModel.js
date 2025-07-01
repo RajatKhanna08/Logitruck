@@ -1,112 +1,132 @@
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 
-const driversSchema = new  mongoose.Schema({
-    profileImg : {
+const driverSchema = new  mongoose.Schema({
+    profileImg: {
         type: String,
         required: true
     },
-    transporterId : {
+
+    transporterId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref : 'transporters',
+        ref: 'transporters',
         required: true
     },
-    fullName : {
+
+    fullName: {
         type: String,     
         required: true
     },
-    phone : {
+
+    phone: {
         type: Number,
         required:true
     },
-    email : {
+
+    email: {
         type: String,
-        required : true,
-        unique : true
+        required: true,
+        unique: true
     },
-    password : {
-        type : Number,
+
+    password: {
+        type: Number,
         required: true
     },
-    documents : {
-        idProof : {
-            type : String,
+
+    documents: {
+        idProof: {
+            type: String,
             required: true,
             unique: true
         },
-        license : {
-            type : String,
+        license: {
+            type: String,
             required: true,
             unique: true
         }
     },
-    vehicleType : {
-        type : String,
+
+    vehicleType: {
+        type: String,
         required: true
     },
-    currentLocation : {
+
+    currentLocation: {
         latitude: {
             type: String,
             required: true
         }, 
         longitude: {
-            type : String,
+            type: String,
             required: true
         }
     },
-    availabilityStatus : {
-        type : Boolean,
+
+    availabilityStatus: {
+        type: Boolean,
         required: true
     },
-    rating : {
+
+    rating: {
         type: mongoose.Schema.Types.ObjectId,
-        ref : 'ratings',
+        ref: 'ratings',
         required: true
     },
-    assignedTruckId : {
+
+    assignedTruckId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref : 'trucks',
+        ref: 'trucks',
         required: true,
         unique: true
     },
-    experience : {
-        type : Number,
-        required : true
-    },
-    activeBookingId : {
-        type: mongoose.Schema.Types.ObjectId,
-        ref : 'orders',
+
+    experience: {
+        type: Number,
         required: true
     },
-    totalDistanceTravelledInKm : {
-        type : Number,
+
+    activeBookingId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'orders',
+        required: true
+    },
+
+    totalDistanceTravelledInKm: {
+        type: Number,
         required: true,
         default: 0
     },
-    totalHoursDriven : {
-        type : Number,
+
+    totalHoursDriven: {
+        type: Number,
         required: true,
         default: 0
     },
-    totalDaysWorked : {
-        type : Number,
+
+    totalDaysWorked: {
+        type: Number,
         required: true,
         default: 0
     },
-    currentMode : {
+
+    currentMode: {
         type: String,
         required: true,
-        enum:["work mode","rest mode"],
+        enum: ["work mode","rest mode"],
         default: "work mode"
     }, 
-    lastModeUpdateTime : {
+
+    lastModeUpdateTime: {
         type: Number
     },
-    isStalled : {
+
+    isStalled: {
         type: Boolean,
         default: false
     },
-    lastKnownLocation : {
-        latitude : {
+
+    lastKnownLocation: {
+        latitude: {
             type: String,
             required: true
         },
@@ -117,5 +137,6 @@ const driversSchema = new  mongoose.Schema({
     }
 });
 
-const driversModel = mongoose.model("driversModel",driversSchema);
-export default driversModel;
+const driverModel = mongoose.model("driversModel",driverSchema);
+
+export default driverModel;

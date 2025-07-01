@@ -5,24 +5,29 @@ const adminSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+
     email: {
         type:String,
         required: true
     },
+
     phone: {
         type: Number,
         required: true
     },
+
     password: {
         type:String,
         required: true
     },
+
     role :{
         type: String,
         enum: ["company","transporter","driver","admin"],
         default: "admin",
         required: true
     },
+
     permissions: {
         manageUsers: {
             type:Boolean,
@@ -56,11 +61,11 @@ const adminSchema = new mongoose.Schema({
             type:Boolean,
             default:true
         },
-        manageSubscriptions:{
+        manageSubscriptions: {
             type:Boolean,
             default:true
         },
-        manageCommunity:{
+        manageCommunity: {
             type:Boolean,
             default:true
         }

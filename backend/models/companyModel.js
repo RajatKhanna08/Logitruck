@@ -1,31 +1,36 @@
 import mongoose from "mongoose";
 
 const companySchema = new  mongoose.Schema({
-    role : {
+    role: {
         type: String,
         enum:["company","transporter","driver","admin"],
         default:"company",
         required:true
     },
-    companyName : {
+    
+    companyName: {
         type: String,
         required: true
     },
-    industry : {
+    
+    industry: {
         type: String,
         required: true
     },
-    registrationNumber : {
+    
+    registrationNumber: {
         type: String,
         required: true,
         unique: true
     },
-    password : {
+    
+    password: {
         type: String,
         required: true
     },
-    contactPerson : {
-        name : {
+    
+    contactPerson: {
+        name: {
             type: String,
             required: true
         },
@@ -33,24 +38,28 @@ const companySchema = new  mongoose.Schema({
             type: Number,
             required: true
         },
-        email : {
+        email: {
             type: String,
             required: true
         }
     },
-    companyEmail : {
+    
+    companyEmail: {
         type: String,
         required: true,
         unique: true
     },
-    companyPhone : {
+    
+    companyPhone: {
         type: Number,
         required: true
     },
-    website : {
+    
+    website: {
         type: String,
     },
-    address : {
+    
+    address: {
         street: {
             type: String,
             required: true
@@ -76,13 +85,16 @@ const companySchema = new  mongoose.Schema({
             required: true
         }
     },
+    
     logo: {
         type: String,
     },
+    
     isVerified: {
         type:Boolean,
         default: false
     },
+    
     documents: {
         idProof: {
             type: String,

@@ -1,37 +1,43 @@
 import mongoose from "mongoose";
 
 const ratingSchema = new  mongoose.Schema({
-    bookingId : {
+    bookingId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref : 'orders'
+        ref: 'orders'
     },
-    reviewerId : {
+    
+    reviewerId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref : 'company'
+        ref: 'company'
     },
-    reviewerRole : {
+    
+    reviewerRole: {
         type: String,
-        enum : ["company","transporter","driver","admin"],
+        enum: ["company","transporter","driver","admin"],
         default: "company",
         required: true
     },
-    reviewedEntityId : {
+    
+    reviewedEntityId: {
         type: mongoose.Schema.Types.ObjectId,
         refPath: 'reviewedEntityType',
         required:true
     },
-    reviewedEntityType : {
+    
+    reviewedEntityType: {
         type: String,
-        enum:["admin","company","transporter","driver"],
+        enum: ["admin","company","transporter","driver"],
         required:true
     },
-    rating : {
+    
+    rating: {
         type: Number,
         required: true,
         min: 0,
         max: 5
     },
-    reviewText : {
+    
+    reviewText: {
         type: String,
         maxLength: 100
     }

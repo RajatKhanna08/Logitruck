@@ -1,62 +1,73 @@
 import mongoose from "mongoose";
 
 const trucksSchema = new  mongoose.Schema({
-    transporterId : {
+    transporterId: {
         type: mongoose.Schema.Types.ObjectId,
         ref : 'transporter',
         required: true
     },
-    registrationNumber : {
+
+    registrationNumber: {
         type: String,
         required: true
     },
-    brand : {
+
+    brand: {
         type: String,     
         required: true
     },
-    model : {
+
+    model: {
         type: String,
-        required:true
+        required: true
     },
-    vehicleType : {
+
+    vehicleType: {
         type: String,
         enum:[],
         default:""
     },
-    capacityInKg : {
+
+    capacityInKg: {
         type: Number,
         required : true
     },
-    capacityInCubicMeters : {
+
+    capacityInCubicMeters: {
         type : Number,
         required: true
     },
-    documents : {
-        rcBook : {
-            type : String,
+
+    documents: {
+        rcBook: {
+            type: String,
             required: true
         },
-        insurance : {
-            type : String,
-        },
-        pollutionCertificate : {
+        insurance: {
             type: String,
-            required:true
+        },
+        pollutionCertificate: {
+            type: String,
+            required: true
         }
     },
-    insuranceValidTill : {
-        type : Date,
-    },
-    pollutionCertificateValidTill : {
+
+    insuranceValidTill: {
         type: Date,
-        required : true
     },
-    assignedDriverId : {
-        type : mongoose.Schema.Types.ObjectId,
+
+    pollutionCertificateValidTill: {
+        type: Date,
+        required: true
+    },
+
+    assignedDriverId: {
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'drivers',
         required: true
     },
-    isActive : {
+
+    isActive: {
         type: Boolean,
         required: true
     }

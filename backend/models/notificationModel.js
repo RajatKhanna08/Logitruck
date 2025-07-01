@@ -1,35 +1,42 @@
 import mongoose from "mongoose";
 
 const notificationSchema = new  mongoose.Schema({
-    role : {
+    role: {
         type: String,
-        enum:["company", "driver", "transporter", "admin"],
+        enum: ["company", "driver", "transporter", "admin"],
         required: true
     },
-    type : {
+    
+    type: {
         type : String,
-        enum:["general","status","warning","rest-mode","stall-aler"]
+        enum: ["general","status","warning","rest-mode","stall-aler"]
     },
-    title : {
-        type : String,
-        required: true
-    },
-    message : {
-        type : String,
-        required: true
-    },
-    relatedBookingId : {
+    
+    title: {
         type: String,
         required: true
     },
-    relatedUserId : {
+    
+    message: {
         type: String,
         required: true
     },
-    isRead : {
+    
+    relatedBookingId: {
+        type: String,
+        required: true
+    },
+    
+    relatedUserId: {
+        type: String,
+        required: true
+    },
+    
+    isRead: {
         type: Boolean,
     },
-    deliveryMode : {
+    
+    deliveryMode: {
         type: String,
         enum: ["pending", "accepted", "ongoing", "completed", "cancelled"],
         default: "pending"

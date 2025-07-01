@@ -1,33 +1,39 @@
 import mongoose from "mongoose";
 
 const transporterSchema = new  mongoose.Schema({
-    role : {
+    role: {
         type: String,
-        enum:["company","transporter","driver","admin"],
+        enum: ["company","transporter","driver","admin"],
         default:"transporter",
         required:true
     },
-    transporterName : {
+    
+    transporterName: {
         type: String,
         required:true
     },
-    ownerName : {
+    
+    ownerName: {
         type: String,
         required:true
     },
-    contactNo : {
+    
+    contactNo: {
         type: Number,
         required : true
     },
+    
     email: {
         type: String,
         required: true,
         unique: true
     },
+    
     password: {
         type: String,
         required: true
     },
+    
     address: {
         street: {
             type: String,
@@ -54,15 +60,18 @@ const transporterSchema = new  mongoose.Schema({
             required: true
         }
     },
-    registrationNumber : {
+    
+    registrationNumber: {
         type: String,
         required: true,
         unique: true
     },
-    isVerified : {
+    
+    isVerified: {
         type: Boolean,
         default: false
     },
+    
     documents: {
         idProof: {
             type: String,
@@ -77,20 +86,24 @@ const transporterSchema = new  mongoose.Schema({
             required: true
         }
     },
-    fleetSize : {
+    
+    fleetSize: {
         type: Number,
         required: true
     },
-    trucks : [
+    
+    trucks: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "truck"
         }
     ],
-    rating : {
+    
+    rating: {
         type: Number
     },
-    assignedBookings : [
+    
+    assignedBookings: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "orders"
