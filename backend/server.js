@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import connectToDB from './lib/connectToDB.js';
-
 import adminRoutes from './routes/admin.routes.js';
 import companyRoutes from './routes/company.routes.js';
 import transporterRoutes from './routes/transporter.routes.js'; 
@@ -21,6 +20,6 @@ app.use('/api/company', companyRoutes);
 app.use('/api/transporter', transporterRoutes);
 
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`✅ Server is running on http://localhost:${PORT}`);
     connectToDB();
 });

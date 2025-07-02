@@ -9,14 +9,11 @@ router.delete('/logout', logoutCompanyController);
 router.get('/profile', getCompanyProfileController);
 router.put('/certifications', uploadCompanyCertificationsController);
 router.get('/certifications', getCompanyCertificationsController);
-router.delete('/certifications', deleteCompanyCertificationsController);
+router.delete('/certifications', deleteCompanyCertificerationsController);
 
 //company updation routes
 router.put('/profile', updateCompanyProfileController);
 router.put('/contact', updateCompanyPersonController);
-
-//company alert routes
-router.post('/alert/respond', respondToAlertController);
 
 //company order routes
 router.get('/suggestions/:orderId', getTruckSuggestionsController);
