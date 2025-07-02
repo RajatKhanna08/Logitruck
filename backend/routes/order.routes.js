@@ -9,11 +9,9 @@ import {
     getCurrentDriverOrderController,
     getOrderStatusController,
     getActiveOrdersController,
-    uploadBiltyController,
     getDriverHistoryController,
     updateOrderStatusController,
     cancelOrderController
-
 } from '../controllers/order.controller.js';
 
 const router = express.Router();

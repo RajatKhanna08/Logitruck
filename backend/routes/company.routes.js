@@ -1,4 +1,20 @@
 import express from 'express';
+import {
+	registerCompanyController,
+	loginCompanyController,
+	logoutCompanyController,
+	getCompanyProfileController,
+	uploadCompanyCertificationsController,
+	getCompanyCertificationsController,
+	deleteCompanyCertificerationsController,
+	updateCompanyProfileController,
+	updateCompanyPersonController,
+	getTruckSuggestionsController,
+	uploadEwayBillController,
+	getAvailableTrucksController,
+	filterTrucksController,
+	getDriverByTruckController
+} from '../controllers/company.controller.js';
 
 const router = express.Router();
 

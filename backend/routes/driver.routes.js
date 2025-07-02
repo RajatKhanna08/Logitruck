@@ -1,4 +1,25 @@
-import express from 'express'
+import express from 'express';
+import {
+  registerDriverController,
+  loginDriverController,
+  logoutDriverController,
+  getDriverProfileController,
+  getDriverDocumentsController,
+  deleteDriverDocumentsController,
+  updateDriverProfileController,
+  uploadDriverDocumentsController,
+  getAssignedOrderController,
+  startOrderController,
+  updateOrderProgressController,
+  endOrderController,
+  getWorkModeController,
+  toggleWorkModeController,
+  getOrdersHistoryController,
+  requestEWayExtensionController,
+  reportEmergencyController,
+  getDriverCurrentLocationController,
+  getDriverDashboardController
+} from '../controllers/driver.controller.js';
 
 const router = express.Router();
 
@@ -7,7 +28,7 @@ router.post('/register', registerDriverController);
 router.post('/login', loginDriverController);
 router.delete('/logout', logoutDriverController);
 router.get('/profile', getDriverProfileController);
-router.get('/documents'. getDriverDocumentsController);
+router.get('/documents', getDriverDocumentsController);
 router.delete('/documents', deleteDriverDocumentsController);
 
 //driver updation routes
