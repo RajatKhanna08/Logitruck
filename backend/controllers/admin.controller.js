@@ -1,7 +1,3 @@
-export const  adminSignupController = async (req, res) => {
-    
-}
-
 export const  adminLoginController = async (req, res) => {
     
 }
