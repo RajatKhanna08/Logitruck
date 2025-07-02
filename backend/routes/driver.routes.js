@@ -8,7 +8,7 @@ router.post('/login', loginDriverController);
 router.delete('/logout', logoutDriverController);
 router.get('/profile', getDriverProfileController);
 router.get('/documents'. getDriverDocumentsController);
-router.delete('/document', deleteDriverDocumentsController);
+router.delete('/documents', deleteDriverDocumentsController);
 
 //driver updation routes
 router.put('/profile', updateDriverProfileController);

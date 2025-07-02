@@ -3,7 +3,6 @@ import express from 'express';
 import {
     
 } from '../controllers/transporter.controller.js';
-import { get } from 'mongoose';
 
 const router = express.Router();
 
