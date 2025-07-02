@@ -21,10 +21,10 @@ router.post('/create', createOrderController);
 router.post('/company/upload-eway-bill', uploadEwayBillController);
 
 //track order route
-router.get('/track/:orderid', trackOrderController);    
-//review order route
-router.post('/rate/:orderId', rateOrderController)
+router.get('/track/:orderid', trackOrderController); 
 
+//review order route
+router.post('/rate/:orderId', rateOrderController);
 router.get('/current-order/:orderId', getCurrentOrderController);
 
 // Display order routes

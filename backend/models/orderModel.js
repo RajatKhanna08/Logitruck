@@ -1,4 +1,4 @@
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 
 const ordersSchema = new  mongoose.Schema({
     customerId: {
@@ -68,6 +68,40 @@ const ordersSchema = new  mongoose.Schema({
     scheduleAt: Date,
     startTime: Date,
     endTime: Date,
+
+    isBiddingEnabled: {
+        type: Boolean,
+        default: true
+    },
+
+    biddingStatus: {
+        type: String,
+        enum: ["open", "closed", "accepted"],
+        default: "open"
+    },
+
+    biddingExpiresAt: {
+        type: Date
+    },
+
+    acceptedTransporterId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "transporters"
+    },
+
+    acceptedTruckId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "trucks"
+    },
+
+    driverId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "drivers"
+    },
+
+    finalBidAmount: {
+        type: Number
+    },
     
     status: {
         type: String,
