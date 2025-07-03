@@ -1,5 +1,5 @@
 import express from 'express';
-// Import notification controller functions
+
 import {
     getAllNotificationsController,
     deleteAllNotificationsController
@@ -9,10 +9,8 @@ const router = express.Router();
 
 // ==================== Notification Routes ====================
 
-// Route to get all notifications for the user
-router.get('/all', getAllNotificationsController);
 
-// Route to delete all notifications for the user
+router.get('/all', getAllNotificationsController);
 router.delete('/all', deleteAllNotificationsController);
 
 export default router;
