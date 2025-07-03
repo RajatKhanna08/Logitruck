@@ -1,24 +1,29 @@
 import mongoose from "mongoose";
 
+// Define the schema for the orders collection in MongoDB
 const ordersSchema = new  mongoose.Schema({
+    // Reference to the customer (company) placing the order (required)
     customerId: {
         type: mongoose.Schema.Types.ObjectId,
-        re : 'company',
+        re : 'company', // Typo: should be 'ref'
         required: true
     },
     
+    // Reference to the transporter handling the order (required)
     transporterId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'transporter',
         required: true
     },
     
+    // Reference to the assigned driver (required)
     driverId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'driver',     
         required: true
     },
     
+    // Pickup location details (address, latitude, longitude)
     pickupLocation: {
         address: {
             type: String,
@@ -34,6 +39,7 @@ const ordersSchema = new  mongoose.Schema({
         }
     },
     
+    // Drop locations (stop index, address, coordinates, contact, and instructions)
     dropLocations: {
         stopIndex: {
             type: String,
@@ -65,10 +71,12 @@ const ordersSchema = new  mongoose.Schema({
         }
     },
     
+    // Scheduled, start, and end times for the order
     scheduleAt: Date,
     startTime: Date,
     endTime: Date,
 
+    // Bidding related fields
     isBiddingEnabled: {
         type: Boolean,
         default: true
@@ -103,12 +111,14 @@ const ordersSchema = new  mongoose.Schema({
         type: Number
     },
     
+    // Status of the order
     status: {
         type: String,
         enum: ["pending","delivered","cancelled","paused","in-transit","delayed"],
         default: "pending"
     },
     
+    // Load details (weight, volume, type, quantity, description)
     loadDetails: {
         weightInKg: {
             type: Number,
@@ -133,26 +143,31 @@ const ordersSchema = new  mongoose.Schema({
         }
     },
     
+    // Number of completed stops for the order
     completedStops: {
         type: Number,
         required: true
     },
     
+    // Total distance for the order (in km)
     distance: {
         type: Number,
         required: true
     },
     
+    // Total duration for the order (in hours/minutes)
     duration: {
         type: Number,
         required: true
     },
     
+    // Fare for the order
     fare: {
         type: Number,
         required: true
     },
     
+    // Payment mode and status
     paymentMode: {
         type: String,
         enum: ["UPI", "Cash","Credit Card", "Net-Banking"],
@@ -165,6 +180,7 @@ const ordersSchema = new  mongoose.Schema({
         default: "unpaid"
     },
     
+    // Current location of the order (for tracking)
     currentLocation: {
         latitude: {
             type: String,
@@ -175,6 +191,7 @@ const ordersSchema = new  mongoose.Schema({
         updatedAt: Date
     },
     
+    // Tracking history for the order (location, timestamp, rating, review)
     trackingHistory: {
         latitude: {
             type: String,
@@ -195,11 +212,13 @@ const ordersSchema = new  mongoose.Schema({
         }
     },
     
+    // Rating given by the customer (reference)
     ratingByCustomer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'company',
     },
     
+    // Rating given by the driver (stars and review reference)
     ratingByDriver: {
         stars: {
             type: Number,
@@ -211,12 +230,14 @@ const ordersSchema = new  mongoose.Schema({
         }
     },
     
+    // Current status of the order (pending, delivered, in-progress, cancelled)
     currentStatus: {
         type: String,
         enum:["pending","delivered","in-progress", "cancelled"],
         default: "pending"
     },
      
+    // Delivery timeline (start, progress, completion)
     deliveryTimeline: {
         startedAt: Date,
         lastknownProgress: {
@@ -227,15 +248,18 @@ const ordersSchema = new  mongoose.Schema({
         completedAt: Date
     },
     
+    // Indicates if the order is stalled
     isStalledAt: {
         type: Boolean,
         default: false
     },
     
+    // Indicates if the order is delayed
     isDelayed: {
         type: Boolean,
     },
     
+    // E-way bill details (file URL, bill number, uploaded by, uploaded at)
     eWayBill: {
         fileURL: {
             type: String,
@@ -253,6 +277,7 @@ const ordersSchema = new  mongoose.Schema({
         uploadedAt: Date
     },
     
+    // Billty details (file URL, bill number, issued by, issued at)
     billty: {
         fileURL: {
             type: String,
@@ -271,5 +296,8 @@ const ordersSchema = new  mongoose.Schema({
     },
 });
 
+// Create the orders model using the schema
 const ordersModel = mongoose.model("ordersModel",ordersSchema);
+
+// Export the model for use in other parts of the application
 export default ordersModel;

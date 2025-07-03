@@ -1,44 +1,61 @@
 import express from 'express';
 import {
-	registerCompanyController,
-	loginCompanyController,
-	logoutCompanyController,
-	getCompanyProfileController,
-	uploadCompanyCertificationsController,
-	getCompanyCertificationsController,
-	deleteCompanyCertificerationsController,
-	updateCompanyProfileController,
-	updateCompanyPersonController,
-	getTruckSuggestionsController,
-	uploadEwayBillController,
-	getAvailableTrucksController,
-	filterTrucksController,
-	getDriverByTruckController
+    registerCompanyController,              // Controller for company registration
+    loginCompanyController,                 // Controller for company login
+    logoutCompanyController,                // Controller for company logout
+    getCompanyProfileController,            // Controller to get company profile
+    uploadCompanyCertificationsController,  // Controller to upload company certifications
+    getCompanyCertificationsController,     // Controller to get company certifications
+    deleteCompanyCertificerationsController,// Controller to delete company certifications
+    updateCompanyProfileController,         // Controller to update company profile
+    updateCompanyPersonController,          // Controller to update company contact person
+    getTruckSuggestionsController,          // Controller to get truck suggestions for an order
+    uploadEwayBillController,               // Controller to upload e-way bill for an order
+    getAvailableTrucksController,           // Controller to get available trucks
+    filterTrucksController,                 // Controller to filter trucks
+    getDriverByTruckController              // Controller to get driver by truck ID
 } from '../controllers/company.controller.js';
 
 const router = express.Router();
 
-//company profile routes
+// ==================== Company Profile Routes ====================
+
+// Register a new company
 router.post('/register', registerCompanyController);
+// Company login
 router.post('/login', loginCompanyController);
+// Company logout
 router.delete('/logout', logoutCompanyController);
+// Get company profile
 router.get('/profile', getCompanyProfileController);
+// Upload company certifications
 router.put('/certifications', uploadCompanyCertificationsController);
+// Get company certifications
 router.get('/certifications', getCompanyCertificationsController);
+// Delete company certifications
 router.delete('/certifications', deleteCompanyCertificerationsController);
 
-//company updation routes
+// ==================== Company Updation Routes ====================
+
+// Update company profile
 router.put('/profile', updateCompanyProfileController);
+// Update company contact person
 router.put('/contact', updateCompanyPersonController);
 
-//company order routes
+// ==================== Company Order Routes ====================
+
+// Get truck suggestions for a specific order
 router.get('/suggestions/:orderId', getTruckSuggestionsController);
+// Upload e-way bill for a specific order
 router.post('/order/eway/:orderId', uploadEwayBillController);
 
-//company browse routes
-router.get('/trucks', getAvailableTrucksController);
-router.get('/filter', filterTrucksController);
-router.get('/driver/:truckId', getDriverByTruckController);
+// ==================== Company Browse Routes ====================
 
+// Get all available trucks
+router.get('/trucks', getAvailableTrucksController);
+// Filter trucks based on criteria
+router.get('/filter', filterTrucksController);
+// Get driver details by truck ID
+router.get('/driver/:truckId', getDriverByTruckController);
 
 export default router;
