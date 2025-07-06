@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const paymentsSchema = new  mongoose.Schema({
     orderId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'orders',
+        ref: 'ordersModel',
         required: true,
     },
     
@@ -15,7 +15,7 @@ const paymentsSchema = new  mongoose.Schema({
     
     transporterId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'transporter',       
+        ref: 'transporters',       
         required: true
     },
     
@@ -24,34 +24,48 @@ const paymentsSchema = new  mongoose.Schema({
         required:true
     },
     
+    commission: {
+        type: Number,
+        required: true  
+      },
+    
+    payoutAmount: {
+        type: Number,
+        required: true
+    },
+    
     currency: {
         type: String,
         default: "INR",
+        required: true
     },
     
     paymentMode: {
         type: String,
         required: true,
-        enum: ["UPI", "Cash", "Net Banking", "Credit Card"],
-        default: "Cash"
+        enum: ["UPI","Net Banking", "Credit Card"],
+        default: "UPI"
     },
     
     paymentGateway: {
         name: {
             type: String,
             required: true
-        },
-        transactionId: {
+        }, // Razorpay
+        razorpayOrderId: {
             type: String,
             required: true
         },
-        orderRef: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'orders',
+        razorpayPaymentId: {
+            type: String,
+            required: true
+        },
+        razorpaySignature: {
+            type: String,
             required: true
         },
         response: {
-            type: String,
+            type: mongoose.Schema.Types.Mixed,
             required: true
         },
     },
@@ -76,9 +90,20 @@ const paymentsSchema = new  mongoose.Schema({
         type: String,
         enum: ["pending", "processed", "failed"],
         default: "pending"
-    }
+    },
+
+    paymentStatus: {
+        type: String,
+        enum: ["pending", "paid", "refunded", "failed"],
+        default: "pending"
+      }    
 });
 
-const paymentsModel = mongoose.model("payments",paymentsSchema);
+paymentsSchema.virtual("calculatedPayout").get(function () {
+    return this.amount - this.commission;
+  });
+paymentsSchema.set("toJSON", { virtuals: true });
+paymentsSchema.set("toObject", { virtuals: true });  
 
+const paymentsModel = mongoose.model("payments",paymentsSchema);        
 export default paymentsModel;

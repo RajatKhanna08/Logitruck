@@ -6,7 +6,8 @@ const transporterSchema = new  mongoose.Schema({
     role: {
         type: String,
         enum: ["company","transporter","driver","admin"],
-        default:"transporter",
+        default: "transporter",
+        required: true
     },
     
     transporterName: {
@@ -83,7 +84,7 @@ const transporterSchema = new  mongoose.Schema({
             type: String,
             required: true
         },
-        bussinesLicense: {
+        businessLicense: {
             type: String,
             required: true
         },
@@ -101,12 +102,13 @@ const transporterSchema = new  mongoose.Schema({
     trucks: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "truck"
+            ref: "trucks"
         }
     ],
     
     rating: {
-        type: Number
+        type: Number,
+        default: 0
     },
     
     assignedBookings: [
