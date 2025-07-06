@@ -7,9 +7,15 @@ import orderModel from '../models/orderModel.js';
 import paymentModel from '../models/paymentModel.js';
 import reviewModel from "../models/reviewModel.js";
 import biddingModel from '../models/biddingModel.js'
+import { validationResult } from 'express-validator';
 
 export const adminRegisterController = async (req, res) => {
-    try{
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
         const { fullName, email, password, phone } = req.body;
 
         const exisitingAdmin = await adminModel.findOne({ email: email });
@@ -36,7 +42,12 @@ export const adminRegisterController = async (req, res) => {
 }
 
 export const adminLoginController = async (req, res) => {
-    try{
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
         const { email, password } = req.body;
 
         const existingAdmin = await adminModel.findOne({ email: email });
@@ -187,7 +198,12 @@ export const getTransporterByIdController = async (req, res) => {
 }
 
 export const verifyTransporterController = async (req, res) => {
-    try{
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
         const { transporterId } = req.params;
         const { isVerified } = req.body;
     
@@ -386,7 +402,12 @@ export const getOrderByIdController = async (req, res) => {
 }
 
 export const cancelOrderController = async (req, res) => {
-    try{
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
         const { orderId } = req.params;
 
         const updatedOrder = await orderModel.findByIdAndUpdate(orderId, { status: "cancelled", currentStatus: "cancelled" }, { new: true });
@@ -403,7 +424,12 @@ export const cancelOrderController = async (req, res) => {
 }
 
 export const markOrderDelayedController = async (req, res) => {
-    try{
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
         const { orderId } = req.params;
 
         const updatedOrder = await orderModel.findByIdAndUpdate (orderId, { status: "delayed", currentStatus: "delayed" }, { new: true });
@@ -420,10 +446,16 @@ export const markOrderDelayedController = async (req, res) => {
 }
 
 export const reassignOrderController = async (req, res) => {
-    try{
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { orderId } = req.params;
 
     }
-    catch(err){
+    catch(err) {
         console.log("Error in reassignOrderController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
