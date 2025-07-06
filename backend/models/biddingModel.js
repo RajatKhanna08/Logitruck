@@ -52,6 +52,6 @@ const biddingSchema = new  mongoose.Schema({
     },
 });
 
-const biddingModel = mongoose.model("biddingModel", biddingSchema);
+const biddingModel = mongoose.model("bidding", biddingSchema);
 
 export default biddingModel;

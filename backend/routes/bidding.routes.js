@@ -7,7 +7,7 @@ import {
     updateBidController,               // Controller to update an existing bid
     acceptBidController,               // Controller to accept a bid from a transporter
     rejectBidController                // Controller to reject a bid from a transporter
-} from '../controllers/bidding.controller';
+} from '../controllers/bidding.controller.js';
 
 const router = express.Router();
 

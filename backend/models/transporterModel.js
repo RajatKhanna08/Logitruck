@@ -1,47 +1,40 @@
 import mongoose from "mongoose";
+import jwt from 'jsonwebtoken';
+import bcrypt from "bcryptjs";
 
-// Define the schema for storing transporter details
 const transporterSchema = new  mongoose.Schema({
-    // Role of the user (should be 'transporter' for this schema)
     role: {
         type: String,
         enum: ["company","transporter","driver","admin"],
         default:"transporter",
-        required:true
     },
     
-    // Name of the transporter company
     transporterName: {
         type: String,
         required:true
     },
     
-    // Name of the owner of the transporter company
     ownerName: {
         type: String,
         required:true
     },
     
-    // Contact number of the transporter
     contactNo: {
         type: Number,
         required : true
     },
     
-    // Email address (must be unique)
     email: {
         type: String,
         required: true,
         unique: true
     },
     
-    // Password (hashed)
     password: {
         type: String,
         required: true
     },
     
-    // Address details
     address: {
         street: {
             type: String,
@@ -69,20 +62,22 @@ const transporterSchema = new  mongoose.Schema({
         }
     },
     
-    // Unique registration number for the transporter
     registrationNumber: {
         type: String,
         required: true,
         unique: true
     },
     
-    // Verification status of the transporter
     isVerified: {
         type: Boolean,
         default: false
     },
+
+    isBlocked: {
+        type: Boolean,
+        default: false
+    },
     
-    // Documents required for verification
     documents: {
         idProof: {
             type: String,
@@ -98,13 +93,11 @@ const transporterSchema = new  mongoose.Schema({
         }
     },
     
-    // Number of trucks in the fleet
     fleetSize: {
         type: Number,
         required: true
     },
     
-    // Array of truck references owned by the transporter
     trucks: [
         {
             type: mongoose.Schema.Types.ObjectId,
@@ -112,12 +105,10 @@ const transporterSchema = new  mongoose.Schema({
         }
     ],
     
-    // Average rating of the transporter
     rating: {
         type: Number
     },
     
-    // Array of assigned booking/order references
     assignedBookings: [
         {
             type: mongoose.Schema.Types.ObjectId,
@@ -126,6 +117,19 @@ const transporterSchema = new  mongoose.Schema({
     ]
 });
 
-// Create and export the transporter model
-const transporterModel = mongoose.model('transporterModel',transporterSchema);
+transporterSchema.methods.generateAuthToken = function(){
+    const token = jwt.sign({ _id: this._id, role: this.role }, process.env.JWT_SECRET_KEY, { expiresIn: "24h" });
+    return token;
+}
+
+transporterSchema.methods.comparePassword = function(enteredPassword){
+    return bcrypt.compare(enteredPassword, this.password);
+}
+
+transporterSchema.statics.hashPassword = async function(password){
+    return bcrypt.hash(password, 12);
+}
+
+const transporterModel = mongoose.model('transporter',transporterSchema);
+
 export default transporterModel;

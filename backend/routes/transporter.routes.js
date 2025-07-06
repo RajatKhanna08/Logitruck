@@ -6,9 +6,6 @@ import {
     logoutTransporterController,
     getTransporterProfileController,
     uploadTransporterCertificationsController,
-    getTransportCertificationsController,
-    deleteTransportCertficationController,
-    getTransporterDashboard,
     updateTransporterProfileController,
     updateTransporterPersonController,
     addTruckController,
@@ -17,14 +14,19 @@ import {
     updateTruckDetailsController,
     uploadTruckDocumentsController,
     updateDriverReferenceController,
-    activeTruckWithDriverController,
-    deactiveTruckWithDriverController,
     deleteTruckController,
     getMyDriversController,
     getDriverByIdController,
     removeDriverController,
-    uploadBiltyController
+    uploadBiltyController,
+    deleteTransporterCertificationsController,
+    getTransporterCertificationsController,
+    getTransporterDashboardController,
+    activateTruckWithDriverController,
+    deactivateTruckWithDriverController
 } from '../controllers/transporter.controller.js';
+import { correctRole } from '../middlewares/authorizeRoles.js';
+import { isLoggedIn } from '../middlewares/isLoggedIn.js';
 
 const router = express.Router();
 
@@ -32,35 +34,35 @@ const router = express.Router();
 
 router.post('/register', registerTransporterController);
 router.post('/login', loginTransporterController);
-router.delete('/logout', logoutTransporterController);
-router.get('/profile', getTransporterProfileController);
-router.put('/certifications', uploadTransporterCertificationsController);
-router.get('/certifications', getTransportCertificationsController);
-router.delete('/certifications', deleteTransportCertficationController);
-router.get('/dashboard', getTransporterDashboard);
+router.delete('/logout', isLoggedIn, correctRole("transporter"), logoutTransporterController);
+router.get('/profile', isLoggedIn, correctRole("transporter"), getTransporterProfileController);
+router.put('/certifications', isLoggedIn, correctRole("transporter"), uploadTransporterCertificationsController);
+router.get('/certifications', isLoggedIn, correctRole("transporter"), getTransporterCertificationsController);
+router.delete('/certifications', isLoggedIn, correctRole("transporter"), deleteTransporterCertificationsController);
+router.get('/dashboard', isLoggedIn, correctRole("transporter"), getTransporterDashboardController);
 
 // ==================== Transporter Update Routes ====================
 
-router.put('/profile', updateTransporterProfileController);
-router.put('/contact', updateTransporterPersonController);
+router.put('/profile', isLoggedIn, correctRole("transporter"), updateTransporterProfileController);
+router.put('/contact', isLoggedIn, correctRole("transporter"), updateTransporterPersonController);
 
 // ==================== Truck Routes ====================
 
-router.post('/truck/add', addTruckController);
-router.get('/truck/my', getMyTrucksController);
-router.get('/truck/:truckId', getTruckByIdController);
-router.put('/truck/:truckId', updateTruckDetailsController);
-router.post('/upload-docs/:truckId', uploadTruckDocumentsController);
-router.put('/transporter/driver-ref/:truckId', updateDriverReferenceController);
-router.put('/activate/:truckId', activeTruckWithDriverController);
-router.put('/deactivate/:truckId', deactiveTruckWithDriverController);
-router.delete('/truck/:truckId', deleteTruckController);
+router.post('/truck/add', isLoggedIn, correctRole("transporter"), addTruckController);
+router.get('/truck/my', isLoggedIn, correctRole("transporter"), getMyTrucksController);
+router.get('/truck/:truckId', isLoggedIn, correctRole("transporter"), getTruckByIdController);
+router.put('/truck/:truckId', isLoggedIn, correctRole("transporter"), updateTruckDetailsController);
+router.post('/upload-docs/:truckId', isLoggedIn, correctRole("transporter"), uploadTruckDocumentsController);
+router.put('/transporter/driver-ref/:truckId', isLoggedIn, correctRole("transporter"), updateDriverReferenceController);
+router.put('/activate/:truckId', isLoggedIn, correctRole("transporter"), activateTruckWithDriverController);
+router.put('/deactivate/:truckId', isLoggedIn, correctRole("transporter"), deactivateTruckWithDriverController);
+router.delete('/truck/:truckId', isLoggedIn, correctRole("transporter"), deleteTruckController);
 
 // ==================== Driver Routes ====================
 
-router.get('/driver/my', getMyDriversController);
-router.get('/driver/:driverId', getDriverByIdController);
-router.delete('/driver/:driverId', removeDriverController);
-router.post('/order/upload-bilty/:orderId', uploadBiltyController);
+router.get('/driver/my', isLoggedIn, correctRole("transporter"), getMyDriversController);
+router.get('/driver/:driverId', isLoggedIn, correctRole("transporter"), getDriverByIdController);
+router.delete('/driver/:driverId', isLoggedIn, correctRole("transporter"), removeDriverController);
+router.post('/order/upload-bilty/:orderId', isLoggedIn, correctRole("transporter"), uploadBiltyController);
 
 export default router;

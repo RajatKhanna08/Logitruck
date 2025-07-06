@@ -20,6 +20,8 @@ import {
   getDriverCurrentLocationController,
   getDriverDashboardController
 } from '../controllers/driver.controller.js';
+import { correctRole } from '../middlewares/authorizeRoles.js';
+import { isLoggedIn } from '../middlewares/isLoggedIn.js';
 
 const router = express.Router();
 
@@ -27,40 +29,40 @@ const router = express.Router();
 
 router.post('/register', registerDriverController);
 router.post('/login', loginDriverController);
-router.delete('/logout', logoutDriverController);
-router.get('/profile', getDriverProfileController);
-router.get('/documents', getDriverDocumentsController);
-router.delete('/documents', deleteDriverDocumentsController);
+router.delete('/logout', isLoggedIn, correctRole("driver"), logoutDriverController);
+router.get('/profile', isLoggedIn, correctRole("driver"), getDriverProfileController);
+router.get('/documents', isLoggedIn, correctRole("driver"), getDriverDocumentsController);
+router.delete('/documents', isLoggedIn, correctRole("driver"), deleteDriverDocumentsController);
 
 // ==================== Driver Profile & Document Update Routes ====================
 
-router.put('/profile', updateDriverProfileController);
-router.put('/documents', uploadDriverDocumentsController);
+router.put('/profile', isLoggedIn, correctRole("driver"), updateDriverProfileController);
+router.put('/documents', isLoggedIn, correctRole("driver"), uploadDriverDocumentsController);
 
 // ==================== Driver Order Management Routes ====================
 
-router.get('/order', getAssignedOrderController);
-router.put('/order/start/:orderId', startOrderController);
-router.put('/order/update/:orderId', updateOrderProgressController);
-router.put('/order/reached/:orderId', endOrderController);
+router.get('/order', isLoggedIn, correctRole("driver"), getAssignedOrderController);
+router.put('/order/start/:orderId', isLoggedIn, correctRole("driver"), startOrderController);
+router.put('/order/update/:orderId', isLoggedIn, correctRole("driver"), updateOrderProgressController);
+router.put('/order/reached/:orderId', isLoggedIn, correctRole("driver"), endOrderController);
 
 // ==================== Driver Work Mode Routes ====================
 
-router.get('/mode', getWorkModeController);
-router.put('/mode', toggleWorkModeController);
+router.get('/mode', isLoggedIn, correctRole("driver"), getWorkModeController);
+router.put('/mode', isLoggedIn, correctRole("driver"), toggleWorkModeController);
 
 // ==================== Driver Order History & Emergency Routes ====================
 
-router.get('/order-history', getOrdersHistoryController);
-router.post('/order/e-way-extension/:orderId', requestEWayExtensionController);
-router.post('/order/emergency/:orderId', reportEmergencyController);
+router.get('/order-history', isLoggedIn, correctRole("driver"), getOrdersHistoryController);
+router.post('/order/e-way-extension/:orderId', isLoggedIn, correctRole("driver"), requestEWayExtensionController);
+router.post('/order/emergency/:orderId', isLoggedIn, correctRole("driver"), reportEmergencyController);
 
 // ==================== Driver Location Routes ====================
 
-router.post('/location', getDriverCurrentLocationController);
+router.post('/location', isLoggedIn, correctRole("driver"), getDriverCurrentLocationController);
 
 // ==================== Driver Dashboard Route ====================
 
-router.get('/dashboard', getDriverDashboardController);
+router.get('/dashboard', isLoggedIn, correctRole("driver"), getDriverDashboardController);
 
 export default router;

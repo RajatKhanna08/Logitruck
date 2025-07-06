@@ -1,40 +1,34 @@
 import mongoose from "mongoose";
+import jwt from 'jsonwebtoken';
+import bcrypt from "bcryptjs";
 
-// Define the schema for the admin collection in MongoDB
 const adminSchema = new mongoose.Schema({
-    // Admin's full name (required)
-    fullname: {
+    fullName: {
         type: String,
         required: true
     },
 
-    // Admin's email address (required)
     email: {
         type: String,
         required: true
     },
 
-    // Admin's phone number (required)
     phone: {
         type: Number,
         required: true
     },
 
-    // Admin's password (required)
     password: {
         type: String,
         required: true
     },
 
-    // Role of the user, restricted to specific values, defaults to "admin"
     role: {
         type: String,
         enum: ["company", "transporter", "driver", "admin"],
-        default: "admin",
-        required: true
+        default: "admin"
     },
 
-    // Permissions object containing various admin privileges, all default to true
     permissions: {
         manageUsers: {
             type: Boolean,
@@ -78,12 +72,25 @@ const adminSchema = new mongoose.Schema({
         }
     },
 
-    // Date of the last login (optional)
-    lasLogin: Date
+    lastLogin: {
+        type: Date,
+        default: null
+    }
 });
 
-// Create the admin model using the schema
+adminSchema.methods.generateAuthToken = function(){
+    const token = jwt.sign({ _id: this._id, role: this.role }, process.env.JWT_SECRET_KEY, { expiresIn: "24h" });
+    return token;
+}
+
+adminSchema.methods.comparePassword = function(enteredPassword){
+    return bcrypt.compare(enteredPassword, this.password);
+}
+
+adminSchema.statics.hashPassword = async function(password){
+    return await bcrypt.hash(password, 12);
+}
+
 const adminModel = mongoose.model('admin', adminSchema);
 
-// Export the model for use in other parts of the application
 export default adminModel;
