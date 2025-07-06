@@ -8,6 +8,7 @@ import paymentModel from '../models/paymentModel.js';
 import reviewModel from "../models/reviewModel.js";
 import biddingModel from '../models/biddingModel.js'
 import { validationResult } from 'express-validator';
+import razorpay from "../lib/razorpay.js";
 
 export const adminRegisterController = async (req, res) => {
     try {
@@ -495,7 +496,36 @@ export const getPaymentByOrderIdController = async (req, res) => {
 
 export const processRefundController = async (req, res) => {
     try{
+        const { orderId } = req.params;
 
+        const payment = await paymentModel.findOne({ orderId: orderId });
+        if(!payment){
+            return res.status(404).json({ message: "Payment not found" });
+        }
+
+        if(payment.refundedAt){
+            return res.status(400).json({ message: "Payment already refunded" });
+        }
+
+        const razorpayRefund = await razorpay.payments.refund(payment.paymentGateway.transactionId, {
+            amount: payment.amount * 100,
+            speed: "optimum",
+            notes: {
+                reason: "Refund issued by Admin"   
+            }
+        });
+
+        payment.refundedAt = new Date();
+        payment.refundStatus = razorpayRefund.status;
+        await payment.save();
+
+        res.status(200).json({
+            message: "Refund processed successfully",
+            orderId: payment.orderId,
+            transactionId: payment.paymentGateway.transactionId,
+            refundedAt: payment.refundedAt,
+            status: razorpayRefund.status
+        })
     }
     catch(err){
         console.log("Error in processRefundController: ", err.message);

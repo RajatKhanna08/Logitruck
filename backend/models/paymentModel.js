@@ -27,7 +27,6 @@ const paymentsSchema = new  mongoose.Schema({
     currency: {
         type: String,
         default: "INR",
-        required:true
     },
     
     paymentMode: {
@@ -63,9 +62,21 @@ const paymentsSchema = new  mongoose.Schema({
         unique: true
     },
     
-    paidAt: Date,
+    paidAt: {
+        type: Date,
+        default: null
+    },
 
-    refundedAt: Date
+    refundedAt: {
+        type: Date,
+        default: null
+    },
+
+    refundStatus: {
+        type: String,
+        enum: ["pending", "processed", "failed"],
+        default: "pending"
+    }
 });
 
 const paymentsModel = mongoose.model("payments",paymentsSchema);
