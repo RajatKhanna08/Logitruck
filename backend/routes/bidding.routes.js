@@ -8,10 +8,12 @@ import {
     acceptBidController,               // Controller to accept a bid from a transporter
     rejectBidController                // Controller to reject a bid from a transporter
 } from '../controllers/bidding.controller.js';
+import { isLoggedIn } from '../middlewares/isLoggedIn.js';
+import { correctRole } from '../middlewares/authorizeRoles.js';
 
 const router = express.Router();
 
-router.get('/price-suggestion/:orderId', getFairPriceSuggestionsController);
+router.get('/price-suggestion/:orderId', isLoggedIn, correctRole("company"), getFairPriceSuggestionsController);
 router.post('/place/:orderId', placeBidController);
 router.delete('/cancel/:orderId', cancelBidController);
 router.get('/bid/:orderId', getBidStatusController);
