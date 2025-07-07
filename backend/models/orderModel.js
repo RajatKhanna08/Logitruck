@@ -22,35 +22,37 @@ const ordersSchema = new  mongoose.Schema({
         }
     },
     
-    dropLocations: {
-        stopIndex: {
+    dropLocations: [
+        {
+            stopIndex: {
             type: Number,
-        },
-        address: {
-            type: String,
-            required: true
-        },
-        latitude: {
-            type: String, 
-            required: true
-        },
-        longitude: {
-            type: String,
-            required: true
-        },
-        contactName: {
-            type:String,
-            required: true
-        },
-        contactPhone: {
-            type: Number,
-            required: true
-        },
-        instructions: {
-            type: String,
-            required: true
+            },
+            address: {
+                type: String,
+                required: true
+            },
+            latitude: {
+                type: String, 
+                required: true
+            },
+            longitude: {
+                type: String,
+                required: true
+            },
+            contactName: {
+                type:String,
+                required: true
+            },
+            contactPhone: {
+                type: Number,
+                required: true
+            },
+            instructions: {
+                type: String,
+                required: true
+            }
         }
-    },
+    ],
     
     scheduleAt: Date,
     startTime: Date,
@@ -142,8 +144,8 @@ const ordersSchema = new  mongoose.Schema({
     
     paymentMode: {
         type: String,
-        enum: ["UPI", "Cash","Credit Card", "Net-Banking"],
-        default: "Cash",
+        enum: ["UPI","Credit Card", "Net-Banking"],
+        default: "UPI",
     },
     
     paymentStatus: {
@@ -162,24 +164,30 @@ const ordersSchema = new  mongoose.Schema({
         updatedAt: Date
     },
     
-    trackingHistory: {
-        latitude: {
-            type: String,
-            required: true
-        },
-        longitude: {
-            type: String,
-            required: true
-        },
-        timeStamp: {
-            type: Date
-        },
-        stars: {
-            type: Number
-        },
-        review: {
-            type: String
+    trackingHistory: [
+        {
+            latitude: {
+                type: String,
+                required: true
+            },
+            longitude: {
+                type: String,
+                required: true
+            },
+            timeStamp: {
+                type: Date
+            }
         }
+    ],
+
+    stars: {
+        type: Number,
+        min: 1,
+        max: 5
+    },
+
+    review: {
+        type: String
     },
     
     ratingByCustomer: {
