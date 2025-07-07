@@ -73,7 +73,7 @@ const ordersSchema = new  mongoose.Schema({
 
     acceptedTransporterId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "transporters"
+        ref: "transporter"
     },
 
     acceptedTruckId: {
@@ -142,8 +142,8 @@ const ordersSchema = new  mongoose.Schema({
     
     paymentMode: {
         type: String,
-        enum: ["UPI", "Cash","Credit Card", "Net-Banking"],
-        default: "Cash",
+        enum: ["UPI","Credit Card", "Net-Banking"],
+        default: "UPI",
     },
     
     paymentStatus: {
@@ -222,42 +222,108 @@ const ordersSchema = new  mongoose.Schema({
     isDelayed: {
         type: Boolean,
     },
-    
-    eWayBill: {
-        fileURL: {
-            type: String,
-            required: true
-        },
-        billNumber: {
-            type: Number,
-            required: true
-        },
-        uploadedBy: {
+
+    documents: {
+        eWayBill: {
+            fileURL: {
+                type: String,
+                required: false
+            },
+
+            billNumber: {
+                type: Number
+            },
+
+          uploadedBy: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "",
-            required: true
+            ref: "company"
+            },
+          
+          uploadedAt: Date
         },
-        uploadedAt: Date
+
+        bilty: {
+            fileURL: {
+                type: String,
+                required: false
+            },
+            billNumber: {
+                type: Number
+            },
+
+          issuedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "transporter"
+            },
+          
+          issuedAt: Date
+        },
+
+        kataParchiBefore: {
+          fileURL: { type: String },
+          uploadedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "drivers"
+            },
+          
+          uploadedAt: Date
+        },
+
+        kataParchiAfter: {
+            fileURL: {
+                type: String
+            },
+
+          uploadedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "drivers"
+            },
+          
+          uploadedAt: Date
+        },
+
+        receivingDocument: {
+            fileURL: {
+                type: String
+            },
+          uploadedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "drivers"
+          },
+          uploadedAt: Date
+        }
+      },
+    
+    advancePaid: {
+        type: Number,
+        default: 0
+    },
+
+    advanceDiscount: {
+        type: Number,
+        default: 0
     },
     
-    billty: {
-        fileURL: {
-            type: String,
-            required: true
-        },
-        billNumber: {
-            type : Number,
-            required: true
-        },
-        issuedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "",
-            required: true
-        },
-        issuedAt: Date
+    isRefundRequested: {
+        type: Boolean,
+        default: false
     },
+
+    refundRequestedAt: Date,
+    refundReason: String,
+    refundStatus: {
+        type: String,
+        enum: ["pending", "approved", "rejected", "not_applicable"],
+        default: "not_applicable"
+    },
+
+    refundAmount: { type: Number, default: 0 },
+    refundedAt: Date,
+    isRefunded: {
+        type: Boolean,
+        default: false
+    }
 });
 
 const orderModel = mongoose.model("orders",ordersSchema);
-
 export default orderModel;

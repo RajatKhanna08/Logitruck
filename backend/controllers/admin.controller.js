@@ -137,7 +137,7 @@ export const toggleCompanyBlockController = async (req, res) => {
         }
 
         const newBlockStatus = !company.isBlocked;
-        const updatedCompany = await companyModel.findByIdAndUpdate(id,
+        const updatedCompany = await companyModel.findByIdAndUpdate(companyId,
             { isBlocked: newBlockStatus }
             , { new: true }).select("-password");
         
@@ -236,7 +236,7 @@ export const toggleBlockTransporterController = async (req, res) => {
         }
 
         const newBlockStatus = !transporter.isBlocked;
-        const updatedTransporter = await transporterModel.findByIdAndUpdate(id, { isBlocked: newBlockStatus }, { new: true }).select("-password");
+        const updatedTransporter = await transporterModel.findByIdAndUpdate(transporterId, { isBlocked: newBlockStatus }, { new: true }).select("-password");
 
         const message = newBlockStatus ? "Transporter is blocked" : "Transporter is unblocked";
         res.status(200).json({ message: message, updatedTransporter: updatedTransporter });
@@ -355,7 +355,7 @@ export const toggleTruckActivationController = async (req, res) => {
         }
 
         const newActivationStatus = !truck.isActivated;
-        const updatedTruck = await truckModel.findByIdAndUpdate(id, { isActivated: newActivationStatus }, { new: true });
+        const updatedTruck = await truckModel.findByIdAndUpdate(truckId, { isActivated: newActivationStatus }, { new: true });
 
         const message = newActivationStatus ? "Truck is activated" : "Truck is not activated";
         res.status(200).json({ message: message, updatedTruck: updatedTruck });
@@ -382,25 +382,24 @@ export const getAllOrdersController = async (req, res) => {
 }
 
 export const getOrderByIdController = async (req, res) => {
-    try{
+    try {
         const { orderId } = req.params;
-
         const order = await orderModel.findById(orderId)
             .populate("customerId")
             .populate("acceptedTransporterId")
             .populate("acceptedTruckId")
             .populate("acceptedDriverId");
-        if(!order){
+        if (!order) {
             return res.status(404).json({ message: "Order not found" });
         }
-
-        res.status(200).json({ order });
+        const payment = await paymentModel.findOne({ orderId: order._id });
+        res.status(200).json({ order, payment });
     }
-    catch(err){
+    catch (err) {
         console.log("Error in getOrderByIdController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const cancelOrderController = async (req, res) => {
     try {
@@ -408,21 +407,26 @@ export const cancelOrderController = async (req, res) => {
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
-
         const { orderId } = req.params;
+        const updatedOrder = await orderModel.findByIdAndUpdate(orderId, {
+            status: "cancelled",
+            currentStatus: "cancelled"
+        }, { new: true });
 
-        const updatedOrder = await orderModel.findByIdAndUpdate(orderId, { status: "cancelled", currentStatus: "cancelled" }, { new: true });
-        if(!updatedOrder){
+        if (!updatedOrder) {
             return res.status(404).json({ message: "Order not found" });
         }
-
+        const payment = await paymentModel.findOne({ orderId });
+        if (payment && !payment.refundedAt) {
+            console.log("Order cancelled but payment not refunded yet.");
+        }
         res.status(200).json({ updatedOrder });
-    }
-    catch(err){
+    } catch (err) {
         console.log("Error in cancelOrderController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
+
 
 export const markOrderDelayedController = async (req, res) => {
     try {
@@ -454,9 +458,19 @@ export const reassignOrderController = async (req, res) => {
         }
 
         const { orderId } = req.params;
+        const { transporterId, driverId, truckId } = req.body;
+        const order = await orderModel.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+        order.acceptedTransporterId = transporterId;
+        order.acceptedDriverId = driverId;
+        order.acceptedTruckId = truckId;
+        order.currentStatus = "reassigned";
+        await order.save();
 
-    }
-    catch(err) {
+        res.status(200).json({ message: "Order reassigned successfully", updatedOrder: order });
+    } catch(err) {
         console.log("Error in reassignOrderController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
@@ -495,29 +509,32 @@ export const getPaymentByOrderIdController = async (req, res) => {
 }
 
 export const processRefundController = async (req, res) => {
-    try{
+    try {
         const { orderId } = req.params;
-
         const payment = await paymentModel.findOne({ orderId: orderId });
-        if(!payment){
+        if (!payment) {
             return res.status(404).json({ message: "Payment not found" });
         }
-
-        if(payment.refundedAt){
+        if (payment.refundedAt) {
             return res.status(400).json({ message: "Payment already refunded" });
         }
-
         const razorpayRefund = await razorpay.payments.refund(payment.paymentGateway.transactionId, {
             amount: payment.amount * 100,
             speed: "optimum",
             notes: {
-                reason: "Refund issued by Admin"   
+                reason: "Refund issued by Admin"
             }
         });
-
         payment.refundedAt = new Date();
         payment.refundStatus = razorpayRefund.status;
         await payment.save();
+        const order = await orderModel.findById(orderId);
+        if (order) {
+            order.status = "refunded";
+            order.currentStatus = "refunded";
+            order.isRefunded = true; 
+            await order.save();
+        }
 
         res.status(200).json({
             message: "Refund processed successfully",
@@ -525,13 +542,13 @@ export const processRefundController = async (req, res) => {
             transactionId: payment.paymentGateway.transactionId,
             refundedAt: payment.refundedAt,
             status: razorpayRefund.status
-        })
+        });
     }
-    catch(err){
+    catch (err) {
         console.log("Error in processRefundController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const getAllReviewsController = async (req, res) => {
     try{
