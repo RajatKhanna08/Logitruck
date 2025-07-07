@@ -11,13 +11,13 @@ export const getFairPriceSuggestionsController = async (req, res) => {
 
     if (!sizeCategory || !bodyType || !distanceKm) {
       return res.status(400).json({
-        error: "Missing required fields: sizeCategory, bodyType, distanceKm",
+        message: "Missing required fields: sizeCategory, bodyType, distanceKm",
       });
     }
 
     if (distanceKm < 10 || distanceKm > 3000) {
       return res.status(400).json({
-        error: "Distance seems unrealistic. Please check the input.",
+        message: "Distance seems unrealistic. Please check the input.",
       });
     }
 
@@ -45,9 +45,9 @@ export const getFairPriceSuggestionsController = async (req, res) => {
       },
       note: "This is an estimated fair price. Actual bids may vary based on availability and market demand.",
     });
-  } catch (error) {
-    console.error("Error in fair price controller:", error);
-    res.status(500).json({ error: "Failed to generate fair price suggestion" });
+  } catch (err) {
+    console.log("Error in getFairPriceSuggestionsController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -60,7 +60,7 @@ export const placeBidController = async (req, res) => {
     const { transporterId, truckId, bidAmount, sizeCategory, bodyType, distanceKm } = req.body;
 
     if (!transporterId || !truckId || !bidAmount || !sizeCategory || !bodyType || !distanceKm) {
-      return res.status(400).json({ error: "Please fill all the required fields." });
+      return res.status(400).json({ message: "Please fill all the required fields." });
     }
 
     const { price: fairPrice } = calculateFairPrice(sizeCategory, bodyType, distanceKm);
@@ -68,7 +68,7 @@ export const placeBidController = async (req, res) => {
 
     if (bidAmount < minBid) {
       return res.status(400).json({
-        error: `Your bid is too low. Minimum allowed is ₹${Math.floor(minBid)}`,
+        message: `Your bid is too low. Minimum allowed is ₹${Math.floor(minBid)}`,
         minAllowed: Math.floor(minBid),
         fairPrice: Math.floor(fairPrice),
       });
@@ -92,20 +92,20 @@ export const placeBidController = async (req, res) => {
     }
 
     if (bidding.bids.length >= 10) {
-      return res.status(400).json({ error: "Bid limit reached for this order." });
+      return res.status(400).json({ message: "Bid limit reached for this order." });
     }
 
     const alreadyBid = bidding.bids.some(
       (bid) => bid.transporterId.toString() === transporterId
     );
     if (alreadyBid) {
-      return res.status(400).json({ error: "You have already placed a bid for this order." });
+      return res.status(400).json({ message: "You have already placed a bid for this order." });
     }
 
     const lowestBid = Math.min(...bidding.bids.map((b) => b.bidAmount));
     if (bidAmount >= lowestBid) {
       return res.status(400).json({
-        error: `Your bid must be lower than the current lowest bid ₹${lowestBid}`,
+        message: `Your bid must be lower than the current lowest bid ₹${lowestBid}`,
         currentLowestBid: lowestBid,
       });
     }
@@ -119,9 +119,10 @@ export const placeBidController = async (req, res) => {
       currentLowestBid: Math.min(...bidding.bids.map((b) => b.bidAmount)),
       totalBids: bidding.bids.length,
     });
-  } catch (error) {
-    console.error("Error while placing bid:", error);
-    res.status(500).json({ error: "Something went wrong." });
+  }
+  catch(err){
+    console.log("Error in placeBidController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -134,14 +135,14 @@ export const cancelBidController = async (req, res) => {
     const bidding = await biddingModel.findOne({ orderId });
 
     if (!bidding) {
-      return res.status(404).json({ error: "No bidding found for the given order." });
+      return res.status(404).json({ message: "No bidding found for the given order." });
     }
 
     const bidIndex = bidding.bids.findIndex(
       (bid) => bid.transporterId.toString() === transporterId
     );
     if (bidIndex === -1) {
-      return res.status(404).json({ error: "No bid found for this transporter on the given order." });
+      return res.status(404).json({ message: "No bid found for this transporter on the given order." });
     }
 
     bidding.bids.splice(bidIndex, 1);
@@ -151,9 +152,9 @@ export const cancelBidController = async (req, res) => {
       message: "Bid cancelled successfully.",
       remainingBids: bidding.bids.length,
     });
-  } catch (error) {
-    console.error("Error in cancelBidController:", error);
-    res.status(500).json({ error: "Failed to cancel the bid. Try again later." });
+  } catch(err){
+    console.log("Error in cancelBidController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -166,7 +167,7 @@ export const getBidStatusController = async (req, res) => {
     const bidding = await biddingModel.findOne({ orderId });
 
     if (!bidding) {
-      return res.status(404).json({ error: "No bids found for this order" });
+      return res.status(404).json({ message: "No bids found for this order" });
     }
 
     const bids = bidding.bids;
@@ -189,9 +190,10 @@ export const getBidStatusController = async (req, res) => {
       lowestBidAmount,
       bids: formattedBids,
     });
-  } catch (error) {
-    console.error("Error fetching bid status:", error);
-    res.status(500).json({ error: "Failed to fetch bid status" });
+  }
+  catch(err){
+    console.log("Error in getBidStatusController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -205,20 +207,20 @@ export const updateBidController = async (req, res) => {
 
     if (!newBidAmount || !sizeCategory || !bodyType || !distanceKm) {
       return res.status(400).json({
-        error: "Missing required fields: newBidAmount, sizeCategory, bodyType, distanceKm",
+        message: "Missing required fields: newBidAmount, sizeCategory, bodyType, distanceKm",
       });
     }
 
     const bidding = await biddingModel.findOne({ orderId });
     if (!bidding) {
-      return res.status(404).json({ error: "No bids found for this order" });
+      return res.status(404).json({ message: "No bids found for this order" });
     }
 
     const bidIndex = bidding.bids.findIndex(
       (bid) => bid.transporterId.toString() === transporterId
     );
     if (bidIndex === -1) {
-      return res.status(404).json({ error: "You have not placed a bid for this order" });
+      return res.status(404).json({ message: "You have not placed a bid for this order" });
     }
 
     const { price: fairPrice } = calculateFairPrice(sizeCategory, bodyType, distanceKm);
@@ -226,7 +228,7 @@ export const updateBidController = async (req, res) => {
 
     if (newBidAmount < minAllowedBid) {
       return res.status(400).json({
-        error: `Bid too low. Minimum allowed is ₹${Math.floor(minAllowedBid)}`,
+        message: `Bid too low. Minimum allowed is ₹${Math.floor(minAllowedBid)}`,
       });
     }
 
@@ -235,7 +237,7 @@ export const updateBidController = async (req, res) => {
 
     if (newBidAmount >= currentLowest) {
       return res.status(400).json({
-        error: `Your new bid must be lower than the current lowest bid ₹${currentLowest}`,
+        message: `Your new bid must be lower than the current lowest bid ₹${currentLowest}`,
       });
     }
 
@@ -247,9 +249,10 @@ export const updateBidController = async (req, res) => {
       newBid: newBidAmount,
       currentLowestBid: currentLowest === Infinity ? newBidAmount : currentLowest,
     });
-  } catch (error) {
-    console.error("Error in update bid controller:", error);
-    res.status(500).json({ error: "Failed to update bid" });
+  }
+  catch(err){
+    console.log("Error in updateBidController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -262,7 +265,7 @@ export const acceptBidController = async (req, res) => {
     const bidding = await biddingModel.findOne({ orderId });
 
     if (!bidding) {
-      return res.status(404).json({ error: "No bidding record found for this order" });
+      return res.status(404).json({ message: "No bidding record found for this order" });
     }
 
     let bidFound = false;
@@ -277,7 +280,7 @@ export const acceptBidController = async (req, res) => {
     });
 
     if (!bidFound) {
-      return res.status(404).json({ error: "Transporter's bid not found for this order" });
+      return res.status(404).json({ message: "Transporter's bid not found for this order" });
     }
 
     bidding.isClosed = true;
@@ -288,9 +291,10 @@ export const acceptBidController = async (req, res) => {
       orderId,
       acceptedTransporterId: transporterId,
     });
-  } catch (error) {
-    console.error("Error accepting bid:", error);
-    res.status(500).json({ error: "Failed to accept bid" });
+  }
+  catch(err){
+    console.log("Error in acceptBidController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -303,7 +307,7 @@ export const rejectBidController = async (req, res) => {
     const bidding = await biddingModel.findOne({ orderId });
 
     if (!bidding) {
-      return res.status(404).json({ error: "No bidding record found for this order" });
+      return res.status(404).json({ message: "No bidding record found for this order" });
     }
 
     const bidIndex = bidding.bids.findIndex(
@@ -311,7 +315,7 @@ export const rejectBidController = async (req, res) => {
     );
 
     if (bidIndex === -1) {
-      return res.status(404).json({ error: "Transporter's bid not found for this order" });
+      return res.status(404).json({ message: "Transporter's bid not found for this order" });
     }
 
     bidding.bids[bidIndex].status = "rejected";
@@ -322,8 +326,9 @@ export const rejectBidController = async (req, res) => {
       orderId,
       rejectedTransporterId: transporterId,
     });
-  } catch (error) {
-    console.error("Error rejecting bid:", error);
-    res.status(500).json({ error: "Failed to reject bid" });
+  }
+  catch(err){
+    console.log("Error in rejectBidController:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };

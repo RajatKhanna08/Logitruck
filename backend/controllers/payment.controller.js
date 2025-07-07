@@ -17,7 +17,7 @@ export const initiatePaymentController = async (req, res) => {
     const { amount, customerId, transporterId, currency = 'INR' } = req.body;
 
     if (!amount || !customerId || !transporterId || !orderId) {
-      return res.status(400).json({ error: 'Missing required fields.' });
+      return res.status(400).json({ message: 'Missing required fields.' });
     }
     const options = {
       amount: amount * 100, // Razorpay uses paisa
@@ -38,9 +38,10 @@ export const initiatePaymentController = async (req, res) => {
       frontendKey: process.env.RAZORPAY_KEY_ID,
       linkedOrderId: orderId
     });
-  } catch (error) {
-    console.error("Error initiating payment:", error);
-    res.status(500).json({ error: 'Failed to initiate payment' });
+  }
+  catch(err){
+    console.log("Error in initiatePaymentController:", err.message);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -66,7 +67,7 @@ export const verifyPaymentController = async (req, res) => {
     if (generated_signature !== razorpay_signature) {
       return res.status(400).json({
         success: false,
-        error: "Payment signature verification failed"
+        message: "Payment signature verification failed"
       });
     }
 
@@ -96,9 +97,10 @@ export const verifyPaymentController = async (req, res) => {
       message: "Payment verified and saved successfully",
       paymentRecord
     });
-  } catch (error) {
-    console.error("Error verifying payment:", error);
-    res.status(500).json({ success: false, error: "Server error during payment verification" });
+  }
+  catch(err){
+    console.log("Error verifyPaymentController:", err.message);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -109,12 +111,12 @@ export const getPaymentHistoryController = async (req, res) => {
   try {
     const { userId, userType } = req.query;
     if (!userId || !userType) {
-      return res.status(400).json({ error: "Missing userId or userType" });
+      return res.status(400).json({ message: "Missing userId or userType" });
     }
     let filter = {};
     if (userType === "company") filter.customerId = userId;
     else if (userType === "transporter") filter.transporterId = userId;
-    else return res.status(400).json({ error: "Invalid userType" });
+    else return res.status(400).json({ message: "Invalid userType" });
     const payments = await paymentsModel
       .find(filter)
       .sort({ paidAt: -1 })
@@ -124,9 +126,10 @@ export const getPaymentHistoryController = async (req, res) => {
       totalPayments: payments.length,
       payments
     });
-  } catch (error) {
-    console.error("Error fetching payment history:", error);
-    res.status(500).json({ error: "Failed to fetch payment history" });
+  }
+  catch(err){
+    console.log("Error in getPaymentHistoryController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -137,21 +140,22 @@ export const getPaymentByIdController = async (req, res) => {
   try {
     const { orderId } = req.params;
     if (!orderId) {
-      return res.status(400).json({ error: "Missing orderId in request parameters." });
+      return res.status(400).json({ message: "Missing orderId in request parameters." });
     }
     const payment = await paymentsModel
       .findOne({ orderId })
       .populate("orderId customerId transporterId");
     if (!payment) {
-      return res.status(404).json({ error: "No payment found for this order." });
+      return res.status(404).json({ message: "No payment found for this order." });
     }
     res.status(200).json({
       success: true,
       payment
     });
-  } catch (error) {
-    console.error("Error fetching payment by ID:", error);
-    res.status(500).json({ error: "Failed to fetch payment details." });
+  }
+  catch(err){
+    console.log("Error in getPaymentByIdController:", err.message);
+    res.status(500).json({ message: "Internal Server Error." });
   }
 };
 
@@ -165,7 +169,7 @@ export const downloadInvoiceController = async (req, res) => {
       .findOne({ orderId })
       .populate("orderId customerId transporterId");
     if (!payment) {
-      return res.status(404).json({ error: "No payment found for this order." });
+      return res.status(404).json({ message: "No payment found for this order." });
     }
     const doc = new PDFDocument();
     const chunks = [];
@@ -188,9 +192,10 @@ export const downloadInvoiceController = async (req, res) => {
     doc.text(`Paid On: ${format(new Date(payment.paidAt), "dd-MM-yyyy HH:mm")}`);
     doc.text(`Generated On: ${format(new Date(), "dd-MM-yyyy HH:mm")}`);
     doc.end();
-  } catch (error) {
-    console.error("Error generating invoice:", error);
-    res.status(500).json({ error: "Failed to generate invoice." });
+  }
+  catch(err){
+    console.log("Error downloadInvoiceController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -219,8 +224,9 @@ export const markOrderAsPaidController = async (req, res) => {
       paymentStatus: order.paymentStatus,
       commission: order.commission
     });
-  } catch (error) {
-    console.error("Error marking order as paid:", error);
+  }
+  catch(err){
+    console.log("Error in markOrderAsPaidController:", err.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };
