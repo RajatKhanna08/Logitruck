@@ -118,7 +118,7 @@ const companySchema = new  mongoose.Schema({
     }
 });
 
-companySchema.static.hashPassword = async function(password){
+companySchema.statics.hashPassword = async function(password){
     return await bcrypt.hash(password, 12);
 }
 

@@ -67,11 +67,29 @@ export const getTransporterDashboardController = async (req, res) => {
 }
 
 export const updateTransporterProfileController = async (req, res) => {
-
+    try{
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({ errors: errors.array() });
+        }
+        // ...existing code...
+    }
+    catch(err){
+        // ...existing code...
+    }
 }
 
 export const updateTransporterPersonController = async (req, res) => {
-
+    try{
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({ errors: errors.array() });
+        }
+        // ...existing code...
+    }
+    catch(err){
+        // ...existing code...
+    }
 }
 
 export const addTruckController = async (req, res) => {
