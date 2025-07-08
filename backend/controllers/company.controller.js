@@ -37,7 +37,7 @@ export const registerCompanyController = async (req, res) => {
             companyPhone: companyPhone,
             password: hashedPassword,
             contactPerson: JSON.parse(contactPerson),
-            address: JSON.parse(address);
+            address: JSON.parse(address),
             documents: {
                 idProof: files.idProof[0].path,
                 businesLicense: files.businessLicense[0].path,

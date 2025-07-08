@@ -1,35 +1,5 @@
 import express from 'express';
-<<<<<<< HEAD
-import { body, param } from 'express-validator';
-
-import {
-    registerTransporterController,
-    loginTransporterController,
-    logoutTransporterController,
-    getTransporterProfileController,
-    uploadTransporterCertificationsController,
-    updateTransporterProfileController,
-    updateTransporterPersonController,
-    addTruckController,
-    getMyTrucksController,
-    getTruckByIdController,
-    updateTruckDetailsController,
-    uploadTruckDocumentsController,
-    updateDriverReferenceController,
-    deleteTruckController,
-    getMyDriversController,
-    getDriverByIdController,
-    removeDriverController,
-    uploadBiltyController,
-    deleteTransporterCertificationsController,
-    getTransporterCertificationsController,
-    getTransporterDashboardController,
-    activateTruckWithDriverController,
-    deactivateTruckWithDriverController
-} from '../controllers/transporter.controller.js';
-=======
 import { body } from 'express-validator';
->>>>>>> 9a29f083fc14e605c00e6b1d4898be51a2ab4f5e
 import { correctRole } from '../middlewares/authorizeRoles.js';
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
 
@@ -61,7 +31,6 @@ import {
 
 const router = express.Router();
 
-<<<<<<< HEAD
 // Validation chains
 const registerTransporterValidation = [
     body('transporterName').notEmpty().withMessage('Transporter name is required'),
@@ -133,7 +102,7 @@ router.post('/login', loginTransporterValidation, loginTransporterController);
 router.delete('/logout', isLoggedIn, correctRole("transporter"), logoutTransporterController);
 router.get('/profile', isLoggedIn, correctRole("transporter"), getTransporterProfileController);
 router.put('/certifications', isLoggedIn, correctRole("transporter"), uploadTransporterCertificationsValidations, uploadTransporterCertificationsController);
-=======
+
 // ==================== VALIDATION ====================
 
 const transporterRegisterValidation = [
@@ -181,20 +150,18 @@ router.get('/dashboard', isLoggedIn, correctRole("transporter"), getTransporterD
 // ==================== Certification Routes ====================
 
 router.put('/certifications', isLoggedIn, correctRole("transporter"), uploadTransporterCertificationsController);
->>>>>>> 9a29f083fc14e605c00e6b1d4898be51a2ab4f5e
 router.get('/certifications', isLoggedIn, correctRole("transporter"), getTransporterCertificationsController);
 router.delete('/certifications', isLoggedIn, correctRole("transporter"), deleteTransporterCertificationsController);
 
-<<<<<<< HEAD
 // ==================== Transporter Update Routes ====================
 
 router.put('/profile', isLoggedIn, correctRole("transporter"), updateTransporterProfileValidation, updateTransporterProfileController);
 router.put('/contact', isLoggedIn, correctRole("transporter"), updateTransporterPersonValidation, updateTransporterPersonController);
 
 // ==================== Truck Routes ====================
-=======
+
 // ==================== Truck Management Routes ====================
->>>>>>> 9a29f083fc14e605c00e6b1d4898be51a2ab4f5e
+
 
 router.post('/truck/add', isLoggedIn, correctRole("transporter"), addTruckValidation, addTruckController);
 router.get('/truck/my', isLoggedIn, correctRole("transporter"), getMyTrucksController);
