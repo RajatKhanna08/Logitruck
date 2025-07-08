@@ -95,13 +95,6 @@ const addTruckValidation = [
     body('assignedDriverId').notEmpty().withMessage('Assigned Driver ID is required')
 ];
 
-// ==================== Transporter Profile Routes ====================
-
-router.post('/register', registerTransporterValidation, registerTransporterController);
-router.post('/login', loginTransporterValidation, loginTransporterController);
-router.delete('/logout', isLoggedIn, correctRole("transporter"), logoutTransporterController);
-router.get('/profile', isLoggedIn, correctRole("transporter"), getTransporterProfileController);
-router.put('/certifications', isLoggedIn, correctRole("transporter"), uploadTransporterCertificationsValidations, uploadTransporterCertificationsController);
 
 // ==================== VALIDATION ====================
 
@@ -136,6 +129,14 @@ const transporterLoginValidation = [
   body('email').isEmail().withMessage('Valid email is required'),
   body('password').notEmpty().withMessage('Password is required')
 ];
+
+// ==================== Transporter Profile Routes ====================
+
+router.post('/register', registerTransporterValidation, registerTransporterController);
+router.post('/login', loginTransporterValidation, loginTransporterController);
+router.delete('/logout', isLoggedIn, correctRole("transporter"), logoutTransporterController);
+router.get('/profile', isLoggedIn, correctRole("transporter"), getTransporterProfileController);
+router.put('/certifications', isLoggedIn, correctRole("transporter"), uploadTransporterCertificationsValidations, uploadTransporterCertificationsController);
 
 // ==================== Auth & Profile Routes ====================
 
