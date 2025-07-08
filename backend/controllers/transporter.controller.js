@@ -1,10 +1,4 @@
-<<<<<<< HEAD
 import transporterModel from "../models/transporterModel";
-
-export const registerTransporterController = async (req, res) => {
-    try {
-        
-=======
 import { validationResult } from "express-validator";
 import transporterModel from "../models/transporterModel";
 
@@ -38,7 +32,6 @@ export const registerTransporterController = async (req, res) => {
             sameSite: "Strict"
         });
         res.status(201).json({ message: "Transporter registered successfully", newTransporter: newTransporter });
->>>>>>> 0bd7fc0b86c8e2d8c56f1a5d16955b56e4fc1ae7
     }
     catch(err){
         console.log("Error in registerTransporterController:", err.message);
@@ -132,14 +125,6 @@ export const getTransporterDashboardController = async (req, res) => {
 }
 
 export const updateTransporterProfileController = async (req, res) => {
-<<<<<<< HEAD
-    try {
-        
-    }
-    catch(err){
-        console.log("Error in registerTransporterController:", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
-=======
     try{
         const errors = validationResult(req);
         if(!errors.isEmpty()){
@@ -149,19 +134,10 @@ export const updateTransporterProfileController = async (req, res) => {
     }
     catch(err){
         // ...existing code...
->>>>>>> 0bd7fc0b86c8e2d8c56f1a5d16955b56e4fc1ae7
     }
 }
 
 export const updateTransporterPersonController = async (req, res) => {
-<<<<<<< HEAD
-    try {
-        
-    }
-    catch(err){
-        console.log("Error in registerTransporterController:", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
-=======
     try{
         const errors = validationResult(req);
         if(!errors.isEmpty()){
@@ -171,7 +147,6 @@ export const updateTransporterPersonController = async (req, res) => {
     }
     catch(err){
         // ...existing code...
->>>>>>> 0bd7fc0b86c8e2d8c56f1a5d16955b56e4fc1ae7
     }
 }
 
