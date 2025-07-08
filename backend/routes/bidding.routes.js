@@ -1,24 +1,33 @@
 import express from 'express';
+import { param } from 'express-validator';
+
 import {
-    getFairPriceSuggestionsController, // Controller to get fair price suggestions for an order
-    placeBidController,                // Controller to place a new bid
-    cancelBidController,               // Controller to cancel a placed bid
-    getBidStatusController,            // Controller to get the status of a bid
-    updateBidController,               // Controller to update an existing bid
-    acceptBidController,               // Controller to accept a bid from a transporter
-    rejectBidController                // Controller to reject a bid from a transporter
+    getFairPriceSuggestionsController,
+    placeBidController,
+    cancelBidController,
+    getBidStatusController,
+    updateBidController,
+    acceptBidController,
+    rejectBidController
 } from '../controllers/bidding.controller.js';
+
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
 import { correctRole } from '../middlewares/authorizeRoles.js';
 
 const router = express.Router();
 
-router.get('/price-suggestion/:orderId', isLoggedIn, correctRole("company"), getFairPriceSuggestionsController);
-router.post('/place/:orderId', placeBidController);
-router.delete('/cancel/:orderId', cancelBidController);
-router.get('/bid/:orderId', getBidStatusController);
-router.put('/update/:orderId', updateBidController);
-router.put('/accept/:transporterId', acceptBidController);
-router.put('/reject/:transporterId', rejectBidController);
+// ==================== Validation Utils ====================
+const validateMongoId = (field) =>
+    param(field).isMongoId().withMessage(`Invalid ${field}`);
+
+// ==================== Company Bidding Routes ====================
+
+router.get('/price-suggestion/:orderId',isLoggedIn,correctRole("company"),validateMongoId('orderId'),getFairPriceSuggestionsController);
+router.post('/place/:orderId',isLoggedIn,correctRole("transporter"),validateMongoId('orderId'),placeBidController);
+router.delete('/cancel/:orderId',isLoggedIn,correctRole("transporter"),validateMongoId('orderId'),cancelBidController);
+router.get('/bid/:orderId',isLoggedIn,correctRole("transporter"),validateMongoId('orderId'),getBidStatusController);
+router.put('/update/:orderId',isLoggedIn,correctRole("transporter"),validateMongoId('orderId'),updateBidController);
+router.put('/accept/:transporterId',isLoggedIn,correctRole("company"),validateMongoId('transporterId'),acceptBidController);
+router.put('/reject/:transporterId',isLoggedIn,correctRole("company"),validateMongoId('transporterId'),rejectBidController);
 
 export default router;
