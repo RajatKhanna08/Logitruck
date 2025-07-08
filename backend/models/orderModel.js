@@ -233,71 +233,25 @@ const ordersSchema = new  mongoose.Schema({
 
     documents: {
         eWayBill: {
-            fileURL: {
-                type: String,
-                required: false
-            },
-
-            billNumber: {
-                type: Number
-            },
-
-          uploadedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "company"
-            },
-          
+          fileURL: { type: String },
+          billNumber: { type: Number },
           uploadedAt: Date
         },
-
         bilty: {
-            fileURL: {
-                type: String,
-                required: false
-            },
-            billNumber: {
-                type: Number
-            },
-
-          issuedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "transporter"
-            },
-          
+          fileURL: { type: String },
+          billNumber: { type: Number },
           issuedAt: Date
         },
-
         kataParchiBefore: {
           fileURL: { type: String },
-          uploadedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "drivers"
-            },
-          
           uploadedAt: Date
         },
-
         kataParchiAfter: {
-            fileURL: {
-                type: String
-            },
-
-          uploadedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "drivers"
-            },
-          
+          fileURL: { type: String },
           uploadedAt: Date
         },
-
         receivingDocument: {
-            fileURL: {
-                type: String
-            },
-          uploadedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "drivers"
-          },
+          fileURL: { type: String },
           uploadedAt: Date
         }
       },
