@@ -1,120 +1,109 @@
 import express from 'express';
 import { body, param } from 'express-validator';
-
 import {
-    adminLoginController,
-    adminLogoutController,
-    adminProfileController,
-    adminRegisterController,
-    cancelOrderController,
-    deleteCompanyController,
-    deleteReviewController,
-    getAllCompaniesController,
-    getAllDriversController,
-    getAllOrdersController,
-    getAllPaymentsController,
-    getAllReviewsController,
-    getAllTransportersController,
-    getAllTrucksController,
-    getCompanyByIdController,
-    getDashboardStatsController,
-    getDriverByIdController,
-    getOrderByIdController,
-    getPaymentByOrderIdController,
-    getTransporterByIdController,
-    getTruckByIdController,
-    markOrderDelayedController,
-    processRefundController,
-    reassignOrderController,
-    toggleBlockTransporterController,
-    toggleCompanyBlockController,
-    toggleTruckActivationController,
-    verifyDriverDocumentsController,
-    verifyTransporterController,
-    verifyTruckDocumentsController,
+  adminLoginController,
+  adminLogoutController,
+  adminProfileController,
+  adminRegisterController,
+  cancelOrderController,
+  deleteCompanyController,
+  deleteReviewController,
+  getAllCompaniesController,
+  getAllDriversController,
+  getAllOrdersController,
+  getAllPaymentsController,
+  getAllReviewsController,
+  getAllTransportersController,
+  getAllTrucksController,
+  getCompanyByIdController,
+  getDashboardStatsController,
+  getDriverByIdController,
+  getOrderByIdController,
+  getPaymentByOrderIdController,
+  getTransporterByIdController,
+  getTruckByIdController,
+  markOrderDelayedController,
+  processRefundController,
+  reassignOrderController,
+  toggleBlockTransporterController,
+  toggleCompanyBlockController,
+  toggleTruckActivationController,
+  verifyDriverDocumentsController,
+  verifyTransporterController,
+  verifyTruckDocumentsController
 } from '../controllers/admin.controller.js';
+
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
 import { correctRole } from '../middlewares/authorizeRoles.js';
 
 const router = express.Router();
 
-// Validation chains
+// ==================== Validators ====================
+const validateId = param('id').isMongoId().withMessage('Invalid ID');
+
 const adminRegisterValidation = [
-    body('fullName').notEmpty().trim().withMessage('Full name is required'),
-    body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    body('phone').isMobilePhone().withMessage('Valid phone number is required')
+  body('fullName').notEmpty().trim().withMessage('Full name is required'),
+  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('phone').isMobilePhone().withMessage('Valid phone number is required')
 ];
 
 const adminLoginValidation = [
-    body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-    body('password').notEmpty().withMessage('Password is required')
+  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
+  body('password').notEmpty().withMessage('Password is required')
 ];
 
 const verifyTransporterValidation = [
-    param('transporterId').isMongoId().withMessage('Invalid transporter ID'),
-    body('isVerified').isBoolean().withMessage('isVerified must be a boolean value')
+  validateId,
+  body('isVerified').isBoolean().withMessage('isVerified must be a boolean value')
 ];
 
-const orderValidation = [
-    param('id').isMongoId().withMessage('Invalid order ID')
-];
-
-// ==================== Admin Authentication Routes ====================
-
+// ==================== Admin Authentication ====================
 router.post('/register', adminRegisterValidation, adminRegisterController);
 router.post('/login', adminLoginValidation, adminLoginController);
-router.post('/logout', isLoggedIn, correctRole("admin"), adminLogoutController);
-router.get('/profile', isLoggedIn, correctRole("admin"), adminProfileController);
+router.post('/logout', isLoggedIn, correctRole('admin'), adminLogoutController);
+router.get('/profile', isLoggedIn, correctRole('admin'), adminProfileController);
 
-// ==================== Company Management Routes ====================
+// ==================== Companies ====================
+router.get('/companies', isLoggedIn, correctRole('admin'), getAllCompaniesController);
+router.get('/company/:id', isLoggedIn, correctRole('admin'), validateId, getCompanyByIdController);
+router.put('/company/:id/block', isLoggedIn, correctRole('admin'), validateId, toggleCompanyBlockController);
+router.delete('/company/:id', isLoggedIn, correctRole('admin'), validateId, deleteCompanyController);
 
-router.get('/companies', isLoggedIn, correctRole("admin"), getAllCompaniesController);
-router.get('/company/:id', isLoggedIn, correctRole("admin"), getCompanyByIdController);
-router.put('/company/block/:id', isLoggedIn, correctRole("admin"), toggleCompanyBlockController);
-router.delete('/company/:id', isLoggedIn, correctRole("admin"), deleteCompanyController);
+// ==================== Transporters ====================
+router.get('/transporters', isLoggedIn, correctRole('admin'), getAllTransportersController);
+router.get('/transporter/:id', isLoggedIn, correctRole('admin'), validateId, getTransporterByIdController);
+router.put('/transporter/:id/verify', isLoggedIn, correctRole('admin'), verifyTransporterValidation, verifyTransporterController);
+router.put('/transporter/:id/block', isLoggedIn, correctRole('admin'), validateId, toggleBlockTransporterController);
 
-// ==================== Transporter Management Routes ====================
+// ==================== Drivers ====================
+router.get('/drivers', isLoggedIn, correctRole('admin'), getAllDriversController);
+router.get('/driver/:id', isLoggedIn, correctRole('admin'), validateId, getDriverByIdController);
+router.put('/driver/:id/verify-docs', isLoggedIn, correctRole('admin'), validateId, verifyDriverDocumentsController);
 
-router.get('/transporters', isLoggedIn, correctRole("admin"), getAllTransportersController);
-router.get('/transporter/:id', isLoggedIn, correctRole("admin"), getTransporterByIdController);
-router.put('/transporter/verify/:id', isLoggedIn, correctRole("admin"), verifyTransporterValidation, verifyTransporterController);
-router.put('/transporter/block/:id', isLoggedIn, correctRole("admin"), toggleBlockTransporterController);
+// ==================== Trucks ====================
+router.get('/trucks', isLoggedIn, correctRole('admin'), getAllTrucksController);
+router.get('/truck/:id', isLoggedIn, correctRole('admin'), validateId, getTruckByIdController);
+router.put('/truck/:id/verify-docs', isLoggedIn, correctRole('admin'), validateId, verifyTruckDocumentsController);
+router.put('/truck/:id/activate', isLoggedIn, correctRole('admin'), validateId, toggleTruckActivationController);
 
-// ==================== Driver Management Routes ====================
+// ==================== Orders ====================
+router.get('/orders', isLoggedIn, correctRole('admin'), getAllOrdersController);
+router.get('/order/:id', isLoggedIn, correctRole('admin'), validateId, getOrderByIdController);
+router.put('/order/:id/cancel', isLoggedIn, correctRole('admin'), validateId, cancelOrderController);
+router.put('/order/:id/delayed', isLoggedIn, correctRole('admin'), validateId, markOrderDelayedController);
+router.put('/order/:id/reassign', isLoggedIn, correctRole('admin'), validateId, reassignOrderController);
 
-router.get('/drivers', isLoggedIn, correctRole("admin"), getAllDriversController);
-router.get('/driver/:id', isLoggedIn, correctRole("admin"), getDriverByIdController);
-router.put('/driver/verify-docs/:id', isLoggedIn, correctRole("admin"), verifyDriverDocumentsController);
+// ==================== Payments ====================
+router.get('/payments', isLoggedIn, correctRole('admin'), getAllPaymentsController);
+router.get('/payment/:id', isLoggedIn, correctRole('admin'), validateId, getPaymentByOrderIdController);
+router.post('/payment/:id/refund', isLoggedIn, correctRole('admin'), validateId, processRefundController);
 
-// ==================== Truck Management Routes ====================
+// ==================== Reviews ====================
+router.get('/reviews', isLoggedIn, correctRole('admin'), getAllReviewsController);
+router.delete('/review/:id', isLoggedIn, correctRole('admin'), validateId, deleteReviewController);
 
-router.get('/trucks', isLoggedIn, correctRole("admin"), getAllTrucksController);
-router.get('/truck/:id', isLoggedIn, correctRole("admin"), getTruckByIdController);
-router.put('/truck/verify-docs/:id', isLoggedIn, correctRole("admin"), verifyTruckDocumentsController);
-router.put('/truck/activate/:id', isLoggedIn, correctRole("admin"), toggleTruckActivationController);
-
-// ==================== Order Management Routes ====================
-
-router.get('/orders', isLoggedIn, correctRole("admin"), getAllOrdersController);
-router.get('/order/:id', isLoggedIn, correctRole("admin"), getOrderByIdController);
-router.put('/order/cancel/:id', isLoggedIn, correctRole("admin"), orderValidation, cancelOrderController);
-router.put('/order/dealyed/:id', isLoggedIn, correctRole("admin"), orderValidation, markOrderDelayedController);
-router.put('/order/reassign/:id', isLoggedIn, correctRole("admin"), orderValidation, reassignOrderController);
-
-// ==================== Payment Management Routes ====================
-
-router.get('/payments', isLoggedIn, correctRole("admin"), getAllPaymentsController);
-router.get('/payment/:id', isLoggedIn, correctRole("admin"), getPaymentByOrderIdController);
-router.post('/payment/refund/:id', isLoggedIn, correctRole("admin"), processRefundController);
-
-// ==================== Review Management Routes ====================
-
-router.get('/reviews', isLoggedIn, correctRole("admin"), getAllReviewsController);
-router.delete('/review/:id', isLoggedIn, correctRole("admin"), deleteReviewController);
-
-// ==================== Dashboard & Stats Routes ====================
-
-router.get('/stats', isLoggedIn, correctRole("admin"), getDashboardStatsController);
+// ==================== Dashboard ====================
+router.get('/stats', isLoggedIn, correctRole('admin'), getDashboardStatsController);
 
 export default router;

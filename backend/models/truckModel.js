@@ -1,83 +1,76 @@
-import mongoose from "mongoose";
-
-const trucksSchema = new  mongoose.Schema({
+const trucksSchema = new mongoose.Schema({
     transporterId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref : 'transporter',
-        required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'transporter',
+      required: true
     },
-
+  
     registrationNumber: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
+      unique: true
     },
-
+  
     brand: {
-        type: String,     
-        required: true
+      type: String,
+      required: true
     },
-
+  
     model: {
-        type: String,
-        required: true
+      type: String,
+      required: true
     },
-
+  
     vehicleType: {
-        type: String,
-        enum:[],
-        default:""
+      type: String,
+      enum: ['open', 'container', 'tipper', 'flatbed', 'tanker', 'reefer', 'trailer', 'mini-truck'],
+      required: true
     },
-
+  
     capacityInKg: {
-        type: Number,
-        required : true
+      type: Number,
+      required: true
     },
-
+  
     capacityInCubicMeters: {
-        type : Number,
-        required: true
+      type: Number,
+      required: true
     },
-
+  
     documents: {
-        rcBook: {
-            type: String,
-            required: true
-        },
-        insurance: {
-            type: String,
-        },
-        pollutionCertificate: {
-            type: String,
-            required: true
-        }
+      rcBook: {
+        type: String,
+        required: true
+      },
+      insurance: {
+        type: String
+      },
+      pollutionCertificate: {
+        type: String,
+        required: true
+      }
     },
-
-    insuranceValidTill: {
-        type: Date,
-    },
-
+  
+    insuranceValidTill: Date,
+  
     pollutionCertificateValidTill: {
-        type: Date,
-        required: true
+      type: Date,
+      required: true
     },
-
+  
     assignedDriverId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'drivers',
-        required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'drivers',
+      required: true
     },
-
-    isActive: {
-        type: Boolean,
-        default: true   
-    },
-
-    isActivated: {
-        type: Boolean,
-        default: false
+  
+    status: {
+      type: String,
+      enum: ['inactive', 'active', 'pending', 'blocked'],
+      default: 'pending'
     }
+  
+}, {
+    timestamps: true
 });
-
-const trucksModel = mongoose.model("trucks",trucksSchema);
-
-export default trucksModel;
+  

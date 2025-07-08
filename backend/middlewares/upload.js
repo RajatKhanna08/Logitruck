@@ -12,6 +12,7 @@ const storage = multer.diskStorage({
     fs.mkdirSync(uploadPath, { recursive: true });
     cb(null, uploadPath);
   },
+  
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
     const name = file.fieldname + '-' + Date.now() + ext;
