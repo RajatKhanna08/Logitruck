@@ -1,8 +1,44 @@
+<<<<<<< HEAD
 import transporterModel from "../models/transporterModel";
 
 export const registerTransporterController = async (req, res) => {
     try {
         
+=======
+import { validationResult } from "express-validator";
+import transporterModel from "../models/transporterModel";
+
+export const registerTransporterController = async (req, res) => {
+    try{
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { transporterName, email, password } = req.body;
+
+        const existingTransporter = await transporterModel.findOne({ email: email });
+        if(existingTransporter){
+            return res.status(400).json({ message: "User already exists" });
+        }
+
+        const hashedPassword = await transporterModel.hashPassword(password);
+        const newTransporter = await transporterModel.create({
+            transporterName: transporterName,
+            email: email,
+            password: hashedPassword
+        });
+        await newTransporter.save();
+
+        const token = newTransporter.generateAuthToken();
+
+        res.cookie("jwt", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "Strict"
+        });
+        res.status(201).json({ message: "Transporter registered successfully", newTransporter: newTransporter });
+>>>>>>> 0bd7fc0b86c8e2d8c56f1a5d16955b56e4fc1ae7
     }
     catch(err){
         console.log("Error in registerTransporterController:", err.message);
@@ -96,22 +132,46 @@ export const getTransporterDashboardController = async (req, res) => {
 }
 
 export const updateTransporterProfileController = async (req, res) => {
+<<<<<<< HEAD
     try {
         
     }
     catch(err){
         console.log("Error in registerTransporterController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
+=======
+    try{
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({ errors: errors.array() });
+        }
+        // ...existing code...
+    }
+    catch(err){
+        // ...existing code...
+>>>>>>> 0bd7fc0b86c8e2d8c56f1a5d16955b56e4fc1ae7
     }
 }
 
 export const updateTransporterPersonController = async (req, res) => {
+<<<<<<< HEAD
     try {
         
     }
     catch(err){
         console.log("Error in registerTransporterController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
+=======
+    try{
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({ errors: errors.array() });
+        }
+        // ...existing code...
+    }
+    catch(err){
+        // ...existing code...
+>>>>>>> 0bd7fc0b86c8e2d8c56f1a5d16955b56e4fc1ae7
     }
 }
 

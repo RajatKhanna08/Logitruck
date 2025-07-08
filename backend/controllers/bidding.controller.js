@@ -5,91 +5,92 @@ import { calculateFairPrice } from "../services/fairPrice.service.js";
 // GET: Fair Price Suggestion
 // ------------------------
 export const getFairPriceSuggestionsController = async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const { sizeCategory, bodyType, distanceKm } = req.body;
+    try {
+        const { orderId } = req.params;
+        const { sizeCategory, bodyType, distanceKm } = req.body;
 
-    if (!sizeCategory || !bodyType || !distanceKm) {
-      return res.status(400).json({
-        message: "Missing required fields: sizeCategory, bodyType, distanceKm",
-      });
+        if (!sizeCategory || !bodyType || !distanceKm) {
+            return res.status(400).json({
+                message: "Missing required fields: sizeCategory, bodyType, distanceKm",
+            });
+        }
+
+        if (distanceKm < 10 || distanceKm > 3000) {
+            return res.status(400).json({
+                message: "Distance seems unrealistic. Please check the input.",
+            });
+        }
+
+        const { baseRate, price, bodyFactor, sizeFactor } = calculateFairPrice(
+            sizeCategory,
+            bodyType,
+            distanceKm
+        );
+        const fairPrice = Math.round(price);
+        const minPrice = Math.round(fairPrice * 0.9);
+        const maxPrice = Math.round(fairPrice * 1.1);
+
+        return res.status(200).json({
+            orderId,
+            fairPrice,
+            marketRange: { min: minPrice, max: maxPrice },
+            currency: "INR",
+            breakdown: {
+                baseRatePerKm: baseRate,
+                distanceKm,
+                bodyTypeFactor: bodyFactor,
+                sizeCategoryFactor: sizeFactor,
+                bodyType,
+                sizeCategory,
+          },
+            note: "This is an estimated fair price. Actual bids may vary based on availability and market demand.",
+        });
     }
-
-    if (distanceKm < 10 || distanceKm > 3000) {
-      return res.status(400).json({
-        message: "Distance seems unrealistic. Please check the input.",
-      });
+    catch(err){
+        console.log("Error in getFairPriceSuggestionsController:", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
     }
-
-    const { baseRate, price, bodyFactor, sizeFactor } = calculateFairPrice(
-      sizeCategory,
-      bodyType,
-      distanceKm
-    );
-    const fairPrice = Math.round(price);
-    const minPrice = Math.round(fairPrice * 0.9);
-    const maxPrice = Math.round(fairPrice * 1.1);
-
-    return res.status(200).json({
-      orderId,
-      fairPrice,
-      marketRange: { min: minPrice, max: maxPrice },
-      currency: "INR",
-      breakdown: {
-        baseRatePerKm: baseRate,
-        distanceKm,
-        bodyTypeFactor: bodyFactor,
-        sizeCategoryFactor: sizeFactor,
-        bodyType,
-        sizeCategory,
-      },
-      note: "This is an estimated fair price. Actual bids may vary based on availability and market demand.",
-    });
-  } catch (err) {
-    console.log("Error in getFairPriceSuggestionsController:", err.message);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
 };
 
 // ------------------------
 // POST: Place a New Bid
 // ------------------------
 export const placeBidController = async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const { transporterId, truckId, bidAmount, sizeCategory, bodyType, distanceKm } = req.body;
+    try {
+        const { orderId } = req.params;
+        const { transporterId, truckId, bidAmount, sizeCategory, bodyType, distanceKm } = req.body;
 
-    if (!transporterId || !truckId || !bidAmount || !sizeCategory || !bodyType || !distanceKm) {
-      return res.status(400).json({ message: "Please fill all the required fields." });
-    }
+        if (!transporterId || !truckId || !bidAmount || !sizeCategory || !bodyType || !distanceKm) {
+          return res.status(400).json({ message: "Please fill all the required fields." });
+        }
 
-    const { price: fairPrice } = calculateFairPrice(sizeCategory, bodyType, distanceKm);
-    const minBid = fairPrice * 0.8;
+        const { price: fairPrice } = calculateFairPrice(sizeCategory, bodyType, distanceKm);
+        const minBid = fairPrice * 0.8;
 
-    if (bidAmount < minBid) {
-      return res.status(400).json({
-        message: `Your bid is too low. Minimum allowed is ₹${Math.floor(minBid)}`,
-        minAllowed: Math.floor(minBid),
-        fairPrice: Math.floor(fairPrice),
-      });
-    }
+        if (bidAmount < minBid) {
+          return res.status(400).json({
+            message: `Your bid is too low. Minimum allowed is ₹${Math.floor(minBid)}`,
+            minAllowed: Math.floor(minBid),
+            fairPrice: Math.floor(fairPrice),
+          });
+        }
 
-    let bidding = await biddingModel.findOne({ orderId });
+        let bidding = await biddingModel.findOne({ orderId });
 
-    if (!bidding) {
-      const newBidding = new biddingModel({
-        orderId,
-        fairPrice,
-        bids: [{ transporterId, truckId, bidAmount }],
-      });
-      await newBidding.save();
-      return res.status(201).json({
-        message: "Bid placed successfully.",
-        yourBid: bidAmount,
-        currentLowestBid: bidAmount,
-        totalBids: 1,
-      });
-    }
+        if (!bidding) {
+          const newBidding = new biddingModel({
+            orderId,
+            fairPrice,
+            bids: [{ transporterId, truckId, bidAmount }],
+          });
+          await newBidding.save();
+          return res.status(201).json({
+            message: "Bid placed successfully.",
+            yourBid: bidAmount,
+            currentLowestBid: bidAmount,
+            totalBids: 1,
+          });
+        }
 
     if (bidding.bids.length >= 10) {
       return res.status(400).json({ message: "Bid limit reached for this order." });
@@ -307,24 +308,24 @@ export const rejectBidController = async (req, res) => {
     const bidding = await biddingModel.findOne({ orderId });
 
     if (!bidding) {
-      return res.status(404).json({ message: "No bidding record found for this order" });
+        return res.status(404).json({ message: "No bidding record found for this order" });
     }
 
     const bidIndex = bidding.bids.findIndex(
-      (bid) => bid.transporterId.toString() === transporterId
+        (bid) => bid.transporterId.toString() === transporterId
     );
 
     if (bidIndex === -1) {
-      return res.status(404).json({ message: "Transporter's bid not found for this order" });
+        return res.status(404).json({ message: "Transporter's bid not found for this order" });
     }
 
     bidding.bids[bidIndex].status = "rejected";
     await bidding.save();
 
     return res.status(200).json({
-      message: "Bid rejected successfully",
-      orderId,
-      rejectedTransporterId: transporterId,
+        message: "Bid rejected successfully",
+        orderId,
+        rejectedTransporterId: transporterId,
     });
   }
   catch(err){

@@ -16,6 +16,7 @@ import orderRoutes from './routes/order.routes.js';
 import biddingRoutes from './routes/bidding.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 import reviewRoutes from './routes/review.routes.js';
+import uploadRoutes from "./routes/upload.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,6 +37,7 @@ app.use('/api/order', orderRoutes);
 app.use('/api/bidding', biddingRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/review', reviewRoutes);
+app.use("/upload", uploadRoutes);
 
 // Start the server and connect to the database
 app.listen(PORT, () => {

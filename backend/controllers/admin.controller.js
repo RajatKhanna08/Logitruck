@@ -33,11 +33,16 @@ export const adminRegisterController = async (req, res) => {
         });
 
         const token = newAdmin.generateAuthToken();
-        res.cookie("jwt", token);
+
+        res.cookie("jwt", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "Strict"
+        });
         res.status(201).json({ message: "Admin registered successfully", admin: newAdmin });
     }
     catch(err){
-        console.log("Error in adminRegisterController", err.message);
+        console.log("Error in adminRegisterController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
@@ -66,11 +71,16 @@ export const adminLoginController = async (req, res) => {
         await existingAdmin.save();
 
         const token = existingAdmin.generateAuthToken();
-        res.cookie("jwt", token);
+
+        res.cookie("jwt", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "Strict"
+        });
         return res.status(200).json({ message: "Admin logged In", admin: existingAdmin, lastLogin: existingAdmin.lastLogin.toISOString() });
     }
     catch(err){
-        console.log("Error in adminLoginController", err.message);
+        console.log("Error in adminLoginController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
@@ -81,7 +91,7 @@ export const adminLogoutController = (req, res) => {
         res.status(200).json({ message: "User logged out successfully" });
     }
     catch(err){
-        console.log("Error in adminLogoutController", err.message);
+        console.log("Error in adminLogoutController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
@@ -92,7 +102,7 @@ export const adminProfileController = async (req, res) => {
         res.status(200).json({ adminProfile });
     }
     catch(err){
-        console.log("Error in adminProfileController", err.message);
+        console.log("Error in adminProfileController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
@@ -107,7 +117,7 @@ export const getAllCompaniesController = async (req, res) => {
         res.status(200).json({ companies, count: companies.length });
     }
     catch(err){
-        console.log("Error in getAllCompaniesController", err.message);
+        console.log("Error in getAllCompaniesController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
@@ -123,7 +133,7 @@ export const getCompanyByIdController = async (req, res) => {
         res.status(200).json({ company });
     }
     catch(err){
-        console.log("Error in getComapnyByIdController", err.message);
+        console.log("Error in getComapnyByIdController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
@@ -145,7 +155,7 @@ export const toggleCompanyBlockController = async (req, res) => {
         res.status(200).json({ message: message, company: updatedCompany });
     }
     catch(err){
-        console.log("Error in toggleCompanyBlockController", err.message);
+        console.log("Error in toggleCompanyBlockController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
@@ -161,7 +171,7 @@ export const deleteCompanyController = async (req, res) => {
         res.status(200).json({ message: "Company deleted", deletedCompany: deletedCompany });
     }
     catch(err){
-        console.log("Error in deleteCompanyController", err.message);
+        console.log("Error in deleteCompanyController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
@@ -176,7 +186,7 @@ export const getAllTransportersController = async (req, res) => {
         res.status(200).json({ transporters, count: transporters.length });
     }
     catch(err){
-        console.log("Error in getAllTransportersController", err.message);
+        console.log("Error in getAllTransportersController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 }

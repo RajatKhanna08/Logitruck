@@ -73,3 +73,15 @@ export const getDriverCurrentLocationController = async (req, res) => {
 export const getDriverDashboardController = async (req, res) => {
     
 }
+
+export const uploadKataParchiBeforeController = async (req, res) => {
+
+}
+
+export const uploadKataParchiAfterController = async (req, res) => {
+
+}
+
+export const uploadReceivingDocumentController = async (req, res) => {
+    
+}

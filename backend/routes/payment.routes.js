@@ -1,4 +1,6 @@
 import express from 'express';
+import { isLoggedIn } from '../middlewares/isLoggedIn.js';
+import { correctRole } from '../middlewares/authorizeRoles.js';
 
 import {
   initiatePaymentController,
@@ -15,19 +17,19 @@ import {
 
 const router = express.Router();
 
-// ==================== Payment Routes ====================
+// ==================== Company Payment Routes ====================
+router.post('/initiate/:orderId', isLoggedIn, correctRole("company"), initiatePaymentController);
+router.post('/verify/:orderId', isLoggedIn, correctRole("company"), verifyPaymentController);
+router.get('/payment-history', isLoggedIn, correctRole("company"), getPaymentHistoryController);
+router.get('/order/:orderId', isLoggedIn, correctRole("company"), getPaymentByIdController);
+router.get('/invoice/:orderId', isLoggedIn, correctRole("company"), downloadInvoiceController);
+router.post('/refund/request/:orderId', isLoggedIn, correctRole("company"), requestRefundController);
+router.get('/refund/status/:orderId', isLoggedIn, correctRole("company"), getRefundStatusController);
 
-router.post('/initiate/:orderId', initiatePaymentController);
-router.post('/verify/:orderId', verifyPaymentController);
-router.get('/payment-history', getPaymentHistoryController);
-router.get('/order/:orderId', getPaymentByIdController);
-router.get('/invoice/:orderId', downloadInvoiceController);
-router.put('/mark-paid/:orderId', markOrderAsPaidController);
-router.post('/refund/request/:orderId', requestRefundController);
-router.post('/refund/process/:orderId', processRefundController);
-router.get('/refund/status/:orderId', getRefundStatusController);
-router.get('/all', getAllPaymentsController);
+// ==================== Admin Payment Management Routes ====================
 
-// payment analytics (add analytics routes here if needed)
+router.put('/mark-paid/:orderId', isLoggedIn, correctRole("admin"), markOrderAsPaidController);
+router.post('/refund/process/:orderId', isLoggedIn, correctRole("admin"), processRefundController);
+router.get('/all', isLoggedIn, correctRole("admin"), getAllPaymentsController);
 
 export default router;
