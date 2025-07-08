@@ -33,7 +33,12 @@ export const adminRegisterController = async (req, res) => {
         });
 
         const token = newAdmin.generateAuthToken();
-        res.cookie("jwt", token);
+
+        res.cookie("jwt", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "Strict"
+        });
         res.status(201).json({ message: "Admin registered successfully", admin: newAdmin });
     }
     catch(err){
@@ -66,7 +71,12 @@ export const adminLoginController = async (req, res) => {
         await existingAdmin.save();
 
         const token = existingAdmin.generateAuthToken();
-        res.cookie("jwt", token);
+        
+        res.cookie("jwt", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "Strict"
+        });
         return res.status(200).json({ message: "Admin logged In", admin: existingAdmin, lastLogin: existingAdmin.lastLogin.toISOString() });
     }
     catch(err){
