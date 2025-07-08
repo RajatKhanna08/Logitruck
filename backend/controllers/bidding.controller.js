@@ -328,7 +328,7 @@ export const rejectBidController = async (req, res) => {
     });
   }
   catch(err){
-    console.log("Error in rejectBidController:", error);
+    console.log("Error in rejectBidController:", err.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
