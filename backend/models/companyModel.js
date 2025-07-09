@@ -107,7 +107,7 @@ const companySchema = new  mongoose.Schema({
             type: String,
             required: true
         },
-        businesLicense: {
+        businessLicense: {
             type: String,
             required: true
         },

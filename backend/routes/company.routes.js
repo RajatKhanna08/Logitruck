@@ -66,12 +66,6 @@ const updateCompanyProfileValidation = [
     body('address.landmark').optional().notEmpty().withMessage('Landmark is required')
 ];
 
-const updateCompanyPersonValidation = [
-    body('contactPerson.name').notEmpty().withMessage('Contact person name is required'),
-    body('contactPerson.phone').isMobilePhone().withMessage('Contact person phone is required'),
-    body('contactPerson.email').isEmail().withMessage('Contact person email is required')
-];
-
 const router = express.Router();
 
 // ==================== Company Profile Routes ====================
@@ -87,7 +81,6 @@ router.delete('/certifications', isLoggedIn, correctRole("company"), deleteCompa
 // ==================== Company Updation Routes ====================
 
 router.put('/profile', isLoggedIn, correctRole("company"), updateCompanyProfileValidation, updateCompanyProfileController);
-router.put('/contact', isLoggedIn, correctRole("company"), updateCompanyPersonValidation, updateCompanyPersonController);
 
 // ==================== Company Order Routes ====================
 
