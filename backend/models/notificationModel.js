@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const notificationSchema = new  mongoose.Schema({
+const notificationSchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ["company", "driver", "transporter", "admin"],
@@ -8,8 +8,8 @@ const notificationSchema = new  mongoose.Schema({
     },
     
     type: {
-        type : String,
-        enum: ["general","status","warning","rest-mode","stall-aler"]
+        type: String,
+        enum: ["general", "status", "warning", "rest-mode", "stall-alert"]
     },
     
     title: {
@@ -41,7 +41,9 @@ const notificationSchema = new  mongoose.Schema({
         enum: ["pending", "accepted", "ongoing", "completed", "cancelled"],
         default: "pending"
     }
-})
+}, {
+    timestamps: true
+});
 
 const notificationModel = mongoose.model("notification",notificationSchema);
 

@@ -231,18 +231,121 @@ export const markOrderAsPaidController = async (req, res) => {
   }
 };
 
+// ----------------------------------------
+// Post: Request for refund
+// ----------------------------------------
 export const requestRefundController = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { reason } = req.body;
 
-}
+    const payment = await paymentsModel.findOne({ orderId });
 
+    if (!payment) {
+      return res.status(404).json({ message: "Payment not found." });
+    }
+
+    if (payment.refundStatus !== 'not_requested') {
+      return res.status(400).json({ message: "Refund already requested or processed." });
+    }
+
+    payment.refundStatus = 'pending';
+    payment.refundReason = reason || "Not specified";
+    await payment.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Refund requested successfully.",
+      refundStatus: payment.refundStatus,
+      refundReason: payment.refundReason
+    });
+  } catch (err) {
+    console.error("Error in requestRefundController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// ----------------------------------------
+// Post: Process for refund
+// ----------------------------------------
 export const processRefundController = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { refundAmount, action } = req.body;
 
-}
+    const payment = await paymentsModel.findOne({ orderId });
 
+    if (!payment) {
+      return res.status(404).json({ message: "Payment not found." });
+    }
+
+    if (action === "approve") {
+      payment.refundAmount = refundAmount;
+      payment.refundedAt = new Date();
+      payment.refundStatus = "processed";
+      payment.paymentStatus = "refunded";
+    } else if (action === "reject") {
+      payment.refundStatus = "rejected";
+    } else {
+      return res.status(400).json({ message: "Invalid action. Use 'approve' or 'reject'." });
+    }
+
+    await payment.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Refund ${action}ed successfully.`,
+      refundStatus: payment.refundStatus,
+      refundAmount: payment.refundAmount
+    });
+  } catch (err) {
+    console.error("Error in processRefundController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// ----------------------------------------
+// Get: Refund Status
+// ----------------------------------------
 export const getRefundStatusController = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const payment = await paymentsModel.findOne({ orderId });
 
-}
+    if (!payment) {
+      return res.status(404).json({ message: "Payment not found." });
+    }
 
+    res.status(200).json({
+      success: true,
+      refundStatus: payment.refundStatus,
+      refundAmount: payment.refundAmount || 0,
+      refundReason: payment.refundReason || "",
+      refundedAt: payment.refundedAt
+    });
+  } catch (err) {
+    console.error("Error in getRefundStatusController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// ----------------------------------------
+// Get: get all payments
+// ----------------------------------------
 export const getAllPaymentsController = async (req, res) => {
+  try {
+    const payments = await paymentsModel
+      .find({})
+      .sort({ paidAt: -1 })
+      .populate("orderId customerId transporterId");
 
-}
+    res.status(200).json({
+      success: true,
+      total: payments.length,
+      payments
+    });
+  } catch (err) {
+    console.error("Error in getAllPaymentsController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
