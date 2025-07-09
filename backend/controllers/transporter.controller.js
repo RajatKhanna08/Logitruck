@@ -1,9 +1,8 @@
-import transporterModel from "../models/transporterModel";
 import { validationResult } from "express-validator";
-import transporterModel from "../models/transporterModel";
-import driverModel from "../models/driverModel";
-import documents from "razorpay/dist/types/documents";
-import truckModel from "../models/truckModel";
+
+import transporterModel from "../models/transporterModel.js";
+import driverModel from "../models/driverModel.js";
+import truckModel from "../models/truckModel.js";
 
 
 export const registerTransporterController = async (req, res) => {
@@ -45,6 +44,11 @@ export const registerTransporterController = async (req, res) => {
 
 export const loginTransporterController = async (req, res) => {
     try {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({ errors: errors.array() });
+        }
+
         const { email, password } = req.body;
         
         const existingTransporter = await transporterModel.findOne({ email:email });
@@ -82,16 +86,17 @@ export const getTransporterProfileController = async (req, res) => {
     try {
        const transporterId = req.user?._id;
        if(!userId){
-        res.status(400).json({ message:"Profile not found" });
+            res.status(400).json({ message:"Profile not found" });
        }
        
     const transporter = await transporterModel.findById(transporterId).select("-password");
     if (!transporter) {
-      return res.status(404).json({ message: "Transporter not found" });
+        return res.status(404).json({ message: "Transporter not found" });
     }
 
     res.status(200).json({ transporter })
-    } catch(err){
+    }
+    catch(err){
         console.log("Error in getTransporterProfileController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
@@ -99,33 +104,34 @@ export const getTransporterProfileController = async (req, res) => {
 
 export const uploadTransporterCertificationsController = async (req, res) => {
     try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array() });
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          return res.status(400).json({ message: errors.array() });
+        }
+
+        const { transporterId } = req.params;
+    
+        if (!req.files?.idProof?.[0]?.path ||
+            !req.files?.businessLicense?.[0]?.path ||
+            !req.files?.gstCertificate?.[0].path) {
+          return res.status(400).json({ message: "All certification files are required" });
+        }
+
+        const transporter = await transporterModel.findById(transporterId);
+        if (!transporter) {
+          return res.status(404).json({ message: "Transporter not found" });
+        }
+
+        transporter.documents={
+          idProof: req.files.idProof[0].path,
+          businessLicense: req.files.businessLicense[0].path,
+          gstCertificate: req.files.gstCertificate[0].path
+        };
+        await transporter.save();
+
+        res.status(200).json({ message: "Certification uploaded successfully", documents: transporter.documents });
     }
-
-    const { transporterId } = req.params;
-  
-    if (!req.files?.idProof?.[0]?.path ||
-        !req.files?.businessLicense?.[0]?.path ||
-        !req.files?.gstCertificate?.[0].path) {
-      return res.status(400).json({ message: "All certification files are required" });
-    }
-
-    const transporter = await transporterModel.findById(transporterId);
-    if (!transporter) {
-      return res.status(404).json({ message: "Transporter not found" });
-    }
-
-    transporter.documents={
-      idProof: req.files.idProof[0].path,
-      businessLicense: req.files.businessLicense[0].path,
-      gstCertificate: req.files.gstCertificate[0].path
-    };
-    await transporter.save();
-
-    res.status(200).json({ message: "Certification uploaded successfully", documents: transporter.documents });
-    } catch(err){
+    catch(err){
         console.log("Error uplaodTransporterCertificateController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
@@ -133,18 +139,19 @@ export const uploadTransporterCertificationsController = async (req, res) => {
 
 export const getTransporterCertificationsController = async (req, res) => {
     try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array() });
-    }    
-    const {transporterId} = req.params;
-    const transporter = await transporterModel.findById(transporterId).select("documents");
-    if(!transporter) {
-        res.send(404).json({ message:"Transporter not found" });
-    }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          return res.status(400).json({ message: errors.array() });
+        }    
+        const {transporterId} = req.params;
+        const transporter = await transporterModel.findById(transporterId).select("documents");
+        if(!transporter) {
+            res.send(404).json({ message:"Transporter not found" });
+        }
 
-    res.status(200).json({ documents: transporter.documents });
-    } catch(err) {
+        res.status(200).json({ documents: transporter.documents });
+    }
+    catch(err){
         console.log("Error in getTransporterCertificateController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
@@ -152,26 +159,26 @@ export const getTransporterCertificationsController = async (req, res) => {
 
 export const deleteTransporterCertificationsController = async (req, res) => {
     try {
-         const errors = validationResult(req);
-         if(!errors.isEmpty()){
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
             return res.status(400).json({ message:errors.array() });
-         }
-
-         const transporterId = req.user?._id;
-         const transporter = await transporterModel.findById(transporterId);
-         if(!transporter){
+        }
+    
+        const transporterId = req.user?._id;
+        const transporter = await transporterModel.findById(transporterId);
+        if(!transporter){
             return res.status(404).json({ message:"Transporter not found" });
-         }
-
-         transporter.documents = {
+        }
+    
+        transporter.documents = {
             idProof:"",
             businessLicense:"",
             gstCertificate:""
-         };
-
-         await transporter.save();
-
-         res.status(200).json({ message:"Certification documents deleted successfully", documents: transporter.documents });
+        };
+    
+        await transporter.save();
+    
+        res.status(200).json({ message:"Certification documents deleted successfully", documents: transporter.documents });
     }
     catch(err){
         console.log("Error in deleteTransporterCertificationsController:", err.message);
@@ -182,7 +189,8 @@ export const deleteTransporterCertificationsController = async (req, res) => {
 export const getTransporterDashboardController = async (req, res) => {
     try {
         
-    } catch(err){
+    }
+    catch(err){
         console.log("Error in registerTransporterController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }

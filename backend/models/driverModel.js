@@ -5,7 +5,6 @@ import bcrypt from "bcryptjs";
 const driverSchema = new  mongoose.Schema({
     profileImg: {
         type: String,
-        required: true
     },
 
     transporterId: {
@@ -66,20 +65,18 @@ const driverSchema = new  mongoose.Schema({
 
     availabilityStatus: {
         type: Boolean,
-        required: true
+        required: true,
+        default: "true"
     },
 
     rating: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'ratings',
-        required: true
     },
 
     assignedTruckId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'trucks',
-        required: true,
-        unique: true
     },
 
     experience: {
@@ -90,24 +87,20 @@ const driverSchema = new  mongoose.Schema({
     activeBookingId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'orders',
-        required: true
     },
 
     totalDistanceTravelledInKm: {
         type: Number,
-        required: true,
         default: 0
     },
 
     totalHoursDriven: {
         type: Number,
-        required: true,
         default: 0
     },
 
     totalDaysWorked: {
         type: Number,
-        required: true,
         default: 0
     },
 
@@ -130,11 +123,9 @@ const driverSchema = new  mongoose.Schema({
     lastKnownLocation: {
         latitude: {
             type: String,
-            required: true
         },
         longitude: {
             type: String,
-            required: true
         }
     }
 });
