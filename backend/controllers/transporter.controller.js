@@ -188,10 +188,52 @@ export const deleteTransporterCertificationsController = async (req, res) => {
 
 export const getTransporterDashboardController = async (req, res) => {
     try {
-        
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({ message:errors.array() });
+        }
+
+        const transporterId = req.user?._id;
+        if(!transporterId) {
+            return res.status(401).json({ message:"Unauthorized access" });
+        }
+
+        const totalTrucks = await truckModel.countDocuments({ transporterId });
+        const totalDrivers = await driverModel.countDocuments({ transporterId });
+        const totalOrders = await countDocuments({ acceptedTranporterId: transporterId });
+
+        const activeOrders = await orderModel.countDocuments({
+            acceptedTransporterId: transporterId,
+            status: { $in: ["pending", "in_transit", "delayed"]}
+        });
+
+        const deliveredOrders = await orderModel.countDocuments({
+            acceptedTransporterId: transporterId,
+            status: "delivered"
+        });
+
+        const delayedOrders = await orderModel.countDocuments({
+            acceptedTransporterId: transporterId,
+            status: "delayed"
+        });
+
+        const transporter = await transporterModel.findById(transporterId).select("rating");
+        res.status(200).json({
+            message: "Dashboard fetched successfully",
+            dashboard: {
+                totalTrucks,
+                totalDrivers,
+                totalOrders,
+                activeOrders,
+                deliveredOrders,
+                delayedOrders,
+                rating: transporter?.rating || 0
+            }
+        });
+
     }
     catch(err){
-        console.log("Error in registerTransporterController:", err.message);
+        console.log("Error in getTransportDashboardController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
