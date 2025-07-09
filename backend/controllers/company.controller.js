@@ -3,7 +3,8 @@ import { validationResult } from "express-validator";
 
 import companyModel from "../models/companyModel.js";
 import orderModel from '../models/orderModel.js';
-import truckModel from '../models/truckModel.js'
+import truckModel from '../models/truckModel.js';
+import driverModel from '../models/driverModel.js';
 
 export const registerCompanyController = async (req, res) => {
     try{
@@ -327,17 +328,112 @@ export const getTruckSuggestionsController = async (req, res) => {
 }
 
 export const uploadEwayBillController = async (req, res) => {
+    try{
+        const companyId = req.user?._id;
+        const { orderId } = req.params;
 
+        const order = await orderModel.findById(orderId);
+        if(!order){
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        if(order.customerId.toString() != companyId){
+            return res.status(403).json({ message: "Unauthorized to upload eWay Bill on this order" });
+        }
+
+        const files = req.files;
+        const { billNumber } = req.body;
+
+        if(!files || !files.eWayBill){
+            return res.status(400).json({ message: "E-Way Bill file is required" });
+        }
+
+        const eWayBillFile = req.files.eWayBill[0];
+
+        order.documents.eWayBill = {
+            fileURL: eWayBillFile.path,
+            billNumber: billNumber,
+            uploadedAt: new Date()
+        }
+
+        await order.save();
+
+        res.status(200).json({ message: "E Way Bill uploaded successfully", eWayBill: order.documents.eWayBill });
+    }
+    catch(err){
+        console.log("Error in uploadEwayBillController: ", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
 export const getAvailableTrucksController = async (req, res) => {
+    try{
+        const availableTrucks = await truckModel.find({ status: "active" });
+        if(!availableTrucks.length){
+            return res.status(404).json({ message: "No available trucks at the moment" });
+        }
 
+        res.status(200).json({ availableTrucks: availableTrucks });
+    }
+    catch(err){
+        console.log("Error in getAvailableTrucksController: ", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
 export const filterTrucksController = async (req, res) => {
+    try{
+        const {
+            status,
+            vehicleType,
+            transporterId,
+            minCapacityInTon,
+            maxCapacityInTon,
+            minVolumeInCubicMeters,
+            maxVolumeInCubicMeters
+        } = req.query;
 
+        const query = {};
+
+        if(status) query.status = status;
+        if(vehicleType) query.vehicleType = vehicleType;
+        if(transporterId) query.transporterId = transporterId;
+
+        if(minVolumeInCubicMeters || maxVolumeInCubicMeters){
+            query.capacityInCubicMeters = {};
+            if(minVolumeInCubicMeters) query.capacityInCubicMeters.$gte = Number(minVolumeInCubicMeters);
+            if(maxVolumeInCubicMeters) query.capacityInCubicMeters.$lte = Number(maxVolumeInCubicMeters);
+        }
+
+        if(minCapacityInTon || maxCapacityInTon){
+            query.capacityInTon = {};
+            if(minCapacityInTon) query.capacityInTon.$gte = Number(minCapacityInTon);
+            if(maxCapacityInTon) query.capacityInTon.$lte = Number(maxCapacityInTon);
+        }
+
+        const filteredTrucks = await truckModel.find(query);
+
+        res.status(200).json({ filteredTrucks: filteredTrucks });
+    }
+    catch(err){
+        console.log("Error in filterTrucksController: ", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
 export const getDriverByTruckController = async (req, res) => {
-    
+    try{
+        const { truckId } = req.params;
+        
+        const driver = await driverModel.findOne({ assignedTruckId: truckId });
+        if(!driver){
+            return res.status(404).json({ message: "Driver not found" });
+        }
+
+        res.status(200).json({ driver });
+    }
+    catch(err){
+        console.log("Error in getDriverByTruckController");
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }

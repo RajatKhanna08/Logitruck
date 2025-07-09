@@ -9,7 +9,6 @@ import {
     getCompanyCertificationsController,     // Controller to get company certifications
     deleteCompanyCertificationsController,// Controller to delete company certifications
     updateCompanyProfileController,         // Controller to update company profile
-    updateCompanyPersonController,          // Controller to update company contact person
     getTruckSuggestionsController,          // Controller to get truck suggestions for an order
     uploadEwayBillController,               // Controller to upload e-way bill for an order
     getAvailableTrucksController,           // Controller to get available trucks

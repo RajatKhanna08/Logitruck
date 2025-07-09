@@ -29,7 +29,7 @@ const trucksSchema = new mongoose.Schema({
         required: true
     },
   
-    capacityInKg: {
+    capacityInTon: {
         type: Number,
         required: true
     },

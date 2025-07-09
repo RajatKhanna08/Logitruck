@@ -152,6 +152,6 @@ driverSchema.statics.hashPassword = async function(password){
     return bcrypt.hash(password, 12);
 }
 
-const driverModel = mongoose.model("drivers",driverSchema);
+const driverModel = mongoose.model("drivers", driverSchema);
 
 export default driverModel;

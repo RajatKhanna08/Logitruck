@@ -1,9 +1,6 @@
 import biddingModel from "../models/biddingModel.js";
 import { calculateFairPrice } from "../services/fairPrice.service.js";
 
-// ------------------------
-// GET: Fair Price Suggestion
-// ------------------------
 export const getFairPriceSuggestionsController = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -52,84 +49,79 @@ export const getFairPriceSuggestionsController = async (req, res) => {
     }
 };
 
-// ------------------------
-// POST: Place a New Bid
-// ------------------------
 export const placeBidController = async (req, res) => {
     try {
         const { orderId } = req.params;
         const { transporterId, truckId, bidAmount, sizeCategory, bodyType, distanceKm } = req.body;
 
         if (!transporterId || !truckId || !bidAmount || !sizeCategory || !bodyType || !distanceKm) {
-          return res.status(400).json({ message: "Please fill all the required fields." });
+            return res.status(400).json({ message: "Please fill all the required fields." });
         }
 
         const { price: fairPrice } = calculateFairPrice(sizeCategory, bodyType, distanceKm);
         const minBid = fairPrice * 0.8;
 
         if (bidAmount < minBid) {
-          return res.status(400).json({
-            message: `Your bid is too low. Minimum allowed is ₹${Math.floor(minBid)}`,
-            minAllowed: Math.floor(minBid),
-            fairPrice: Math.floor(fairPrice),
-          });
+            return res.status(400).json({
+                message: `Your bid is too low. Minimum allowed is ₹${Math.floor(minBid)}`,
+                minAllowed: Math.floor(minBid),
+                fairPrice: Math.floor(fairPrice),
+            });
         }
 
         let bidding = await biddingModel.findOne({ orderId });
 
         if (!bidding) {
-          const newBidding = new biddingModel({
-            orderId,
-            fairPrice,
-            bids: [{ transporterId, truckId, bidAmount }],
-          });
-          await newBidding.save();
-          return res.status(201).json({
+            const newBidding = new biddingModel({
+                orderId,
+                fairPrice,
+                bids: [{ transporterId, truckId, bidAmount }],
+            });
+        await newBidding.save();
+        
+        return res.status(201).json({
             message: "Bid placed successfully.",
             yourBid: bidAmount,
             currentLowestBid: bidAmount,
             totalBids: 1,
-          });
+        });
         }
 
-    if (bidding.bids.length >= 10) {
-      return res.status(400).json({ message: "Bid limit reached for this order." });
+        if (bidding.bids.length >= 10) {
+            return res.status(400).json({ message: "Bid limit reached for this order." });
+        }
+
+        const alreadyBid = bidding.bids.some(
+            (bid) => bid.transporterId.toString() === transporterId
+        );
+        if (alreadyBid) {
+            return res.status(400).json({ message: "You have already placed a bid for this order." });
+        }
+
+        const lowestBid = Math.min(...bidding.bids.map((b) => b.bidAmount));
+        if (bidAmount >= lowestBid) {
+            return res.status(400).json({
+                message: `Your bid must be lower than the current lowest bid ₹${lowestBid}`,
+                currentLowestBid: lowestBid,
+            });
+        }
+
+        bidding.bids.push({ transporterId, truckId, bidAmount });
+        await bidding.save();
+
+        return res.status(201).json({
+            message: "Bid placed successfully.",
+            yourBid: bidAmount,
+            currentLowestBid: Math.min(...bidding.bids.map((b) => b.bidAmount)),
+            totalBids: bidding.bids.length,
+        });
     }
-
-    const alreadyBid = bidding.bids.some(
-      (bid) => bid.transporterId.toString() === transporterId
-    );
-    if (alreadyBid) {
-      return res.status(400).json({ message: "You have already placed a bid for this order." });
+    catch(err){
+        console.log("Error in placeBidController:", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
     }
-
-    const lowestBid = Math.min(...bidding.bids.map((b) => b.bidAmount));
-    if (bidAmount >= lowestBid) {
-      return res.status(400).json({
-        message: `Your bid must be lower than the current lowest bid ₹${lowestBid}`,
-        currentLowestBid: lowestBid,
-      });
-    }
-
-    bidding.bids.push({ transporterId, truckId, bidAmount });
-    await bidding.save();
-
-    return res.status(201).json({
-      message: "Bid placed successfully.",
-      yourBid: bidAmount,
-      currentLowestBid: Math.min(...bidding.bids.map((b) => b.bidAmount)),
-      totalBids: bidding.bids.length,
-    });
-  }
-  catch(err){
-    console.log("Error in placeBidController:", err.message);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
 };
 
-// ------------------------
-// DELETE: Cancel a Bid
-// ------------------------
 export const cancelBidController = async (req, res) => {
   try {
     const { orderId, transporterId } = req.params;
@@ -159,9 +151,6 @@ export const cancelBidController = async (req, res) => {
   }
 };
 
-// ------------------------
-// GET: Bid Status for an Order
-// ------------------------
 export const getBidStatusController = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -198,9 +187,6 @@ export const getBidStatusController = async (req, res) => {
   }
 };
 
-// ------------------------
-// PUT: Update Bid
-// ------------------------
 export const updateBidController = async (req, res) => {
   try {
     const { orderId, transporterId } = req.params;
@@ -257,9 +243,6 @@ export const updateBidController = async (req, res) => {
   }
 };
 
-// ------------------------
-// PUT: Accept a Bid
-// ------------------------
 export const acceptBidController = async (req, res) => {
   try {
     const { orderId, transporterId } = req.params;
@@ -299,9 +282,6 @@ export const acceptBidController = async (req, res) => {
   }
 };
 
-// ------------------------
-// PUT: Reject a Bid
-// ------------------------
 export const rejectBidController = async (req, res) => {
   try {
     const { orderId, transporterId } = req.params;
