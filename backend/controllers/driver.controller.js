@@ -1,5 +1,7 @@
 import { validationResult } from "express-validator";
-import driverModel from "../models/driverModel";
+
+import driverModel from "../models/driverModel.js";
+import orderModel from "../models/orderModel.js"
 
 export const registerDriverController = async (req, res) => {
     try{
@@ -212,12 +214,24 @@ export const deleteDriverDocumentsController = async (req, res) => {
             return res.status(404).json({ message: "Driver not found" });
         }
 
-        driver.documents = {
-            idProof: null,
-            license: null
-        };
+        const docs = driver.documents || {};
+        const docKeys = ["idProof", "license"];
 
+        docKeys.forEach((key) => {
+            const filePath = docs[key];
+            if (filePath) {
+                fs.unlink(filePath, (err) => {
+                    if (err) {
+                        console.log(`Error deleting ${key}:`, err.message);
+                    }
+                });
+                driver.documents[key] = undefined;
+            }
+        });
 
+        await driver.save();
+
+        res.status(200).json({ message: "Driver documents deleted successfully" });
     }
     catch(err){
         console.log("Error in deleteDriverDocumentsController: ", err.message);
@@ -226,27 +240,156 @@ export const deleteDriverDocumentsController = async (req, res) => {
 }
 
 export const getAssignedOrderController = async (req, res) => {
+    try{
+        const driverId = req.user?._id;
 
+        const assignedOrder = await orderModel.find({ acceptedDriverId: driverId })
+            .sort({ createdAt: -1 })
+            .limit(1)
+            .populate("customerId");
+        if(!assignedOrder.length){
+            return res.status(200).json({ message: "No assigned order currently" });
+        }
+
+        res.status(200).json({ assignedOrder: assignedOrder[0] });
+    }
+    catch(err){
+        console.log("Error in getAssignedOrderController: ", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
-export const startOrderController = async (req, res) => {
+export const updateOrderByDriverController = async (req, res) => {
+    try{
+        const driverId = req.user?._id;
+        const { orderId } = req.params;
+        const {
+            action,
+            location,
+            currentStatus,
+            completedStops
+        } = req.body;
 
-}
+        const order = await orderModel.findOne({ _id: orderId, acceptedDriverId: driverId });
+        if(!order){
+            return res.status(404).json({ message: "Order not found or not assigned to you" });
+        }
 
-export const updateOrderProgressController = async (req, res) => {
+        const now = new Date();
 
-}
+        if(action === "start"){
+            if(order.startTime){
+                return res.status(400).json({ message: "Order already started" });
+            }
 
-export const endOrderController = async (req, res) => {
+            order.startTime = now;
+            order.currentStatus = "in-progress";
+            order.status = "in_transit";
+            order.deliveryTimeline = {
+                ...order.deliveryTimeline,
+                startedAt: now,
+                lastknownProgress: "in-progress"
+            };
+        }
+        else if(action === "update"){
+            if(!order.startTime){
+                return res.status(400).json({ message: "Order hasn't started yet" });
+            }
 
+            if(currentStatus){
+                order.currentStatus = currentStatus;
+                order.status = currentStatus === "delivered" ? "delivered" : currentStatus;
+            }
+
+            if(typeof completedStops === "number"){
+                order.completedStops = completedStops;
+            }
+
+            if(location?.latitude && location?.longitude){
+                order.currentLocation = {
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    updatedAt: now
+                };
+
+                order.trackingHistory.push({
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    timeStamp: now
+                });
+            }
+
+            if(order.deliveryTimeline){
+                order.deliveryTimeline.lastknownProgress = order.currentStatus;
+            }
+        }
+        else if(action === "end"){
+            if(!order.status){
+                return res.status(400).json({ message: "Order hasn't started yet" });
+            }
+
+            order.endTime = now;
+            order.currentStatus = "delivered";
+            order.status = "delivered";
+
+            if(order.deliveryTimeline){
+                order.deliveryTimeline.completedAt = now;
+                order.deliveryTimeline.lastknownProgress = "delivered";
+            }
+        }
+        else{
+            return res.status(400).json({ message: "Invalid action. Use 'start', 'update' or 'end'" });
+        }
+
+        await order.save();
+        res.status(200).json({ message: `Order ${action}ed successfully`, order });
+    }
+    catch(err){
+        console.log("Error in updateOrderByDriverController: ", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
 export const getWorkModeController = async (req, res) => {
+    try{
+        const driverId = req.user?._id;
 
+        const driver = await driverModel.findById(driverId)
+            .select("currentMode");
+
+        if(!driver){
+            return res.status(404).json({ message: "Driver not found" });
+        }
+
+        res.status(200).json({ driverWorkMode: driver });
+    }
+    catch(err){
+        console.log("Error in getWorkModeController: ", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
 export const toggleWorkModeController = async (req, res) => {
+    try{
+        const driverId = req.user?._id;
 
+        const driver = await driverModel.findById(driverId).select("currentMode");
+        if(!driver){
+            return res.status(404).json({ message: "Driver not found" });
+        }
+
+        driver.currentMode = driver.currentMode === "work_mode" ? "rest_mode" : "work_mode";
+        await driver.save();
+
+        res.status(200).json({
+            message: `Driver is now in ${driver.currentMode}`,
+            currentMode: driver.currentMode
+        });
+    }
+    catch(err){
+        console.log("Error in toggleWorkModeController: ", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
 export const getOrdersHistoryController = async (req, res) => {

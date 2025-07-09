@@ -6,14 +6,10 @@ import {
   loginDriverController,
   logoutDriverController,
   getDriverProfileController,
-  getDriverDocumentsController,
   deleteDriverDocumentsController,
   updateDriverProfileController,
   uploadDriverDocumentsController,
   getAssignedOrderController,
-  startOrderController,
-  updateOrderProgressController,
-  endOrderController,
   getWorkModeController,
   toggleWorkModeController,
   getOrdersHistoryController,
@@ -24,7 +20,8 @@ import {
   // NEW CONTROLLERS FOR DOCUMENTS
   uploadKataParchiBeforeController,
   uploadKataParchiAfterController,
-  uploadReceivingDocumentController
+  uploadReceivingDocumentController,
+  updateOrderByDriverController
 } from '../controllers/driver.controller.js';
 
 import { correctRole } from '../middlewares/authorizeRoles.js';
@@ -80,9 +77,7 @@ router.put('/documents', isLoggedIn, correctRole("driver"), uploadDriverDocument
 
 // ==================== Driver Order Management Routes ====================
 router.get('/order', isLoggedIn, correctRole("driver"), getAssignedOrderController);
-router.put('/order/start/:orderId', isLoggedIn, correctRole("driver"), startOrderController);
-router.put('/order/update/:orderId', isLoggedIn, correctRole("driver"), updateOrderProgressController);
-router.put('/order/reached/:orderId', isLoggedIn, correctRole("driver"), endOrderController);
+router.put('/order/update/:orderId', isLoggedIn, correctRole("driver"), updateOrderByDriverController);
 
 // ==================== Driver Work Mode Routes ====================
 router.get('/mode', isLoggedIn, correctRole("driver"), getWorkModeController);

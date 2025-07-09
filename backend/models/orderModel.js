@@ -285,7 +285,7 @@ const ordersSchema = new  mongoose.Schema({
         type: Boolean,
         default: false
     }
-});
+}, { timestamps: true });
 
 const orderModel = mongoose.model("orders",ordersSchema);
 export default orderModel;
