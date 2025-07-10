@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
-
 import driverModel from "../models/driverModel.js";
 import orderModel from "../models/orderModel.js"
+
 
 export const registerDriverController = async (req, res) => {
     try{
@@ -393,33 +393,227 @@ export const toggleWorkModeController = async (req, res) => {
 }
 
 export const getOrdersHistoryController = async (req, res) => {
+    try{
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({ message:errors.array() });
+        }
 
+        const companyId = req.user?._id;
+        if(!companyId){
+            return res.status(401).json({ message:"Unauthorized access" });
+        }
+
+        const orders = await orderModel.find({
+            customerId: companyId,
+            status: { $in:["delivered","cancelled"] }
+        })
+        .sort({ scheduledAt: -1 })
+        .populate("acceptedDriverId","fullname phone email")
+        .populate("accedptedTruckId","registrationNumber brand model vehicleType")
+        .populate("acceptedTransporterId","transporterName contactNo email");
+
+        if(!orders || orders.length ===0){
+            return res.status(200).json({ message:"No completed or cancelled orders found",orderHistory:[] });
+        }
+
+        res.status(200).json({ message:"Order history fectched successfully",orderHistory:orders });
+
+    }
+    catch{
+        console.log("Error in getOrderHistoryController: ", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
 export const requestEWayExtensionController = async (req, res) => {
+    try{
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({ message:errors.array() });
+        }
 
+        const { orderId } = req.params;
+        const { reason,newExpiryDate } = req.body;
+        const driverId = req.user?._id;
+
+        const order = await orderModel.findById(orderId);
+        
+        if(!order) {
+            return res.status(404).json({ message:"Order not found" });
+        }
+
+        if(order.acceptedDriverId.toString()!==driverId.toString()){
+            return res.status(403).json({ message:"Unauthorized , not your order" });
+        }
+
+        if(!order.documents?.eWayBill?.fileURL){
+            return res.status(400).json({ message:"E=way Bill not found for this order" });
+        }
+
+        order.documents.eWayBill.extensionRequest = {
+            requestedAt : new Date(),
+            reason,
+            requestedBy: driverId,
+            newExpiryDate
+        };
+
+        await order.save();
+
+        res.status(200).json({ message:"E-way Bill request submitted", extensionRequest: order.documents.eWayBill.extensionRequest });
+    }
+    catch{
+        console.log("Error in requestEWayExtensionController: ", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
 export const reportEmergencyController = async (req, res) => {
-
 }
 
 export const getDriverCurrentLocationController = async (req, res) => {
+    try{
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({ message:errors.array() });
+        }
 
+        const driverId = req.user?._id;
+
+        if(!driverId){
+            return res.status(401).json({ message:"Unauthorized access" });
+        }
+
+        const driver = await driverModel.findById(driverId);
+
+        if(!driver) {
+            return res.status(404).json({ message:"Driver not found" });
+        }
+
+        res.status(200).json({ message:"Driver current location fetched successfully", location:driver.currentLocation });
+    }
+    catch{
+        console.log("Error in getDriverCurrentLocationController: ", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
 export const getDriverDashboardController = async (req, res) => {
-    
+    try{
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({ message:errors.array() });
+        }
+        
+        const driverId = req.user?._id;
+
+        if(!driverId) {
+            return res.status(401).json({ message:"Unauthorized access" });
+        }
+
+        const driver = await driverModel
+        .findById(driverId)
+        .populate("assignedTruckId")
+        .populate("activateBookingId");
+
+        if(!driverId){
+            return  res.status(404).json({ message:"Driver not found" });
+        }
+
+        const activeOrder = await orderModel.findById(driver.activeBookingId);
+
+        res.status(200).json({ 
+            message: "Driver dashboard fetched successfully",
+            dashboard: {
+                fullName : driver.fullName,
+                email: driver.email,
+                phone: driver.phone,
+                availabilityStatus: driver.availabilityStatus,
+                currentMode: driver.currentMode,
+                currentLocation: driver.currentLocation,
+                assignedTruck: driver.assignedTruckId,
+                activeBooking: activeOrder,
+                totalDistanceTravelledInKm: driver.totalDistanceTravelledInKm,
+                totalHoursDriven: driver.totalHoursDriven,
+                totalDaysWorked: driver.totalDaysWorked
+            }
+        });
+    }
+    catch{
+        console.log("Error in getDriverDashboardController: ", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
 export const uploadKataParchiBeforeController = async (req, res) => {
+    try{
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({ message:errors.array() });
+        }
 
+        const { orderId } = req.params;
+
+        if(!req.file || req.file.path) {
+            return res.status(400).json({ message: "Kata Parchi before document is required" });
+        }
+
+        const order = await orderModel.findById(orderId);
+        if(!order) {
+            return res.status(404).json({ message:"Order not found" });
+        }
+
+        order.documents.kataParchiBefore = {
+            fileURL: req.file.path,
+            uplaodedAt: new Date()
+        };
+
+        await order.save();
+
+        res.status(200).json({ message:"Kata Parchi before uploaded successfully", document: order.documents.kataParchiBefore });
+    }
+    catch{
+        console.log("Error in uplaodKataParchiBeforeController: ", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
 export const uploadKataParchiAfterController = async (req, res) => {
+    try{
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(400).json({ message:errors.array() });
+        }
 
+        const driverId = req.user?._id;
+        if(!driverId){
+            return res.status(401).json({ message:"Unauthorized access" });
+        }
+
+        const driver = await driverModel.findById(driverId);
+        if(!driver){
+            return res.status(404).json({ message:"Driver not found" });
+        }
+
+        if(!req.file || !req.file.path){
+            return res.status(400).json({ message:"Kata Parchi (after delivery) document is required" });
+        }
+
+        driver.kataParchiAfter = {
+            fileURL: req.file.path,
+            uploadedAt: new Date()
+        };
+
+        await driver.save();
+
+        res.status(200).json({ message:"Kata Parchi uploaded successfully after delivery", kataParchiAfter:driver.kataParchiAfter });
+
+    }
+    catch{
+        console.log("Error in uploadKataParchiAfterController: ", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
 export const uploadReceivingDocumentController = async (req, res) => {
-    
-}
+    }

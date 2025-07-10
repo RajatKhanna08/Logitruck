@@ -127,6 +127,14 @@ const driverSchema = new  mongoose.Schema({
         longitude: {
             type: String,
         }
+    },
+    kataParchiAfter: {
+        fileURL: {
+            type: String,
+        },
+        uploadedAt : {
+            type: Data,
+        }
     }
 }, { timestamps: true });
 

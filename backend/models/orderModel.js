@@ -1,3 +1,4 @@
+import { request } from "express";
 import mongoose from "mongoose";
 
 const ordersSchema = new  mongoose.Schema({
@@ -235,7 +236,16 @@ const ordersSchema = new  mongoose.Schema({
         eWayBill: {
           fileURL: { type: String },
           billNumber: { type: Number },
-          uploadedAt: Date
+          uploadedAt: Date,
+          extensionRequest: {
+            requestedAt: { type:Date },
+            reason: { type: String },
+            requestedBy: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "drivers"
+            },
+            newExpiryDate: { type:Date }
+          }
         },
         bilty: {
           fileURL: { type: String },
