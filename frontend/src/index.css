@@ -1,1 +1,16 @@
 @import "tailwindcss";
+
+@layer utilities {
+  @keyframes moveX {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(-60px);
+    }
+  }
+
+  .animate-moveX {
+    animation: moveX 3s ease-in-out infinite;
+  }
+}
