@@ -1,16 +1,49 @@
 @import "tailwindcss";
 
-@layer utilities {
-  @keyframes moveX {
-    0%, 100% {
-      transform: translateX(0);
-    }
-    50% {
-      transform: translateX(-60px);
-    }
-  }
+/* Custom Yellow Scrollbar using Tailwind yellow-300 (#fde047) */
+::-webkit-scrollbar {
+    width: 10px;
+}
 
-  .animate-moveX {
-    animation: moveX 3s ease-in-out infinite;
+::-webkit-scrollbar-track {
+    background: #1a1a1a; /* optional: dark background or transparent */
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #fde047; /* Tailwind yellow-300 */
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+/* For Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #fde047 #1a1a1a;
+}
+
+@layer utilities {
+    /* Footer Truck Animation */
+    @keyframes moveX {
+        0%, 100% {
+            transform: translateX(0);
+        }
+        50% {
+            transform: translateX(-60px);
+        }
+    }
+
+    .animate-moveX {
+        animation: moveX 3s ease-in-out infinite;
+    }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none;    /* Firefox */
   }
 }

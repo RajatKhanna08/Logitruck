@@ -42,21 +42,21 @@ const Footer = () => {
 				<ul className='z-10 text-white w-full mt-3 text-lg flex flex-col gap-2'>
 					<li className='flex items-center justify-start gap-2'><FaPhone /> +91 1234567890</li>
 					<li className='flex items-center justify-start gap-2'><IoMail /> harshitxrajput@gmail.com</li>
-					<li className='flex items-center justify-start gap-2'><FaGlobe /> www.example.com</li>
+					<li className='flex items-center justify-start gap-2'><FaGlobe /><a href='https://www.logitruck.org.in'> www.logitruck.org.in</a></li>
 				</ul>
 
 				<div className='z-10'>
 					<div className="flex gap-6 mb-10 mt-2">
 						<a href="https://facebook.com/harshitxrajput" target="_blank" rel="noopener noreferrer"
-							className="bg-white/10 hover:bg-[#1877f2] transition-colors rounded-full p-2 shadow-lg">
+							className="bg-white/10 hover:bg-[#1877f2] transition-colors rounded-full p-2 shadow-lg duration-500">
 							<FaFacebookF className="text-2xl text-white" />
 						</a>
 						<a href="https://instagram.com/harshitxrajput" target="_blank" rel="noopener noreferrer"
-							className="bg-white/10 hover:bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 transition-colors rounded-full p-2 shadow-lg">
+							className="bg-white/10 hover:bg-pink-500 transition-colors duration-500 rounded-full p-2 shadow-lg">
 							<FaInstagram className="text-2xl text-white" />
 						</a>
 						<a href="https://x.com/harshitxrajput" target="_blank" rel="noopener noreferrer"
-							className="bg-white/10 hover:bg-black transition-colors rounded-full p-2 shadow-lg">
+							className="bg-white/10 hover:bg-black transition-colors rounded-full p-2 shadow-lg duration-500">
 							<FaXTwitter className="text-2xl text-white" />
 						</a>
 					</div>
@@ -134,7 +134,7 @@ const Footer = () => {
 
 				{/* Copyright */}
 				<div className='z-10 absolute bottom-10 text-gray-300 flex items-center text-xl'>
-					<p className='flex items-center gap-2'>Copyright <FaCopyright /> 2025 by <span className='text-yellow-300'>Harshit Rajput</span> | All rights reserved</p>
+					<p className='flex items-center gap-2'>Copyright <FaCopyright /> 2025 by <span className='text-yellow-300'>LogiTruck</span> | All rights reserved</p>
 				</div>
 			{/* </div> */}
 		</footer>
