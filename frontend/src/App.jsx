@@ -10,14 +10,14 @@ const App = () => {
     return (
         <div className='relative w-full h-full'>
             <BrowserRouter>
-                {/* <Navbar /> */}
+                <Navbar />
                 <Routes>
-                    {/* <Route path={"/"} element={<HomePage />} /> */}
+                    <Route path={"/"} element={<HomePage />} />
                 </Routes>
                 
             </BrowserRouter>
 
-            <IntroLoader />
+            {/* <IntroLoader /> */}
         </div>
   )
 }

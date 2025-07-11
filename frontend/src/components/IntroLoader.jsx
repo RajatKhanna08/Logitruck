@@ -25,6 +25,8 @@ const IntroLoader = () => {
                 return prev + 1;
             });
         }, 30);
+
+        
     })
 
     return (
