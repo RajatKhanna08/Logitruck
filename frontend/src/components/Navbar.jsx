@@ -28,16 +28,17 @@ const Navbar = () => {
     }, []);
 
     return (
-        <nav className={`fixed px-8 pt-3 top-0 w-full h-32 z-[100] transition-transform duration-500 ${
-            showNavbar ? 'translate-y-0' : '-translate-y-18'} bg-black/70 backdrop-blur-sm`}>
+        <nav className={`fixed px-8 pt-3 top-0 w-full h-35 z-[100] transition-transform duration-500 ${showNavbar ? 'translate-y-0' : '-translate-y-18'} bg-black/70 backdrop-blur-sm`}>
             {/* UPPER SECTION */}
-            <div className='flex justify-between'>
-                <Link to={"/"} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-                    <img src="/LogiTruckLogoWhite.png" alt="Logi Truck Logo" className='w-60' />
-                </Link>
+            <div className='flex'>
+                <div className={`absolute left-8 transition-all duration-500 ${showNavbar ? 'top-3' : 'top-20'}`}>
+                    <Link to={"/"} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+                        <img src="/LogiTruckLogoWhite.png" alt="Logi Truck Logo" className={`w-${showNavbar ? 32 : 2} sm:w-60`} />
+                    </Link>
+                </div>
 
                 {/* Navigation Buttons */}
-                <ul className='list-none text-white flex gap-5 text-lg font-medium select-none'>
+                <ul className='list-none text-white flex gap-5 text-lg font-medium select-none text-right ml-220'>
                     <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'><FaPhone /> +91 1234567890</li>
                     <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'><IoMail /> logitruck@gmail.com</li>
                     <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'><FaGlobe size={25} /></li>
@@ -49,10 +50,10 @@ const Navbar = () => {
             </div>
 
             {/* Seperator */}
-            <span className="absolute bottom-14 left-7 w-[96%] h-[1px] bg-yellow-300" />
+            <span className="absolute bottom-17 left-7 w-[96%] h-[1px] bg-yellow-300/40" />
 
             {/* LOWER SECTION */}
-            <ul className='flex mt-5 items-center text-shadow justify-end gap-10 text-white text-lg font-medium'>
+            <ul className='flex mt-9  items-center text-shadow justify-end gap-10 text-white text-lg font-medium'>
                 <li className="relative group cursor-pointer transition-all duration-200">
                     <Link to="/" onClick={() => window.scroll({ top: 0, behavior: "smooth" })} className="hover:text-yellow-300">
                         Home

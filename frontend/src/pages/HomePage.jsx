@@ -3,24 +3,39 @@ import { Link } from 'react-router-dom';
 import { GiCheckMark } from "react-icons/gi";
 
 import Footer from '../components/Footer';
-import { imageSlides, services } from '../constants/HomePageConstants.js';
+import { imageSlides, liveTrackingFaq, services, testimonials } from '../constants/HomePageConstants.js';
 import ServiceCard from '../components/ServiceCard.jsx';
+import LiveTrackingFAQCard from '../components/LiveTrackingFAQCard.jsx';
+import TestimonialCard from '../components/TestimonialCard.jsx';
 
 const HomePage = () => {
+    //first screen
     const [currentSlide, setCurrentSlide] = useState(0);
-
     useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % imageSlides.length);
-    }, 10000);
-
+    }, 5000);
     return () => clearInterval(interval);
-  }, []);
+    }, []);
+
+  //Live Tracking Section
+  const [openIndex, setOpenIndex] = useState(null);
+  const toggleAccordion = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
 
     return (
         <div className='relative overflow-x-hidden'>
             {/* FIRST SECTION */}
             <div className='relative w-screen h-screen'>
+                {/* PROGRESS BAR */}
+                <div className="absolute z-50 top-35 left-0 w-full h-1 bg-white/20 overflow-hidden">
+                    <div
+                        key={currentSlide} // triggers animation on change
+                        className="h-full bg-yellow-300 animate-progress"
+                        style={{ animationDuration: '5000ms' }} // same as your slide interval
+                    />
+                </div>
                 {imageSlides.map((slide, index) => (
                     <div key={index}
                         className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
@@ -34,10 +49,10 @@ const HomePage = () => {
                         />
                         <div className="absolute left-0 inset-0 bg-black/50 flex items-center justify-start pl-15">
                             <div className="space-y-5">
-                                <p className="w-[65%] text-yellow-300 text-8xl font-bold leading-[1.2]">
+                                <p className="w-[65%] text-yellow-300 text-7xl font-bold leading-[1.2]">
                                     {slide.text}
                                 </p>
-                                <p className="w-[60%] text-white text-4xl font-medium leading-snug">
+                                <p className="w-[60%] text-white text-3xl font-medium leading-snug">
                                     {slide.subtext}
                                 </p>
                             </div>
@@ -47,11 +62,8 @@ const HomePage = () => {
 
             </div>
 
-            {/* SEPERATOR */}
-            <img src="/firstScreenSeperator.jpg" className='w-full h-10 object-cover' />
-
             {/* SERVICES SECTION */}
-            <div className='relative w-full h-[80%]'>
+            <div className='mt-25 relative w-full h-[80%]'>
                 <div className='z-1 absolute top-0 bg-yellow-300 w-full h-[40%]' />
 
                 {/* HEADING */}
@@ -167,21 +179,66 @@ const HomePage = () => {
             </div>
 
             {/* TRACKING SECTION */}
-            <div className='mt-15 flex justify-center gap-15'>
+            <div className='mt-15 flex justify-center gap-23'>
                 {/* LEFT SECTION */}
-                <div className='flex flex-col gap-5 p-20 rounded-md bg-[#192a67] text-white'>
+                <div className='flex flex-col gap-5 p-16 rounded-md bg-[#192a67] text-white'>
                     <p className='text-6xl font-semibold'>Real Time Tracking</p>
 
                     <div>
                         <form className='flex justify-between gap-5'>
-                            <input type="text" className='bg-white text-black text-2xl rounded-md py-2 pl-2 pr-27' placeholder='Enter Order Id' />
-                            <button type='submit' className='px-5 py-2 text-black bg-white rounded-md font-semibold'>Track</button>
+                            <input type="text" className='bg-white text-black text-2xl rounded-md py-2 pl-3 pr-27 font-semibold' placeholder='Enter Order Id' />
+                            <button type='submit' className='px-5 py-2 text-black bg-white rounded-md font-bold'>Track</button>
                         </form>
                     </div>
 
                     <p className='w-90'>Enter the ID of Your Project To track it’s status(Demo Projects IDs are 1234, 5482 and 5422.</p>
 
                     <p name="" id="" className='bg-white text-black/40 rounded-md p-5 h-60'>Thank you </p>
+                </div>
+
+                {/* RIGHT SECTION */}
+                <div className='flex flex-col'>
+                    <p className='text-4xl font-bold text-[#192a67]'>Get  the best logistic service FAQ</p>
+
+                    {/* ACCORDION */}
+                    <div className='mt-20 flex flex-col gap-10 relative'>
+                        {liveTrackingFaq.map((faq, index) => (
+                            <div key={index} className="relative border border-gray-300 rounded-md overflow-visible shadow-sm">
+                                <LiveTrackingFAQCard
+                                    faq={faq}
+                                    index={index}
+                                    openIndex={openIndex}
+                                    toggleAccordion={toggleAccordion}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* TESTIMONIAL SECTION */}
+            <div className='mt-15 flex flex-col items-center relative'>
+                <p className='text-5xl font-semibold text-[#192a67]'>Our Testimonials</p>
+
+                <span className='absolute top-40 z-10 w-250 h-130 bg-[#192a67]' />
+
+                <div className='z-50 flex flex-col'>
+                    <div className='flex gap-180'>
+                        <img src="/homeTestimonialTruckBlue.png" className='w-50' />
+                        <img src="/homeTestimonialTruckBlue.png" className='w-50 scale-x-[-1]' />
+                    </div>
+
+                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl w-full'>
+                        {testimonials.map((testimonial, index) => (
+                            <TestimonialCard
+                                key={index}
+                                username={testimonial.username}
+                                profileImg={testimonial.profileImg}
+                                reviewText={testimonial.reviewText}
+                                rating={testimonial.rating}
+                            />
+                        ))}
+                    </div>
                 </div>
             </div>
 

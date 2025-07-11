@@ -14,13 +14,11 @@ import {
   toggleWorkModeController,
   getOrdersHistoryController,
   requestEWayExtensionController,
-  reportEmergencyController,
   getDriverCurrentLocationController,
   getDriverDashboardController,
   // NEW CONTROLLERS FOR DOCUMENTS
   uploadKataParchiBeforeController,
   uploadKataParchiAfterController,
-  uploadReceivingDocumentController,
   updateOrderByDriverController
 } from '../controllers/driver.controller.js';
 
@@ -86,7 +84,6 @@ router.put('/mode', isLoggedIn, correctRole("driver"), toggleWorkModeController)
 // ==================== Driver Order History & Emergency Routes ====================
 router.get('/order-history', isLoggedIn, correctRole("driver"), getOrdersHistoryController);
 router.post('/order/e-way-extension/:orderId', isLoggedIn, correctRole("driver"), requestEWayExtensionController);
-router.post('/order/emergency/:orderId', isLoggedIn, correctRole("driver"), reportEmergencyController);
 
 // ==================== Driver Location Routes ====================
 router.post('/location', isLoggedIn, correctRole("driver"), getDriverCurrentLocationController);
@@ -97,6 +94,5 @@ router.get('/dashboard', isLoggedIn, correctRole("driver"), getDriverDashboardCo
 // ==================== Driver Order Document Upload Routes (NEW) ====================
 router.post('/order/kata-parchi-before/:orderId', isLoggedIn, correctRole("driver"), uploadKataParchiBeforeController);
 router.post('/order/kata-parchi-after/:orderId', isLoggedIn, correctRole("driver"), uploadKataParchiAfterController);
-router.post('/order/receiving/:orderId', isLoggedIn, correctRole("driver"), uploadReceivingDocumentController);
 
 export default router;

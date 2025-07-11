@@ -2,7 +2,6 @@ import { validationResult } from "express-validator";
 import driverModel from "../models/driverModel.js";
 import orderModel from "../models/orderModel.js"
 
-
 export const registerDriverController = async (req, res) => {
     try{
         const errors = validationResult(req);
@@ -468,9 +467,6 @@ export const requestEWayExtensionController = async (req, res) => {
     }
 }
 
-export const reportEmergencyController = async (req, res) => {
-}
-
 export const getDriverCurrentLocationController = async (req, res) => {
     try{
         const errors = validationResult(req);
@@ -614,6 +610,3 @@ export const uploadKataParchiAfterController = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
-
-export const uploadReceivingDocumentController = async (req, res) => {
-    }

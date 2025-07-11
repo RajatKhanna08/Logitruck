@@ -48,3 +48,59 @@ export const services = [
     image: "/homeServiceCardSix.avif",
   },
 ];
+
+export const liveTrackingFaq = [
+  {
+    question: "What is LogiTruck and how does it work?",
+    answer:
+      "LogiTruck is a smart logistics platform designed to connect shippers with verified transporters. You can book trucks, track shipments, and manage logistics all in one place.",
+  },
+  {
+    question: "How do I register as a transporter on LogiTruck?",
+    answer:
+      "You can click on the 'Join Us' button in the navigation bar, select 'Transporter Signup', and fill out your details. After verification, your profile will be active.",
+  },
+  {
+    question: "Can I track my shipment in real-time?",
+    answer:
+      "Yes, LogiTruck provides real-time tracking features for all active shipments, including location updates, delivery status, and estimated arrival times.",
+  },
+  {
+    question: "Is my data secure with LogiTruck?",
+    answer:
+      "Absolutely. We use end-to-end encryption and industry-standard security practices to ensure your data is safe and confidential at all times.",
+  },
+];
+
+export const testimonials = [
+  {
+    username: "Rohit Sharma",
+    profileImg: "/avatars/rohit.jpg",
+    reviewText: "LogiTruck has completely transformed our logistics operations. The interface is clean and easy to use, and their support is outstanding.",
+    rating: 5
+  },
+  {
+    username: "Anjali Mehta",
+    profileImg: "/avatars/anjali.jpg",
+    reviewText: "Impressed by how efficient and real-time the tracking is. Highly reliable service and the dashboard gives great insights.",
+    rating: 4
+  },
+  {
+    username: "Vikram Patel",
+    profileImg: "/avatars/vikram.jpg",
+    reviewText: "Their customer support helped me onboard quickly. A very professional and scalable platform. Would recommend!",
+    rating: 5
+  },
+  {
+    username: "Sara Thomas",
+    profileImg: "/avatars/sara.jpg",
+    reviewText: "Using LogiTruck saved our company both time and money. Love the smart routing and booking flow!",
+    rating: 4
+  },
+  {
+    username: "Mohammed Ali",
+    profileImg: "/avatars/mohammed.jpg",
+    reviewText: "The automation features in LogiTruck are top-notch. No more manual tracking headaches.",
+    rating: 5
+  }
+];
