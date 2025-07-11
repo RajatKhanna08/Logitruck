@@ -116,7 +116,7 @@ const companySchema = new  mongoose.Schema({
             required: true
         }
     }
-});
+}, { timestamps: true });
 
 companySchema.statics.hashPassword = async function(password){
     return await bcrypt.hash(password, 12);

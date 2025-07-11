@@ -2,7 +2,14 @@ import mongoose from "mongoose";
 import jwt from 'jsonwebtoken';
 import bcrypt from "bcryptjs";
 
-const driverSchema = new  mongoose.Schema({
+const driverSchema = new mongoose.Schema({
+    role: {
+        type: String,
+        enum: ["driver", "company", "transporter", "admin"],
+        default: "driver",
+        required: true
+    },
+    
     profileImg: {
         type: String,
     },
@@ -133,7 +140,7 @@ const driverSchema = new  mongoose.Schema({
             type: String,
         },
         uploadedAt : {
-            type: Data,
+            type: Date,
         }
     }
 }, { timestamps: true });

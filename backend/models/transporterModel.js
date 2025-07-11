@@ -117,7 +117,7 @@ const transporterSchema = new mongoose.Schema({
             ref: "orders"
         }
     ]
-});
+}, { timestamps: true });
 
 transporterSchema.methods.generateAuthToken = function(){
     const token = jwt.sign({ _id: this._id, role: this.role }, process.env.JWT_SECRET_KEY, { expiresIn: "24h" });
