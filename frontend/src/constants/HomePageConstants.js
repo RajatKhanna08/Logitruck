@@ -75,32 +75,33 @@ export const liveTrackingFaq = [
 export const testimonials = [
   {
     username: "Rohit Sharma",
-    profileImg: "/avatars/rohit.jpg",
-    reviewText: "LogiTruck has completely transformed our logistics operations. The interface is clean and easy to use, and their support is outstanding.",
+    profileImg: "/homeTestimonialMaleProfile.webp",
+    reviewText: "LogiTruck has completely transformed our logistics operations. From the moment we integrated the platform, we noticed a significant improvement in route optimization, delivery timelines, and overall fleet management.",
     rating: 5
   },
   {
     username: "Anjali Mehta",
-    profileImg: "/avatars/anjali.jpg",
-    reviewText: "Impressed by how efficient and real-time the tracking is. Highly reliable service and the dashboard gives great insights.",
+    profileImg: "/homeTestimonialFemaleProfile.avif",
+    reviewText: "I'm genuinely impressed by how efficient and accurate the real-time tracking is. The entire logistics process has become much smoother and less stressful. The dashboard provides excellent insights into shipments, and the reporting tools help us plan better.",
     rating: 4
   },
   {
     username: "Vikram Patel",
-    profileImg: "/avatars/vikram.jpg",
-    reviewText: "Their customer support helped me onboard quickly. A very professional and scalable platform. Would recommend!",
+    profileImg: "/homeTestimonialMaleProfile.webp",
+    reviewText: "LogiTruck’s platform is incredibly professional and scalable. Their customer support guided me through every step of the onboarding process, and I was able to set up our logistics workflow in no time.",
     rating: 5
   },
   {
     username: "Sara Thomas",
-    profileImg: "/avatars/sara.jpg",
-    reviewText: "Using LogiTruck saved our company both time and money. Love the smart routing and booking flow!",
+    profileImg: "/homeTestimonialFemaleProfile.avif",
+    reviewText: "Switching to LogiTruck was one of the best decisions for our company. The smart routing features helped us reduce fuel costs and delivery delays. The booking system is seamless and user-friendly, which our team really appreciates. It’s clear that the platform is built with logistics professionals in mind.",
     rating: 4
   },
   {
     username: "Mohammed Ali",
-    profileImg: "/avatars/mohammed.jpg",
-    reviewText: "The automation features in LogiTruck are top-notch. No more manual tracking headaches.",
+    profileImg: "/homeTestimonialMaleProfile.webp",
+    reviewText: "What I love most about LogiTruck is how much manual work it has eliminated for us. The automation features are top-notch — from dispatching to delivery confirmations. It has significantly reduced errors and improved client satisfaction. It’s now an essential tool in our daily logistics management.",
     rating: 5
   }
 ];
+

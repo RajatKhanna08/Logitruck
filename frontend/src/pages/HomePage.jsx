@@ -1,28 +1,82 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GiCheckMark } from "react-icons/gi";
+import { gsap } from 'gsap';
 
 import Footer from '../components/Footer';
 import { imageSlides, liveTrackingFaq, services, testimonials } from '../constants/HomePageConstants.js';
 import ServiceCard from '../components/ServiceCard.jsx';
 import LiveTrackingFAQCard from '../components/LiveTrackingFAQCard.jsx';
 import TestimonialCard from '../components/TestimonialCard.jsx';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import useNewsData from '../hooks/useNewsData.js';
+import NewsCard from '../components/NewsCard.jsx';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const HomePage = () => {
     //first screen
     const [currentSlide, setCurrentSlide] = useState(0);
     useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % imageSlides.length);
+        setCurrentSlide((prev) => (prev + 1) % imageSlides.length);
     }, 5000);
     return () => clearInterval(interval);
     }, []);
 
-  //Live Tracking Section
-  const [openIndex, setOpenIndex] = useState(null);
-  const toggleAccordion = (index) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
+    //Live Tracking Section
+    const [openIndex, setOpenIndex] = useState(null);
+    const toggleAccordion = (index) => {
+        setOpenIndex(openIndex === index ? null : index);
+    };
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const intervalTime = 5000;
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentIndex((prev) =>
+                prev === testimonials.length - 1 ? 0 : prev + 1
+            );
+        }, intervalTime);
+        return () => clearInterval(interval);
+    }, []);
+
+    // TESTIMONIALS TRUCK ANIMATION
+    const containerRef = useRef(null);
+    const leftTruck = useRef(null);
+    const rightTruck = useRef(null);
+    useEffect(() => {
+        const ctx = gsap.context(() => {
+
+            const tl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: containerRef.current,
+                    start: "top 100%",     // starts when top of section hits 80% viewport
+                    end: "top 1%",    // reverses when section leaves top
+                    scrub: true,          // smooth animation on scroll
+                    markers: false        // turn on if you want to see start/end markers
+                }
+            });
+          
+            tl.fromTo(
+                leftTruck.current,
+                { x: -300, opacity: 0 },
+                { x: 0, opacity: 1, duration: 1, ease: "power2.out" },
+                0
+            ).fromTo(
+                rightTruck.current,
+                { x: 300, opacity: 0 },
+                { x: 0, opacity: 1, duration: 1, ease: "power2.out" },
+                0
+            );
+        })
+      
+        return () => {
+            ctx.revert();
+        };
+    }, []);
+
+    //COMMUNITY CENTRE
+    const { news, loading } = useNewsData(3);
 
     return (
         <div className='relative overflow-x-hidden'>
@@ -138,11 +192,11 @@ const HomePage = () => {
                     <p className='text-2xl font-semibold text-center'>ARE YOU A SENDER?</p>
 
                     <ul className='text-xl flex flex-col gap-7 font-medium'>
-                        <li className='flex gap-2 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Regular Truck Booking</li>
-                        <li className='flex gap-2 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Full Logistics Support</li>
-                        <li className='flex gap-2 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Smart Shipping (AI Helped)</li>
-                        <li className='flex gap-2 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Quick One-Time Booking</li>
-                        <li className='flex gap-2 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Rural & Remote Area Shipping</li>
+                        <li className='flex gap-5 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Regular Truck Booking</li>
+                        <li className='flex gap-5 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Full Logistics Support</li>
+                        <li className='flex gap-5 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Smart Shipping (AI Helped)</li>
+                        <li className='flex gap-5 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Quick One-Time Booking</li>
+                        <li className='flex gap-5 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Rural & Remote Area Shipping</li>
                         <li className='mt-7 text-center'><Link to={"/company/register"} className='bg-white text-black px-6 py-4 rounded-2xl font-bold hover:bg-gray-300 transition-all duration-500'>Read More</Link></li>
                     </ul>
                 </div>
@@ -157,21 +211,11 @@ const HomePage = () => {
                     <p className='text-2xl font-semibold text-center'>ARE YOU A SHIPPER?</p>
 
                     <ul className='text-xl flex flex-col gap-7 font-medium'>
-                        <li className='flex gap-2 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'>
-                            <GiCheckMark /> Post Regular Trips
-                        </li>
-                        <li className='flex gap-2 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'>
-                            <GiCheckMark /> Offer Full Logistics Support
-                        </li>
-                        <li className='flex gap-2 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'>
-                            <GiCheckMark /> Get AI Route Suggestions
-                        </li>
-                        <li className='flex gap-2 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'>
-                            <GiCheckMark /> Accept One-Time Loads
-                        </li>
-                        <li className='flex gap-2 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'>
-                            <GiCheckMark /> Target Remote Areas
-                        </li>
+                        <li className='flex gap-5 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Post Regular Trips</li>
+                        <li className='flex gap-5 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Offer Full Logistics Support</li>
+                        <li className='flex gap-5 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Get AI Route Suggestions</li>
+                        <li className='flex gap-5 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Accept One-Time Loads</li>
+                        <li className='flex gap-5 items-center hover:text-yellow-300 transition-all duration-200 select-none cursor-pointer'><GiCheckMark /> Target Remote Areas</li>
                         <li className='mt-7 text-center'><Link to={"/transporter/register"} className='bg-white text-black px-6 py-4 rounded-2xl font-bold hover:bg-gray-300 transition-all duration-500'>Read More</Link></li>
                     </ul>
                 </div>
@@ -217,28 +261,84 @@ const HomePage = () => {
             </div>
 
             {/* TESTIMONIAL SECTION */}
-            <div className='mt-15 flex flex-col items-center relative'>
-                <p className='text-5xl font-semibold text-[#192a67]'>Our Testimonials</p>
+            <div className='mt-28 mb-40 flex flex-col items-center relative'>
+                <p className='text-5xl font-bold text-[#192a67]'>Our Testimonials</p>
 
+                {/* BACKGROUND COLOUR */}
                 <span className='absolute top-40 z-10 w-250 h-130 bg-[#192a67]' />
 
-                <div className='z-50 flex flex-col'>
-                    <div className='flex gap-180'>
-                        <img src="/homeTestimonialTruckBlue.png" className='w-50' />
-                        <img src="/homeTestimonialTruckBlue.png" className='w-50 scale-x-[-1]' />
-                    </div>
+                {/* TRUCKS IMAGES */}
+                <div ref={containerRef} className='z-11 flex gap-180 pt-10'>
+                    {/* Left truck image */}
+                    <img
+                        ref={leftTruck}
+                        src="/homeTestimonialTruckBlue.png"
+                        alt="Truck Left"
+                        className="w-48 opacity-0"
+                    />
 
-                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl w-full'>
+                    {/* Right truck image flipped */}
+                    <img
+                        ref={rightTruck}
+                        src="/homeTestimonialTruckBlueLeft.png"
+                        alt="Truck Right"
+                        className="w-48 opacity-0"
+                    />
+                </div>
+
+                {/* TESTIMONIALS */}
+                <div className="relative z-20 w-full h-[380px] overflow-hidden mt-5">
+                    <div
+                        className="z-20 flex transition-transform duration-700 ease-in-out"
+                        style={{
+                            width: `${testimonials.length * 50}%`,
+                            transform: `translateX(-${currentIndex * 20}%)`
+                        }}
+                    >
                         {testimonials.map((testimonial, index) => (
-                            <TestimonialCard
+                            <div
                                 key={index}
-                                username={testimonial.username}
-                                profileImg={testimonial.profileImg}
-                                reviewText={testimonial.reviewText}
-                                rating={testimonial.rating}
-                            />
+                                className=" flex-shrink-0 px-4 flex"
+                                style={{  maxWidth: '20%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                            >
+                                <TestimonialCard
+                                    username={testimonial.username}
+                                    profileImg={testimonial.profileImg}
+                                    reviewText={testimonial.reviewText}
+                                    rating={testimonial.rating}
+                                />
+                            </div>
                         ))}
                     </div>
+                </div>
+            </div>
+
+            {/* COMMUNITY CENTRE */}
+            <div className='mb-25 flex flex-col items-center w-full gap-15'>
+                {/* UPPER SECTION */}
+                <div className='flex justify-center gap-100'>
+                    <div className='flex flex-col gap-4'>
+                        <p className='text-5xl font-bold text-[#192a67]'>News & Updates</p>
+                        <p className='text-3xl'>Stay Updated With Our Community Centre</p>
+                    </div>
+                    <span className='flex items-end'>
+                        <Link to={"/community"} className='px-4 py-3 rounded-lg font-semibold text-3xl bg-[#192a67] text-yellow-300 flex items-center'>Check More</Link>
+                    </span>
+                </div>
+
+                {/* LOWER SECTION */}
+                <div className='flex justify-center w-full'>
+                    {
+                        loading ? (
+                            <p className="text-center text-gray-600">Loading news...</p>
+                        ) : (
+                            <div className="z-50 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                                {news.map((article, index) => (
+                                    <NewsCard key={index} {...article} />
+                                ))}
+                            </div>
+                        )
+                    }
                 </div>
             </div>
 
