@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import IntroLoader from './components/IntroLoader';
 
 const App = () => {
     return (
@@ -15,6 +16,8 @@ const App = () => {
                 </Routes>
                 
             </BrowserRouter>
+
+            {/* <IntroLoader /> */}
         </div>
   )
 }
