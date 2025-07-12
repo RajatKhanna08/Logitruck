@@ -5,12 +5,12 @@ import { gsap } from 'gsap';
 
 import Footer from '../components/Footer';
 import { imageSlides, liveTrackingFaq, services, testimonials } from '../constants/HomePageConstants.js';
-import ServiceCard from '../components/ServiceCard.jsx';
-import LiveTrackingFAQCard from '../components/LiveTrackingFAQCard.jsx';
-import TestimonialCard from '../components/TestimonialCard.jsx';
+import ServiceCard from '../components/home/ServiceCard.jsx';
+import LiveTrackingFAQCard from '../components/home/LiveTrackingFAQCard.jsx';
+import TestimonialCard from '../components/home/TestimonialCard.jsx';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import useNewsData from '../hooks/useNewsData.js';
-import NewsCard from '../components/NewsCard.jsx';
+import NewsCard from '../components/home/NewsCard.jsx';
 
 gsap.registerPlugin(ScrollTrigger);
 
