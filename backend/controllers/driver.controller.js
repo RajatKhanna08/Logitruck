@@ -3,7 +3,7 @@ import { validationResult } from "express-validator";
 import driverModel from "../models/driverModel.js";
 import orderModel from "../models/orderModel.js";
 
-import { sendWelcomeEmail, sendLoginAlertEmail } from "../email/driverEmail.js";
+import { sendWelcomeEmail, sendLoginAlertEmail } from "../emails/driverEmail.js";
 
 export const registerDriverController = async (req, res) => {
     try {

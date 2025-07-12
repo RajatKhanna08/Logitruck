@@ -15,13 +15,14 @@ import {
 const router = express.Router();
 
 // ==================== Maps Routes ====================
+
 router.post('/update-location', isLoggedIn, correctRole('driver'), updateLocation);
-router.get('/track/:orderId', isLoggedIn, getTrackingData);
-router.get('/route/:orderId', isLoggedIn, getTripRoute);
-router.get('/nearby-drivers/:lat/:lng', isLoggedIn, getNearbyDrivers);
-router.get('/eta/:fromLat/:fromLng/:toLat/:toLng', isLoggedIn, calculateETA);
-router.put('/driver-status/:driverId', isLoggedIn, correctRole('driver'), updateDriverStatus);
-router.get('/summary/:driverId', isLoggedIn, correctRole('driver'), getDriverTripSummary);
-router.get('/history/:orderId', isLoggedIn, getOrderRouteHistory);
+router.get('/track/:orderId',isLoggedIn,correctRole(['driver', 'company', 'transporter', 'admin']), getTrackingData);
+router.get('/route/:orderId',isLoggedIn,correctRole(['driver', 'company', 'transporter', 'admin']), getTripRoute);
+router.get('/history/:orderId',isLoggedIn,correctRole(['driver', 'company', 'transporter', 'admin']), getOrderRouteHistory);
+router.get('/nearby-drivers/:lat/:lng',isLoggedIn,correctRole(['company', 'transporter', 'admin']),getNearbyDrivers);
+router.get('/eta/:fromLat/:fromLng/:toLat/:toLng',isLoggedIn,correctRole(['driver', 'company', 'transporter', 'admin']), calculateETA);
+router.put('/driver-status/:driverId',isLoggedIn,correctRole(['driver', 'admin']), updateDriverStatus);
+router.get('/summary/:driverId',isLoggedIn,correctRole(['driver', 'admin']), getDriverTripSummary);
 
 export default router;

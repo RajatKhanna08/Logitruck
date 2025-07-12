@@ -5,9 +5,9 @@ import driverModel from "../models/driverModel.js";
 import truckModel from "../models/truckModel.js";
 import orderModel from "../models/orderModel.js";
 
-import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email/transporterEmail.js";
+import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../emails/transporterEmail.js";
 
-    export const registerTransporterController = async (req, res) => {
+export const registerTransporterController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -45,9 +45,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in registerTransporterController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const loginTransporterController = async (req, res) => {
+export const loginTransporterController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -75,9 +75,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in loginTransporterController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const logoutTransporterController = async (req, res) => {
+export const logoutTransporterController = async (req, res) => {
         try {
             res.clearCookie("jwt");
             res.status(200).json({ message: "Transporter Log out Successfully" });
@@ -86,9 +86,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
             console.log("Error in logoutTransporterController:", err.message);
             res.status(500).json({ message: "Internal Server Error" });
         }
-    }
+}
 
-    export const getTransporterProfileController = async (req, res) => {
+export const getTransporterProfileController = async (req, res) => {
     try {
         const transporterId = req.user?._id;
         if (!transporterId) {
@@ -105,9 +105,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in getTransporterProfileController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const uploadTransporterCertificationsController = async (req, res) => {
+export const uploadTransporterCertificationsController = async (req, res) => {
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -140,9 +140,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
             console.log("Error uplaodTransporterCertificateController:", err.message);
             res.status(500).json({ message: "Internal Server Error" });
         }
-    };
+};
 
-    export const getTransporterCertificationsController = async (req, res) => {
+export const getTransporterCertificationsController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -161,9 +161,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in getTransporterCertificationsController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const deleteTransporterCertificationsController = async (req, res) => {
+export const deleteTransporterCertificationsController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -192,9 +192,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in deleteTransporterCertificationsController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const getTransporterDashboardController = async (req, res) => {
+ export const getTransporterDashboardController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -244,9 +244,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in getTransportDashboardController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const updateTransporterProfileController = async (req, res) => {
+export const updateTransporterProfileController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -295,9 +295,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in updateTransporterProfileController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const updateTransporterPersonController = async (req, res) => {
+export const updateTransporterPersonController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -330,9 +330,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in updateTransporterPersonController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const addTruckController = async (req, res) => {
+export const addTruckController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -392,9 +392,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in addTruckController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const getMyTrucksController = async (req, res) => {
+export const getMyTrucksController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -417,9 +417,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in getMyTrucksController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const getTruckByIdController = async (req, res) => {
+export const getTruckByIdController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -444,9 +444,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in getTruckByIdController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const updateTruckDetailsController = async (req, res) => {
+export const updateTruckDetailsController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -491,9 +491,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in updateTruckDetailsController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const uploadTruckDocumentsController = async (req, res) => {
+export const uploadTruckDocumentsController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -538,9 +538,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in uploadTruckDocumentsController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const updateDriverReferenceController = async (req, res) => {
+export const updateDriverReferenceController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -571,9 +571,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in updateDriverReferenceController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const toggleTruckActivationController = async (req, res) => {
+export const toggleTruckActivationController = async (req, res) => {
     try {
         const transporterId = req.user?._id;
         const { truckId } = req.params;
@@ -611,9 +611,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in toggleTruckActivationController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const deleteTruckController = async (req, res) => {
+export const deleteTruckController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -640,9 +640,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in deleteTruckController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const getMyDriversController = async (req, res) => {
+export const getMyDriversController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -667,9 +667,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in getMyDriversController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const getDriverByIdController = async (req, res) => {
+ export const getDriverByIdController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -692,9 +692,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in getDriverByIdController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const removeDriverController = async (req, res) => {
+ export const removeDriverController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -729,9 +729,9 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in removeDriverController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
 
-    export const uploadBiltyController = async (req, res) => {
+export const uploadBiltyController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -762,4 +762,55 @@ import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../email
         console.log("Error in uploadBiltyController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-    };
+};
+
+export const activateTruckWithDriverController = async (req, res) => {
+  try {
+    const { truckId, driverId } = req.body;
+
+    const truck = await truckModel.findById(truckId);
+    const driver = await driverModel.findById(driverId);
+
+    if (!truck || !driver) {
+      return res.status(404).json({ message: "Truck or driver not found" });
+    }
+
+    truck.assignedDriverId = driverId;
+    driver.assignedTruckId = truckId;
+    truck.isActive = true;
+
+    await truck.save();
+    await driver.save();
+
+    res.status(200).json({ message: "Truck and driver activated for loading" });
+  } catch (err) {
+    console.error("Error in activateTruckWithDriverController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const deactivateTruckWithDriverController = async (req, res) => {
+  try {
+    const { truckId, driverId } = req.body;
+
+    const truck = await truckModel.findById(truckId);
+    const driver = await driverModel.findById(driverId);
+
+    if (!truck || !driver) {
+      return res.status(404).json({ message: "Truck or driver not found" });
+    }
+
+    truck.assignedDriverId = null;
+    driver.assignedTruckId = null;
+    truck.isActive = false;
+
+    await truck.save();
+    await driver.save();
+
+    res.status(200).json({ message: "Truck and driver deactivated from loading" });
+  } catch (err) {
+    console.error("Error in deactivateTruckWithDriverController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+ 

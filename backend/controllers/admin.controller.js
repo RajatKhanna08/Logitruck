@@ -11,7 +11,7 @@ import paymentModel from '../models/paymentModel.js';
 import reviewModel from "../models/reviewModel.js";
 import biddingModel from '../models/biddingModel.js';
 
-import { sendAdminWelcomeEmail,sendAdminLoginEmail } from "../email/adminEmail.js";
+import { sendAdminWelcomeEmail,sendAdminLoginEmail } from "../emails/adminEmail.js";
 
 export const adminRegisterController = async (req, res) => {
     try {

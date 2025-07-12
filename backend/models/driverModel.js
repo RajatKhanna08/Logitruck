@@ -59,14 +59,17 @@ const driverSchema = new mongoose.Schema({
         required: true
     },
 
-    currentLocation: {
-        latitude: {
+    location: {
+        type: {
             type: String,
-            required: true
-        }, 
-        longitude: {
-            type: String,
-            required: true
+            enum: ['Point'],
+            default: 'Point'
+        },
+        coordinates: {
+            type: [Number], // [longitude, latitude]
+            required: true,
+            default: [0, 0],
+            index: '2dsphere'
         }
     },
 

@@ -50,8 +50,6 @@ export const createOrderController = async (req, res) => {
         });
 
         res.status(201).json({ message: "Order created successfully", order: newOrder });
-
-        return res.status(201).json({ createdOrder: newOrder });
     }
     catch(err){
         console.log("Error in createOrderController: ", err.message);
@@ -141,7 +139,7 @@ export const rateOrderController = async (req, res) => {
             return res.status(404).json({ message: "Order not found" });
         }
 
-        if(!order.status != "delivered"){
+        if(!order.status !== "delivered"){
             return res.status(400).json({ message: "Only delivered orders can be rated" });
         }
 

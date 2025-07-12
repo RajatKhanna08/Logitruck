@@ -19,6 +19,7 @@
   "homepage": "https://github.com/RajatKhanna08/Logitruck#readme",
   "description": "",
   "dependencies": {
+    "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -32,6 +33,7 @@
     "nodemailer": "^7.0.5",
     "pdfkit": "^0.17.1",
     "razorpay": "^2.9.6",
+    "socket.io": "^4.8.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

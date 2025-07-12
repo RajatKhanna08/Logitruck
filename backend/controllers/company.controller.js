@@ -6,7 +6,7 @@ import orderModel from '../models/orderModel.js';
 import truckModel from '../models/truckModel.js';
 import driverModel from '../models/driverModel.js';
 
-import { sendCompanyWelcomeEmail, sendCompanyLoginEmail } from "../email/companyEmail.js";
+import { sendCompanyWelcomeEmail, sendCompanyLoginEmail } from "../emails/companyEmail.js";
 
 export const registerCompanyController = async (req, res) => {
     try {

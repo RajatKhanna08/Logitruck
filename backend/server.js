@@ -1,11 +1,13 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
-dotenv.config(); // Load environment variables from .env file
+import http from 'http';
+import { Server } from 'socket.io';
 
-import connectToDB from './lib/connectToDB.js'; // Database connection utility
+dotenv.config(); // Load environment variables
+import connectToDB from './lib/connectToDB.js';
 
-// Import route handlers for different modules
+// Routes
 import adminRoutes from './routes/admin.routes.js';
 import companyRoutes from './routes/company.routes.js';
 import transporterRoutes from './routes/transporter.routes.js';
@@ -19,14 +21,26 @@ import reviewRoutes from './routes/review.routes.js';
 import uploadRoutes from "./routes/upload.routes.js";
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const server = http.createServer(app); // Required for Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: "*", // You can restrict this later
+    methods: ["GET", "POST"]
+  }
+});
 
-// Middleware to parse JSON and URL-encoded data
+// Middleware to inject io into every request (allows req.io.emit)
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+// Middleware for parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// API Routes for different resources
+// All Routes
 app.use('/api/admin', adminRoutes);
 app.use('/api/company', companyRoutes);
 app.use('/api/transporter', transporterRoutes);
@@ -39,8 +53,18 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/review', reviewRoutes);
 app.use("/upload", uploadRoutes);
 
-// Start the server and connect to the database
-app.listen(PORT, () => {
-    console.log(`✅ Server is running on http://localhost:${PORT}`);
-    connectToDB();
+// Socket.IO connection listener
+io.on("connection", (socket) => {
+  console.log("Socket connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("Socket disconnected:", socket.id);
+  });
+});
+
+// Start the server
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log(`✅ Server is running on http://localhost:${PORT}`);
+  connectToDB();
 });

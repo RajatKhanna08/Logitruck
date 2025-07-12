@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const paymentsSchema = new mongoose.Schema({
 	orderId: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: 'ordersModel',
+		ref: 'orders',
 		required: true,
 	},
 
