@@ -5,6 +5,7 @@ import axios from 'axios';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import IntroLoader from './components/IntroLoader';
+import ServicePage from './pages/ServicePage';
 
 const AppWrapper = () => {
     const location = useLocation();
@@ -28,7 +29,7 @@ const AppWrapper = () => {
         <Navbar />
         <Routes>
           <Route path='/' element={<HomePage />} />
-          <Route path='/service' element={<></>} />
+          <Route path='/service' element={<ServicePage />} />
         </Routes>
       </div>
 
