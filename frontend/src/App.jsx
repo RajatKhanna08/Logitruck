@@ -29,7 +29,7 @@ const AppWrapper = () => {
         <Navbar />
         <Routes>
           <Route path='/' element={<HomePage />} />
-          <Route path='/services' element={<ServicePage />} />
+          <Route path='/services/:id' element={<ServicePage />} />
         </Routes>
       </div>
 

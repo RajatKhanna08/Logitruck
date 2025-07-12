@@ -1,11 +1,19 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { servicesData } from '../constants/ServicePageConstants';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import Footer from '../components/Footer';
 
 const ServicePage = () => {
-    const [activeKey, setActiveKey] = useState('Multi Stop Delivery');
-    const activeService = servicesData.find((service) => service.key === activeKey);
+    const { id } = useParams();
+    const [activeService, setActiveService] = useState(null);
+    const [activeKey, setActiveKey] = useState(id);
+
+    useEffect(() => {
+        setActiveKey(id);
+        const matchedService = servicesData.find(service => service.key === id);
+        setActiveService(matchedService || null);
+    }, [id]);
+    console.log(activeService);
 
     return (
         <div>
@@ -29,11 +37,14 @@ const ServicePage = () => {
                     <ul className='mt-5 flex flex-col gap-5 text-right'>
                         {
                             servicesData.map((service) => (
-                                <li
-                                    key={service.key}
-                                    onClick={() => setActiveKey(service.key)}
-                                    className={`text-2xl select-none cursor-pointer font-semibold tracking-tighter transition-colors duration-300 ${activeKey === service.key ? "text-yellow-300" : "text-[#192a67] hover:text-yellow-300"}`}>
-                                    {service.key}
+                                <li key={service.key}>
+                                    <Link
+                                        to={`/services/${service.key}`}
+                                        className={`text-2xl select-none cursor-pointer font-semibold tracking-tighter transition-colors duration-300 ${
+                                        activeKey === service.key ? "text-yellow-300" : "text-[#192a67] hover:text-yellow-300"}`}
+                                    >
+                                        {service.buttons}
+                                    </Link>
                                 </li>
                             ))
                         }

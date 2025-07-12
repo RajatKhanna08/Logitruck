@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { FaGlobe, FaPhone } from 'react-icons/fa6';
 import { HiMicrophone } from "react-icons/hi2";
 import { IoMail } from 'react-icons/io5';
+import { servicesData } from '../constants/ServicePageConstants';
 
 const Navbar = () => {
     const [showNavbar, setShowNavbar] = useState(true);
@@ -67,10 +68,26 @@ const Navbar = () => {
                     </Link>
                 </li>
                 <li className="relative group cursor-pointer transition-all duration-200">
-                    <Link to="/services" className="hover:text-yellow-300">
-                        Services
-                        <span className="absolute left-0 -bottom-0 w-0 h-[2px] bg-yellow-300 transition-all duration-300 group-hover:w-full"></span>
-                    </Link>
+                    <div className="group relative">
+                        <Link to="/services/multi-stop-delivery" className="hover:text-yellow-300">
+                            Services
+                            <span className="absolute left-0 -bottom-0 w-0 h-[2px] bg-yellow-300 transition-all duration-300 group-hover:w-full"></span>
+                        </Link>
+
+                        {/* Dropdown */}
+                        <ul className="absolute bg-white top-full flex flex-col -right-20 w-[240px] shadow-lg rounded-md text-black opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-300 z-50 p-2">
+                            {Object.entries(servicesData).map(([key, value]) => (
+                                <li key={key}>
+                                    <Link
+                                      to={`/services/${value.key}`}
+                                      className="block px-3 py-2 w-56 rounded-md hover:bg-[#192a67] hover:text-yellow-300 text-sm transition-all duration-200"
+                                    >
+                                        {value.buttons}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </li>
                 <li className="relative group cursor-pointer transition-all duration-200">
                     <Link to="/help" className="hover:text-yellow-300">
