@@ -1,4 +1,7 @@
-import transporter from './mailer.js';
+import emailClient from './mailer.js';
+
+const FROM_NAME = "Logitruck";
+const FROM_EMAIL = process.env.EMAIL_FROM;
 
 // ========== [1] WELCOME EMAIL ==========
 export const sendTransporterWelcomeEmail = async (email, name) => {
@@ -26,8 +29,8 @@ export const sendTransporterLoginEmail = async (email, name) => {
 
 // ========== [BASE FUNCTION] ==========
 const sendEmail = async (to, subject, html) => {
-  await transporter.sendMail({
-    from: `"Logitruck" <${process.env.EMAIL_FROM}>`,
+  await emailClient.sendMail({
+    from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
     to,
     subject,
     html,

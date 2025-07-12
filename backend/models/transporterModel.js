@@ -28,7 +28,8 @@ const transporterSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        match: [/.+\@.+\..+/, "Please enter a valid email address"]
     },
     
     password: {
@@ -117,7 +118,7 @@ const transporterSchema = new mongoose.Schema({
             ref: "orders"
         }
     ]
-});
+}, { timestamps: true });
 
 transporterSchema.methods.generateAuthToken = function(){
     const token = jwt.sign({ _id: this._id, role: this.role }, process.env.JWT_SECRET_KEY, { expiresIn: "24h" });

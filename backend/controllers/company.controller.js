@@ -6,10 +6,12 @@ import orderModel from '../models/orderModel.js';
 import truckModel from '../models/truckModel.js';
 import driverModel from '../models/driverModel.js';
 
+import { sendCompanyWelcomeEmail, sendCompanyLoginEmail } from "../email/companyEmail.js";
+
 export const registerCompanyController = async (req, res) => {
-    try{
+    try {
         const errors = validationResult(req);
-        if(!errors.isEmpty()){
+        if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
@@ -21,44 +23,46 @@ export const registerCompanyController = async (req, res) => {
             address,
             registrationNumber,
             industry,
-            contactPerson,
-            documents
+            contactPerson
         } = req.body;
 
-        const existingCompany = await companyModel.findOne({ companyEmail: companyEmail });
-        if(existingCompany){
-            return res.status(400).json({ message: "Email already exists" });
+        const existingCompany = await companyModel.findOne({ companyEmail });
+        if (existingCompany) {
+            return res.status(409).json({ message: "Email already exists" }); // 409 Conflict
         }
-
         const files = req.files;
-        if(!files || !files.idProof || !files.businessLicense || !files.gstCertificate){
-            return res.status(400).json({ message: "All documents are required: ID Proof, Business License and GST Certificate" });
+        if (
+            !files?.idProof?.[0] ||
+            !files?.businessLicense?.[0] ||
+            !files?.gstCertificate?.[0]
+        ) {
+            return res.status(400).json({
+                message: "All documents are required: ID Proof, Business License and GST Certificate"
+            });
         }
-
         const hashedPassword = await companyModel.hashPassword(password);
         const newCompany = await companyModel.create({
-            companyName: companyName,
-            companyEmail: companyEmail,
-            companyPhone: companyPhone,
+            companyName,
+            companyEmail,
+            companyPhone,
             password: hashedPassword,
             contactPerson: JSON.parse(contactPerson),
             address: JSON.parse(address),
+            registrationNumber,
+            industry,
             documents: {
                 idProof: files.idProof[0].path,
                 businessLicense: files.businessLicense[0].path,
                 gstCertificate: files.gstCertificate[0].path
-            },
-            registrationNumber: registrationNumber,
-            industry: industry
+            }
         });
-
+        await sendCompanyWelcomeEmail(companyEmail, companyName);
         const token = newCompany.generateAuthToken();
         res.cookie("jwt", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "Strict"
         });
-
         res.status(201).json({
             message: "Company registered successfully",
             company: {
@@ -67,30 +71,30 @@ export const registerCompanyController = async (req, res) => {
                 email: newCompany.companyEmail
             }
         });
-    }
-    catch(err){
-        console.log("Error in registerCompanyController", err.message);
+
+    } catch (err) {
+        console.log("Error in registerCompanyController:", err);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const loginCompanyController = async (req, res) => {
-    try{
+    try {
         const errors = validationResult(req);
-        if(!errors.isEmpty()){
+        if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
         const { companyEmail, password } = req.body;
 
-        const existingCompany = await companyModel.findOne({ companyEmail: companyEmail });
-        if(!existingCompany){
+        const existingCompany = await companyModel.findOne({ companyEmail });
+        if (!existingCompany) {
             return res.status(404).json({ message: "Company not found" });
         }
 
         const isCorrectPassword = await existingCompany.comparePassword(password);
-        if(!isCorrectPassword){
-            return res.status(400).json({ message: "email or password is incorrect" });
+        if (!isCorrectPassword) {
+            return res.status(400).json({ message: "Email or password is incorrect" });
         }
 
         const token = existingCompany.generateAuthToken();
@@ -99,7 +103,7 @@ export const loginCompanyController = async (req, res) => {
             secure: process.env.NODE_ENV === "production",
             sameSite: "Strict"
         });
-
+        await sendCompanyLoginEmail(existingCompany.companyEmail, existingCompany.companyName);
         res.status(200).json({
             message: "Company logged in successfully",
             company: {
@@ -107,70 +111,83 @@ export const loginCompanyController = async (req, res) => {
                 name: existingCompany.companyName
             }
         });
-    }
-    catch(err){
-        console.log("Error in loginCompanyController: ", err.message);
+    } catch (err) {
+        console.log("Error in loginCompanyController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const logoutCompanyController = async (req, res) => {
-    try{
-        res.clearCookie("jwt");
+    try {
+        res.clearCookie("jwt", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "Strict",
+            path: '/'
+        });
         res.status(200).json({ message: "Company logged out successfully" });
-    }
-    catch(err){
-        console.log("Error in logoutCompanyController: ", err.message);
+    } catch (err) {
+        console.log("Error in logoutCompanyController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const getCompanyProfileController = async (req, res) => {
-    try{
+    try {
         const companyId = req.user?._id;
 
+        if (!companyId) {
+            return res.status(401).json({ message: "Unauthorized access" });
+        }
+
         const company = await companyModel.findById(companyId).select("-password");
-        if(!company){
+        if (!company) {
             return res.status(404).json({ message: "Company not found" });
         }
 
         res.status(200).json({ company });
-    }
-    catch(err){
-        console.log("Error in getCompanyProfileController: ", err.message);
+    } catch (err) {
+        console.log("Error in getCompanyProfileController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const uploadCompanyCertificationsController = async (req, res) => {
-    try{
+    try {
         const errors = validationResult(req);
-        if(!errors.isEmpty()){
+        if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
         const companyId = req.user?._id;
-        
+
+        if (!companyId) {
+            return res.status(401).json({ message: "Unauthorized access" });
+        }
+
         const company = await companyModel.findById(companyId);
-        if(!company){
+        if (!company) {
             return res.status(404).json({ message: "Company not found" });
         }
 
         const files = req.files;
 
-        if(!files || (!files.idProof && !files.businessLicense && !files.gstCertificate)){
+        if (
+            !files ||
+            (!files.idProof?.[0] && !files.businessLicense?.[0] && !files.gstCertificate?.[0])
+        ) {
             return res.status(400).json({ message: "At least one document must be uploaded" });
         }
 
-        if(files.idProof){
+        if (files.idProof?.[0]) {
             company.documents.idProof = files.idProof[0].path;
         }
 
-        if(files.businessLicense){
+        if (files.businessLicense?.[0]) {
             company.documents.businessLicense = files.businessLicense[0].path;
         }
 
-        if(files.gstCertificate){
+        if (files.gstCertificate?.[0]) {
             company.documents.gstCertificate = files.gstCertificate[0].path;
         }
 
@@ -179,48 +196,55 @@ export const uploadCompanyCertificationsController = async (req, res) => {
         res.status(200).json({
             message: "Documents uploaded successfully",
             documents: company.documents
-        })
-    }
-    catch(err){
-        console.log("Error in uploadCompanyCertificationsController: ", err.message);
+        });
+    } catch (err) {
+        console.log("Error in uploadCompanyCertificationsController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const getCompanyCertificationsController = async (req, res) => {
-    try{
+    try {
         const companyId = req.user?._id;
 
+        if (!companyId) {
+            return res.status(401).json({ message: "Unauthorized access" });
+        }
+
         const company = await companyModel.findById(companyId).select("documents");
-        if(!company){
+        if (!company) {
             return res.status(404).json({ message: "Company not found" });
         }
 
         res.status(200).json({ documents: company.documents });
-    }
-    catch(err){
-        console.log("Error in getCompanyCertificationsController: ", err.message);
+    } catch (err) {
+        console.log("Error in getCompanyCertificationsController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const deleteCompanyCertificationsController = async (req, res) => {
-    try{
+    try {
         const companyId = req.user?._id;
 
+        if (!companyId) {
+            return res.status(401).json({ message: "Unauthorized access" });
+        }
+
         const company = await companyModel.findById(companyId);
-        if(!company){
+        if (!company) {
             return res.status(404).json({ message: "Company not found" });
         }
 
         const docs = company.documents || {};
         const docKeys = ["idProof", "businessLicense", "gstCertificate"];
+
         docKeys.forEach((key) => {
             const filePath = docs[key];
-            if(filePath){
+            if (filePath && fs.existsSync(filePath)) {
                 fs.unlink(filePath, (err) => {
-                    if(err){
-                        console.log(`Error in deleting ${key}: `, err.message);
+                    if (err) {
+                        console.log(`Error deleting ${key}:`, err.message);
                     }
                 });
                 company.documents[key] = undefined;
@@ -232,47 +256,52 @@ export const deleteCompanyCertificationsController = async (req, res) => {
         res.status(200).json({
             message: "All documents deleted successfully",
             documents: company.documents
-        })
+        });
 
-    }
-    catch(err){
-        console.log("Error in deleteCompanyCertificationsController: ", err.message);
+    } catch (err) {
+        console.log("Error in deleteCompanyCertificationsController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const updateCompanyProfileController = async (req, res) => {
-    try{
+    try {
         const errors = validationResult(req);
-        if(!errors.isEmpty()){
+        if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
         const companyId = req.user?._id;
+        if (!companyId) {
+            return res.status(401).json({ message: "Unauthorized access" });
+        }
+
         const updates = req.body;
 
         const company = await companyModel.findById(companyId).select("-password");
-        if(!company){
+        if (!company) {
             return res.status(404).json({ message: "Company not found" });
         }
 
-        if(updates.companyName != undefined) company.companyName = updates.companyName;
-        if(updates.industry != undefined) company.industry = updates.industry;
-        if(updates.registrationNumber != undefined) company.registrationNumber = updates.registrationNumber;
-        if(updates.companyPhone != undefined) company.companyPhone = updates.companyPhone;
-        if(updates.companyEmail != undefined) company.companyEmail = updates.companyEmail;
+        // Scalar field updates
+        if (updates.companyName !== undefined) company.companyName = updates.companyName;
+        if (updates.industry !== undefined) company.industry = updates.industry;
+        if (updates.registrationNumber !== undefined) company.registrationNumber = updates.registrationNumber;
+        if (updates.companyPhone !== undefined) company.companyPhone = updates.companyPhone;
+        if (updates.companyEmail !== undefined) company.companyEmail = updates.companyEmail;
 
-        if(updates.contactPerson){
+        // Nested updates with spread (preserves existing values)
+        if (updates.contactPerson) {
             company.contactPerson = {
                 ...company.contactPerson,
-                ...updates.contactPerson
+                ...updates.contactPerson,
             };
         }
 
-        if(updates.address){
+        if (updates.address) {
             company.address = {
                 ...company.address,
-                ...updates.address
+                ...updates.address,
             };
         }
 
@@ -291,27 +320,29 @@ export const updateCompanyProfileController = async (req, res) => {
                 address: company.address
             }
         });
-    }
-    catch(err){
-        console.log("Error in updateCompanyProfileController: ", err.message);
+    } catch (err) {
+        console.log("Error in updateCompanyProfileController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const getTruckSuggestionsController = async (req, res) => {
-    try{
+    try {
         const { orderId } = req.params;
 
         const order = await orderModel.findById(orderId);
-        if(!order){
+        if (!order) {
             return res.status(404).json({ message: "Order not found" });
         }
 
-        if(order.customerId.toString() != req.user?._id.toString()){
+        if (order.customerId.toString() !== req.user?._id.toString()) {
             return res.status(401).json({ message: "Unauthorized access" });
         }
 
-        const { weightInKg, volumeInCubicMeters } = order.loadDetails;
+        const { weightInKg, volumeInCubicMeters } = order.loadDetails || {};
+        if (!weightInKg || !volumeInCubicMeters) {
+            return res.status(400).json({ message: "Incomplete load details in the order" });
+        }
 
         const suggestedTrucks = await truckModel.find({
             capacityInKg: { $gte: weightInKg },
@@ -320,12 +351,11 @@ export const getTruckSuggestionsController = async (req, res) => {
         }).limit(10);
 
         res.status(200).json({ suggestedTrucks });
-    }
-    catch(err){
-        console.log("Error in getTruckSuggestionsController: ", err.message);
+    } catch (err) {
+        console.log("Error in getTruckSuggestionsController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};  
 
 export const uploadEwayBillController = async (req, res) => {
     try{
@@ -337,7 +367,7 @@ export const uploadEwayBillController = async (req, res) => {
             return res.status(404).json({ message: "Order not found" });
         }
 
-        if(order.customerId.toString() != companyId){
+        if(order.customerId.toString() !== companyId.toString()){
             return res.status(403).json({ message: "Unauthorized to upload eWay Bill on this order" });
         }
 
@@ -367,22 +397,22 @@ export const uploadEwayBillController = async (req, res) => {
 }
 
 export const getAvailableTrucksController = async (req, res) => {
-    try{
+    try {
         const availableTrucks = await truckModel.find({ status: "active" });
-        if(!availableTrucks.length){
+
+        if (!availableTrucks.length) {
             return res.status(404).json({ message: "No available trucks at the moment" });
         }
 
-        res.status(200).json({ availableTrucks: availableTrucks });
-    }
-    catch(err){
-        console.log("Error in getAvailableTrucksController: ", err.message);
+        res.status(200).json({ availableTrucks });
+    } catch (err) {
+        console.log("Error in getAvailableTrucksController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const filterTrucksController = async (req, res) => {
-    try{
+    try {
         const {
             status,
             vehicleType,
@@ -390,50 +420,57 @@ export const filterTrucksController = async (req, res) => {
             minCapacityInTon,
             maxCapacityInTon,
             minVolumeInCubicMeters,
-            maxVolumeInCubicMeters
+            maxVolumeInCubicMeters,
+            page = 1,
+            limit = 10
         } = req.query;
 
         const query = {};
 
-        if(status) query.status = status;
-        if(vehicleType) query.vehicleType = vehicleType;
-        if(transporterId) query.transporterId = transporterId;
+        if (status) query.status = status;
+        if (vehicleType) query.vehicleType = vehicleType;
+        if (transporterId) query.transporterId = transporterId;
 
-        if(minVolumeInCubicMeters || maxVolumeInCubicMeters){
+        if (minVolumeInCubicMeters || maxVolumeInCubicMeters) {
             query.capacityInCubicMeters = {};
-            if(minVolumeInCubicMeters) query.capacityInCubicMeters.$gte = Number(minVolumeInCubicMeters);
-            if(maxVolumeInCubicMeters) query.capacityInCubicMeters.$lte = Number(maxVolumeInCubicMeters);
+            if (minVolumeInCubicMeters) query.capacityInCubicMeters.$gte = Number(minVolumeInCubicMeters);
+            if (maxVolumeInCubicMeters) query.capacityInCubicMeters.$lte = Number(maxVolumeInCubicMeters);
+            if (Object.keys(query.capacityInCubicMeters).length === 0) delete query.capacityInCubicMeters;
         }
 
-        if(minCapacityInTon || maxCapacityInTon){
+        if (minCapacityInTon || maxCapacityInTon) {
             query.capacityInTon = {};
-            if(minCapacityInTon) query.capacityInTon.$gte = Number(minCapacityInTon);
-            if(maxCapacityInTon) query.capacityInTon.$lte = Number(maxCapacityInTon);
+            if (minCapacityInTon) query.capacityInTon.$gte = Number(minCapacityInTon);
+            if (maxCapacityInTon) query.capacityInTon.$lte = Number(maxCapacityInTon);
+            if (Object.keys(query.capacityInTon).length === 0) delete query.capacityInTon;
         }
 
-        const filteredTrucks = await truckModel.find(query);
+        const skip = (page - 1) * limit;
 
-        res.status(200).json({ filteredTrucks: filteredTrucks });
-    }
-    catch(err){
-        console.log("Error in filterTrucksController: ", err.message);
+        const filteredTrucks = await truckModel
+            .find(query)
+            .skip(skip)
+            .limit(Number(limit));
+
+        res.status(200).json({ filteredTrucks });
+    } catch (err) {
+        console.log("Error in filterTrucksController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const getDriverByTruckController = async (req, res) => {
-    try{
+    try {
         const { truckId } = req.params;
-        
-        const driver = await driverModel.findOne({ assignedTruckId: truckId });
-        if(!driver){
+
+        const driver = await driverModel.findOne({ assignedTruckId: truckId }).select("-password");
+        if (!driver) {
             return res.status(404).json({ message: "Driver not found" });
         }
 
         res.status(200).json({ driver });
-    }
-    catch(err){
-        console.log("Error in getDriverByTruckController");
+    } catch (err) {
+        console.log("Error in getDriverByTruckController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
