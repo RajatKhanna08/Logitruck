@@ -73,7 +73,7 @@ const driverSchema = new mongoose.Schema({
     availabilityStatus: {
         type: Boolean,
         required: true,
-        default: "true"
+        default: true
     },
 
     rating: {

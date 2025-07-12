@@ -1,5 +1,8 @@
 import emailClient from './mailer.js';
 
+const FROM_NAME = "Logitruck";
+const FROM_EMAIL = process.env.EMAIL_FROM;
+
 // ========== [1] WELCOME EMAIL ==========
 export const sendTransporterWelcomeEmail = async (email, name) => {
   const subject = "Welcome to Logitruck 🚚";
@@ -27,7 +30,7 @@ export const sendTransporterLoginEmail = async (email, name) => {
 // ========== [BASE FUNCTION] ==========
 const sendEmail = async (to, subject, html) => {
   await emailClient.sendMail({
-    from: `"Logitruck" <${process.env.EMAIL_FROM}>`,
+    from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
     to,
     subject,
     html,

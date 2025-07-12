@@ -10,4 +10,13 @@ const emailClient = nodemailer.createTransport({
   },
 });
 
+// Verify connection configuration on startup
+emailClient.verify((error, success) => {
+  if (error) {
+    console.error('Error connecting to email server:', error);
+  } else {
+    console.log('Email server is ready to send messages');
+  }
+});
+
 export default emailClient;

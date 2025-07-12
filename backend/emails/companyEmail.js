@@ -1,6 +1,8 @@
 import emailClient from './mailer.js';
 
-// ========== [1] WELCOME EMAIL ==========
+const FROM_NAME = "Logitruck";
+const FROM_EMAIL = process.env.EMAIL_FROM;
+
 export const sendCompanyWelcomeEmail = async (email, name) => {
   const subject = "Welcome to Logitruck 🚚";
   const html = `
@@ -12,7 +14,6 @@ export const sendCompanyWelcomeEmail = async (email, name) => {
   await sendEmail(email, subject, html);
 };
 
-// ========== [2] LOGIN NOTIFICATION ==========
 export const sendCompanyLoginEmail = async (email, name) => {
   const subject = "Logitruck Login Notification";
   const html = `
@@ -24,10 +25,9 @@ export const sendCompanyLoginEmail = async (email, name) => {
   await sendEmail(email, subject, html);
 };
 
-// ========== [BASE FUNCTION] ==========
 const sendEmail = async (to, subject, html) => {
   await emailClient.sendMail({
-    from: `"Logitruck" <${process.env.EMAIL_FROM}>`,
+    from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
     to,
     subject,
     html,
