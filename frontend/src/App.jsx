@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import IntroLoader from './components/IntroLoader';
 import ServicePage from './pages/ServicePage';
+import CompanyLoginSignup from './pages/auth/CompanyLoginSignup';
 
 const AppWrapper = () => {
     const location = useLocation();
@@ -26,10 +27,11 @@ const AppWrapper = () => {
     return (
          <div className={`relative w-full h-full ${showIntro ? 'overflow-hidden' : ''}`}>
       <div className="relative z-0">
-        <Navbar />
+        { location.pathname === "/company/register" ? "" : <Navbar />}
         <Routes>
-          <Route path='/' element={<HomePage />} />
-          <Route path='/services/:id' element={<ServicePage />} />
+            <Route path='/company/register' element={<CompanyLoginSignup />} />
+            <Route path='/' element={<HomePage />} />
+            <Route path='/services/:id' element={<ServicePage />} />
         </Routes>
       </div>
 

@@ -14,7 +14,7 @@ const Footer = () => {
 		e.preventDefault();
 		if(!email) return;
 
-		navigate(`/company/signup?email=${encodeURIComponent(email)}`);
+		navigate(`/company/register?email=${encodeURIComponent(email)}`);
 	};
 
 	return (
@@ -41,7 +41,7 @@ const Footer = () => {
 
 				<ul className='z-10 text-white w-full mt-3 text-lg flex flex-col gap-2'>
 					<li className='flex items-center justify-start gap-2'><FaPhone /> +91 1234567890</li>
-					<li className='flex items-center justify-start gap-2'><IoMail /> harshitxrajput@gmail.com</li>
+					<li className='flex items-center justify-start gap-2'><IoMail /> logitruck@gmail.com</li>
 					<li className='flex items-center justify-start gap-2'><FaGlobe /><a href='https://www.logitruck.org.in'> www.logitruck.org.in</a></li>
 				</ul>
 
@@ -95,7 +95,7 @@ const Footer = () => {
 					<ul className='list-none text-lg flex flex-col gap-4 text-gray-300 w-[17vw]'>
 						<Link to={"/"} className='flex gap-3 items-center hover:text-yellow-300 font-semibold transition-all duration-500'><MdOutlineKeyboardArrowRight className='size-7' />Home</Link>
 						<Link to={"/about"} className='flex gap-3 items-center hover:text-yellow-300 font-semibold transition-all duration-500'><MdOutlineKeyboardArrowRight className='size-7' />About</Link>
-						<Link to={"/services"} className='flex gap-3 items-center hover:text-yellow-300 font-semibold transition-all duration-500'><MdOutlineKeyboardArrowRight className='size-7' />Services</Link>
+						<Link to={"/services/multi-stop-delivery"} className='flex gap-3 items-center hover:text-yellow-300 font-semibold transition-all duration-500'><MdOutlineKeyboardArrowRight className='size-7' />Services</Link>
 						<Link to={"/community"} className='flex gap-3 items-center hover:text-yellow-300 font-semibold transition-all duration-500'><MdOutlineKeyboardArrowRight className='size-7' />Community Centre</Link>
 						<Link to={"/contact"} className='flex gap-3 items-center hover:text-yellow-300 font-semibold transition-all duration-500'><MdOutlineKeyboardArrowRight className='size-7' />Contact</Link>
 					</ul>

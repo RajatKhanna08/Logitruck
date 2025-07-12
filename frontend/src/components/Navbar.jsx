@@ -45,7 +45,7 @@ const Navbar = () => {
                     <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'><FaGlobe size={25} /></li>
                     <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'><HiMicrophone size={25} /></li>
                     <li className='flex items-center bg-white hover:bg-gray-200 text-black px-4 h-10 mt-1 text-[15px] font-bold rounded-xl cursor-pointer transition-all duration-200'>
-                        <Link to={"/company/signup"}>Join Us</Link>
+                        <Link to={"/company/register"}>Join Us</Link>
                     </li>
                 </ul>
             </div>
