@@ -11,6 +11,7 @@ import TestimonialCard from '../components/home/TestimonialCard.jsx';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import useNewsData from '../hooks/useNewsData.js';
 import NewsCard from '../components/home/NewsCard.jsx';
+import { HiMicrophone } from 'react-icons/hi';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -80,8 +81,11 @@ const HomePage = () => {
 
     return (
         <div className='relative overflow-x-hidden'>
+            <span className='z-100 p-2 h-15 w-15 flex items-center shadow-lg shadow-black justify-center fixed bottom-6 right-5 cursor-pointer bg-yellow-300 rounded-full transition-all duration-200'><HiMicrophone color='black' size={40} /></span>
+
             {/* FIRST SECTION */}
             <div className='relative w-screen h-screen'>
+                
                 {/* PROGRESS BAR */}
                 <div className="absolute z-50 top-35 left-0 w-full h-1 bg-white/20 overflow-hidden">
                     <div
@@ -90,6 +94,8 @@ const HomePage = () => {
                         style={{ animationDuration: '5000ms' }} // same as your slide interval
                     />
                 </div>
+
+                {/* IMAGES SLIDESHOW */}
                 {imageSlides.map((slide, index) => (
                     <div key={index}
                         className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${

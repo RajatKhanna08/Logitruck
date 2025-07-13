@@ -34,6 +34,11 @@ const CompanyLoginSignup = () => {
             name: "",
             phone: "",
             email: ""
+        },
+        documents: {
+            idProof: null,
+            businessLicense: null,
+            gstCertificate: null
         }
     });
     
@@ -82,7 +87,7 @@ const CompanyLoginSignup = () => {
     };
 
     const handleNext = () => {
-        if (step < 4) setStep(step + 1);
+        if (step < 5) setStep(step + 1);
         else handleSubmit();
     };
 
@@ -110,6 +115,11 @@ const CompanyLoginSignup = () => {
                 name: '',
                 phone: '',
                 email: ''
+            },
+            documents: {
+                idProof: null,
+                businessLicense: null,
+                gstCertificate: null
             }
          });
         setStep(1);
@@ -321,6 +331,42 @@ const CompanyLoginSignup = () => {
                         </div>
                     </div>
                 );
+
+            case 5:
+                return (
+                    <div className="flex flex-col gap-3 min-h-80">
+                        <div className={inputStyle}>
+                            <label className="w-full text-gray-500 font-medium">ID Proof (PDF/Image):
+                            <input
+                                type="file"
+                                name="documents.idProof"
+                                onChange={handleChange}
+                                className="w-full mt-1 cursor-pointer"
+                            />
+                            </label>
+                        </div>
+                        <div className={inputStyle}>
+                            <label className="w-full text-gray-500 font-medium">Business License:
+                            <input
+                                type="file"
+                                name="documents.businessLicense"
+                                onChange={handleChange}
+                                className="w-full mt-1 cursor-pointer"
+                            />
+                            </label>
+                        </div>
+                        <div className={inputStyle}>
+                            <label className="w-full text-gray-500 font-medium">GST Certificate:
+                            <input
+                                type="file"
+                                name="documents.gstCertificate"
+                                onChange={handleChange}
+                                className="w-full mt-1 cursor-pointer"
+                            />
+                            </label>
+                        </div>
+                    </div>
+                );
           
             default:
                 return null;
@@ -369,7 +415,7 @@ const CompanyLoginSignup = () => {
 
                             {/* Progress Bar */}
                             <div className="w-full h-2 bg-gray-200 rounded overflow-hidden mb-4">
-                                <div className={`h-full bg-yellow-300 transition-all duration-500`} style={{ width: `${(step / 4) * 100}%` }}></div>
+                                <div className={`h-full bg-yellow-300 transition-all duration-500`} style={{ width: `${(step / 5) * 100}%` }}></div>
                             </div>
 
                             {/* FORM SECTIONS */}
@@ -427,6 +473,11 @@ const CompanyLoginSignup = () => {
                                         name: '',
                                         phone: '',
                                         email: ''
+                                    },
+                                    documents: {
+                                        idProof: null,
+                                        businessLicense: null,
+                                        gstCertificate: null
                                     }
                                 });
                                 setLoginData({ email: '', password: '' });

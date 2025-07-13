@@ -7,6 +7,11 @@ import Footer from './components/Footer';
 import IntroLoader from './components/IntroLoader';
 import ServicePage from './pages/ServicePage';
 import CompanyLoginSignup from './pages/auth/CompanyLoginSignup';
+import TransporterLoginSignup from './pages/auth/TransporterLoginSignup';
+import RoleSelectorPage from './pages/auth/RolesSelectorPage';
+import DriverLoginSignup from './pages/auth/DriverLoginSignup';
+import AdminLogin from './pages/auth/AdminLogin';
+import ContactUsPage from './pages/ContactUsPage';
 
 const AppWrapper = () => {
     const location = useLocation();
@@ -27,11 +32,21 @@ const AppWrapper = () => {
     return (
          <div className={`relative w-full h-full ${showIntro ? 'overflow-hidden' : ''}`}>
       <div className="relative z-0">
-        { location.pathname === "/company/register" ? "" : <Navbar />}
+        { location.pathname != "/company/register"
+            && location.pathname != "/transporter/register"
+            && location.pathname != "/role-select"
+            && location.pathname != "/driver/register"
+            && location.pathname != "/admin/login"
+            && <Navbar />}
         <Routes>
+            <Route path='/role-select' element={<RoleSelectorPage />} />
+            <Route path='/admin/login' element={<AdminLogin />} />
             <Route path='/company/register' element={<CompanyLoginSignup />} />
+            <Route path='/transporter/register' element={<TransporterLoginSignup />} />
+            <Route path='/driver/register' element={<DriverLoginSignup />} />
             <Route path='/' element={<HomePage />} />
             <Route path='/services/:id' element={<ServicePage />} />
+            <Route path='/contact' element={<ContactUsPage />} />
         </Routes>
       </div>
 
