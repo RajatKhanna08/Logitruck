@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 
 //Icons
-import { FaBuilding, FaEnvelope, FaLock, FaIndustry, FaUserTie, FaLandmark, FaGlobeAsia, FaStreetView, FaPhoneAlt } from 'react-icons/fa';
+import { FaBuilding, FaEnvelope, FaLock, FaUserTie, FaLandmark, FaGlobeAsia, FaStreetView, FaPhoneAlt } from 'react-icons/fa';
 import { FaCity } from 'react-icons/fa6';
 import { HiOutlineIdentification } from 'react-icons/hi';
 import { TbMapPinCode } from "react-icons/tb";
-import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const TransporterLoginSignup = () => {
+    const navigate = useNavigate();
     const [isSignUp, setIsSignUp] = useState(false);
     const [step, setStep] = useState(1);
+
+    const [errors, setErrors] = useState({});
 
     const [signupData, setSignupData] = useState({
         transporterName: '',
@@ -42,7 +45,29 @@ const TransporterLoginSignup = () => {
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
-          
+
+        if (!isSignUp) {
+            setLoginData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+            return;
+        }
+
+        if (files && files.length > 0) {
+            const fieldPath = name.split(".");
+            if (fieldPath[0] === "documents") {
+                setSignupData((prev) => ({
+                    ...prev,
+                    documents: {
+                        ...prev.documents,
+                        [fieldPath[1]]: files[0]
+                    }
+                }));
+            }
+            return;
+        }
+
         if (name.startsWith("address.")) {
             const field = name.split(".")[1];
             setSignupData(prev => ({
@@ -52,18 +77,7 @@ const TransporterLoginSignup = () => {
                     [field]: value
                 }
             }));
-        }
-        else if(name.startsWith("documents.")){
-            const field = name.split(".")[1];
-            setSignupData(prev => ({
-                ...prev,
-                documents: {
-                    ...prev.documents,
-                    [field]: files[0]
-                }
-            }));
-        }
-        else{
+        } else {
             setSignupData(prev => ({
                 ...prev,
                 [name]: value
@@ -71,9 +85,13 @@ const TransporterLoginSignup = () => {
         }
     };
 
-    const handleNext = () => {
-        if (step < 4) setStep(step + 1);
-        else handleSubmit();
+    const handleNext = (e) => {
+        e.preventDefault();
+        const isValid = validateStep();
+        if (isValid) {
+            if (step < 4) setStep(step + 1);
+            else handleSubmit();
+        }
     };
 
     const handleBack = () => {
@@ -139,13 +157,76 @@ const TransporterLoginSignup = () => {
 
     const handleLogin = (e) => {
         e.preventDefault();
-        setLoginData({ email: '', password: '' });
+        const isValid = validateLogin();
+        if (!isValid) return;
+        
+        // Submit login logic
         console.log("Login Data Submitted:", loginData);
-        // API call for login goes here
+        setLoginData({ email: '', password: '' });
+    };
+
+    const validateLogin = () => {
+        const loginErrors = {};
+
+        if (!loginData.email.trim()) loginErrors.email = "Email is required";
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginData.email)) loginErrors.email = "Invalid email format";
+
+        if (!loginData.password.trim()) loginErrors.password = "Password is required";
+        else if (loginData.password.length < 6) loginErrors.password = "Password must be at least 6 characters";
+
+        setErrors(loginErrors);
+        return Object.keys(loginErrors).length === 0;
+    };
+
+    const validateStep = () => {
+        const newErrors = {};
+
+        // Step 1: Transporter and Owner Name
+        if (step === 1) {
+            if (!signupData.transporterName.trim()) newErrors.transporterName = "required";
+            if (!signupData.ownerName.trim()) newErrors.ownerName = "required";
+        }
+
+        // Step 2: Contact No, Email, Password
+        if (step === 2) {
+            if (!signupData.contactNo) newErrors.contactNo = "required";
+            else if (!/^\d{10}$/.test(signupData.contactNo)) newErrors.contactNo = "Invalid number";
+
+            if (!signupData.email.trim()) newErrors.email = "required";
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupData.email)) newErrors.email = "Invalid";
+
+            if (!signupData.password.trim()) newErrors.password = "required";
+            else if (signupData.password.length < 6) newErrors.password = "Password must be at least 6 characters";
+        }
+
+        // Step 3: Address and Registration Number
+        if (step === 3) {
+            const address = signupData.address;
+
+            if (!address.street.trim()) newErrors["address.street"] = "required";
+            if (!address.city.trim()) newErrors["address.city"] = "required";
+            if (!address.state.trim()) newErrors["address.state"] = "required";
+            if (!address.pincode) newErrors["address.pincode"] = "required";
+            else if (!/^\d{6}$/.test(address.pincode)) newErrors["address.pincode"] = "Invalid";
+            if (!address.country.trim()) newErrors["address.country"] = "required";
+            if (!address.landmark.trim()) newErrors["address.landmark"] = "required";
+
+            if (!signupData.registrationNumber.trim()) newErrors.registrationNumber = "required";
+        }
+
+        // Step 4: File Uploads
+        if (step === 4) {
+            if (!signupData.documents?.idProof) newErrors["documents.idProof"] = "required";
+            if (!signupData.documents?.businessLicense) newErrors["documents.businessLicense"] = "required";
+            if (!signupData.documents?.gstCertificate) newErrors["documents.gstCertificate"] = "required";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     const renderStep = () => {
-        const inputStyle = "flex items-center gap-2 p-2 border rounded outline-none bg-white";
+        const inputStyle = "flex items-center gap-2 p-2 border-2 border-gray-300 rounded outline-none bg-white";
 
         switch (step) {
             case 1:
@@ -161,6 +242,7 @@ const TransporterLoginSignup = () => {
                                 onChange={handleChange}
                                 className="w-full outline-none"
                             />
+                            {errors.transporterName && <p className="text-red-500 text-xs">{errors.transporterName}</p>}
                         </div>
                         <div className={inputStyle}>
                             <FaUserTie className="text-gray-500" />
@@ -172,6 +254,7 @@ const TransporterLoginSignup = () => {
                                 onChange={handleChange}
                                 className="w-full outline-none"
                             />
+                            {errors.ownerName && <p className="text-red-500 text-xs">{errors.ownerName}</p>}
                         </div>
                     </div>
                 );
@@ -189,6 +272,7 @@ const TransporterLoginSignup = () => {
                                 onChange={handleChange}
                                 className="w-full outline-none"
                             />
+                            {errors.contactNo && <p className="text-red-500 text-xs">{errors.contactNo}</p>}
                         </div>
                         <div className={inputStyle}>
                             <FaEnvelope className="text-gray-500" />
@@ -200,6 +284,7 @@ const TransporterLoginSignup = () => {
                                 onChange={handleChange}
                                 className="w-full outline-none"
                             />
+                            {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
                         </div>
                         <div className={inputStyle}>
                             <FaLock className="text-gray-500" />
@@ -211,6 +296,7 @@ const TransporterLoginSignup = () => {
                                 onChange={handleChange}
                                 className="w-full outline-none"
                             />
+                            {errors.password && <p className="text-red-500 text-xs">{errors.password}</p>}
                         </div>
                     </div>
                 );
@@ -229,6 +315,7 @@ const TransporterLoginSignup = () => {
                         onChange={handleChange}
                         className="w-full outline-none"
                       />
+                      {errors["address.street"] && <p className="text-red-500 text-xs">{errors["address.street"]}</p>}
                     </div>
                     <div className={inputStyle}>
                       <FaCity className="text-gray-500" />
@@ -240,6 +327,7 @@ const TransporterLoginSignup = () => {
                         onChange={handleChange}
                         className="w-full outline-none"
                       />
+                      {errors["address.city"] && <p className="text-red-500 text-xs">{errors["address.city"]}</p>}
                     </div>
                     <div className={inputStyle}>
                       <FaCity className="text-gray-500" />
@@ -251,6 +339,7 @@ const TransporterLoginSignup = () => {
                         onChange={handleChange}
                         className="w-full outline-none"
                       />
+                      {errors["address.state"] && <p className="text-red-500 text-xs">{errors["address.state"]}</p>}
                     </div>
                     <div className={inputStyle}>
                       <TbMapPinCode className="text-gray-500" />
@@ -262,6 +351,7 @@ const TransporterLoginSignup = () => {
                         onChange={handleChange}
                         className="w-full outline-none"
                       />
+                      {errors["address.pincode"] && <p className="text-red-500 text-xs">{errors["address.pincode"]}</p>}
                     </div>
                     <div className={inputStyle}>
                       <FaGlobeAsia className="text-gray-500" />
@@ -273,6 +363,7 @@ const TransporterLoginSignup = () => {
                         onChange={handleChange}
                         className="w-full outline-none"
                       />
+                      {errors["address.country"] && <p className="text-red-500 text-xs">{errors["address.country"]}</p>}
                     </div>
                     <div className={inputStyle}>
                       <FaLandmark className="text-gray-500" />
@@ -284,6 +375,7 @@ const TransporterLoginSignup = () => {
                         onChange={handleChange}
                         className="w-full outline-none"
                       />
+                      {errors["address.landmark"] && <p className="text-red-500 text-xs">{errors["address.landmark"]}</p>}
                     </div>
                   </div>
                   <div className={inputStyle}>
@@ -296,6 +388,7 @@ const TransporterLoginSignup = () => {
                       onChange={handleChange}
                       className="w-full outline-none"
                     />
+                    {errors.registrationNumber && <p className="text-red-500 text-xs">{errors.registrationNumber}</p>}
                   </div>
                 </div>
               );
@@ -311,6 +404,7 @@ const TransporterLoginSignup = () => {
                         onChange={handleChange}
                         className="w-full mt-1 cursor-pointer"
                       />
+                      {errors["documents.idProof"] && <p className="text-red-500 text-xs">{errors["documents.idProof"]}</p>}
                     </label>
                   </div>
                   <div className={inputStyle}>
@@ -321,6 +415,7 @@ const TransporterLoginSignup = () => {
                         onChange={handleChange}
                         className="w-full mt-1 cursor-pointer"
                       />
+                      {errors["documents.businessLicense"] && <p className="text-red-500 text-xs">{errors["documents.businessLicense"]}</p>}
                     </label>
                   </div>
                   <div className={inputStyle}>
@@ -331,6 +426,7 @@ const TransporterLoginSignup = () => {
                         onChange={handleChange}
                         className="w-full mt-1 cursor-pointer"
                       />
+                      {errors["documents.gstCertificate"] && <p className="text-red-500 text-xs">{errors["documents.gstCertificate"]}</p>}
                     </label>
                   </div>
                 </div>
@@ -345,7 +441,7 @@ const TransporterLoginSignup = () => {
         <div className="relative w-full h-screen flex flex-col items-center justify-between bg-gray-100">
             {/* LOGO */}
             <div className='w-full h-18 mt-10 flex justify-center items-start'>
-                <img src="/LogiTruckLogo.png" className='ml-8 w-90'/>
+                <img onClick={() => navigate("/")} src="/LogiTruckLogo.png" className='ml-8 cursor-pointer w-90'/>
             </div>
 
             {/* Main container */}
@@ -354,7 +450,7 @@ const TransporterLoginSignup = () => {
                 {/* Forms container */}
                 <div className="w-full flex items-center justify-between z-10">
                         {/* LOGIN FORM */}
-                        <form className={`w-1/2 p-10 flex flex-col gap-4`}>
+                        <form className={`relative w-1/2 p-10 flex flex-col gap-4`}>
                             <h2 className="text-3xl text-center font-bold text-[#192a67] mb-2">Transporter Login</h2>
                             <input
                                 type="email"
@@ -362,16 +458,18 @@ const TransporterLoginSignup = () => {
                                 placeholder="Email"
                                 value={loginData.email}
                                 onChange={handleChange}
-                                className="p-2 border rounded outline-none"
+                                className="p-2 border-2 border-gray-300 rounded outline-none"
                             />
+                            {errors.email && <p className="text-red-500 absolute top-28 right-12 text-xs">{errors.email}</p>}
                             <input
                                 type="password"
                                 name="password"
                                 placeholder="Password"
                                 value={loginData.password}
                                 onChange={handleChange}
-                                className="p-2 border rounded outline-none"
+                                className="p-2 border-2 border-gray-300 rounded outline-none"
                             />
+                            {errors.password && <p className="text-red-500 absolute top-43 right-12 text-xs">{errors.password}</p>}
                             <button type="submit" onClick={handleLogin} className="bg-yellow-300 cursor-pointer py-2 rounded font-semibold">
                                 Login
                             </button>
@@ -423,24 +521,26 @@ const TransporterLoginSignup = () => {
                         <button
                             onClick={() => {
                                 setSignupData({
-                                    companyName: '',
-                                    companyEmail: '',
-                                    companyPhone: '',
+                                    transporterName: '',
+                                    ownerName: '',
+                                    contactNo: '',
+                                    email: '',
                                     password: '',
                                     address: {
-                                        street: "",
-                                        city: "",
-                                        state: "",
-                                        pincode: "",
-                                        country: "",
-                                        landmark: ""
+                                        street: '',
+                                        city: '',
+                                        state: '',
+                                        pincode: '',
+                                        country: '',
+                                        landmark: ''
                                     },
                                     registrationNumber: '',
                                     industry: '',
-                                    contactPerson: {
-                                        name: '',
-                                        phone: '',
-                                        email: ''
+                                    fleetSize: '',
+                                    documents: {
+                                        idProof: '',
+                                        businessLicense: '',
+                                        gstCertificate: ''
                                     }
                                 });
                                 setLoginData({ email: '', password: '' });
@@ -451,6 +551,7 @@ const TransporterLoginSignup = () => {
                         >
                             {isSignUp ? "Login" : "Signup"}
                         </button>
+                        <button onClick={() => navigate("/role-select")} className='bg-yellow-300 cursor-pointer text-black font-semibold px-6 py-2 rounded'>Change Role</button>
                     </div>
                 </div>
             </div>

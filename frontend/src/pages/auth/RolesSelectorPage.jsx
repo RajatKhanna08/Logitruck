@@ -32,7 +32,7 @@ const RoleSelectorPage = () => {
     return (
         <div className="w-full min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-gradient-to-br from-[#f0f4ff] via-white to-[#e0eaff]">
             {/* Logo */}
-            <img src="/LogiTruckLogo.png" alt="Logo" className="w-60 mb-6" />
+            <img onClick={() => navigate("/")} src="/LogiTruckLogo.png" alt="Logo" className="w-60 cursor-pointer mb-6" />
 
             {/* Headings */}
             <h1 className="text-4xl font-bold text-[#192a67] text-center mb-2">

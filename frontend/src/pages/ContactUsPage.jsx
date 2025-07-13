@@ -83,7 +83,7 @@ const ContactUsPage = () => {
                         </div>
 
                         <div>
-                            <textarea name="" placeholder='Message' id="" rows={8} cols={70} className='border-gray-300 rounded-lg p-3 border-2'></textarea>
+                            <textarea name="" placeholder='Message' id="" rows={8} cols={70} className='border-gray-300 outline-none focus:ring-2 focus:ring-yellow-300 rounded-lg p-3 border-2'></textarea>
                         </div>
 
                         <button className='text-yellow-200 bg-[#192a67] hover:bg-[#3e4661] cursor-pointer p-3 text-xl font-semibold rounded-lg'>Submit</button>

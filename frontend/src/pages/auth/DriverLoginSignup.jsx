@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // Icons
 import { FaUser, FaPhoneAlt, FaEnvelope, FaLock, FaTruck, FaClock, FaMapMarkedAlt, FaIdCard, FaCarSide } from 'react-icons/fa';
@@ -7,12 +7,14 @@ import { HiIdentification } from 'react-icons/hi';
 import { MdUploadFile } from 'react-icons/md';
 
 const DriverLoginSignup = () => {
+    const navigate = useNavigate();
     const location = useLocation();
     const params = new URLSearchParams(location.search);
     const paramsEmail = params.get("email");
 
     const [isSignUp, setIsSignUp] = useState(false);
     const [step, setStep] = useState(1);
+    const [errors, setErrors] = useState({});
 
     const [signupData, setSignupData] = useState({
         fullName: "",
@@ -39,15 +41,23 @@ const DriverLoginSignup = () => {
         }
     };
 
+    const handleNext = () => {
+        const isValid = validateStep();
+        if (isValid) {
+            if (step < 3) setStep(step + 1);
+            else handleSignup();
+        }
+    };
+
     const handleLogin = (e) => {
         e.preventDefault();
+        if (!validateLogin()) return;
         console.log("Login Data Submitted:", loginData);
         setLoginData({ email: '', password: '' });
     };
 
     const handleSignup = () => {
         console.log("Signup Data Submitted:", signupData);
-        // Reset form
         setSignupData({
             fullName: "",
             phone: "",
@@ -61,102 +71,101 @@ const DriverLoginSignup = () => {
         setStep(1);
     };
 
+    const validateLogin = () => {
+        const loginErrors = {};
+
+        if (!loginData.email.trim()) loginErrors.email = "Email is required";
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginData.email)) loginErrors.email = "Invalid email format";
+
+        if (!loginData.password.trim()) loginErrors.password = "Password is required";
+        else if (loginData.password.length < 6) loginErrors.password = "Password must be at least 6 characters";
+
+        setErrors(loginErrors);
+        return Object.keys(loginErrors).length === 0;
+    };
+
+    const validateStep = () => {
+        const newErrors = {};
+
+        if (step === 1) {
+            if (!signupData.fullName.trim()) newErrors.fullName = "Full Name is required";
+            if (!signupData.phone.trim()) newErrors.phone = "Phone Number is required";
+            else if (!/^\d{10}$/.test(signupData.phone)) newErrors.phone = "Invalid phone number";
+            if (!signupData.email.trim()) newErrors.email = "Email is required";
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupData.email)) newErrors.email = "Invalid email format";
+            if (!signupData.password.trim()) newErrors.password = "Password is required";
+            else if (signupData.password.length < 6) newErrors.password = "Password must be at least 6 characters";
+        }
+
+        if (step === 2) {
+            if (!signupData.idProof) newErrors.idProof = "ID Proof is required";
+            if (!signupData.license) newErrors.license = "License is required";
+        }
+
+        if (step === 3) {
+            if (!signupData.vehicleType.trim()) newErrors.vehicleType = "Vehicle Type is required";
+            if (!signupData.experience) newErrors.experience = "Experience is required";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const renderStep = () => {
-        const inputStyle = "flex items-center gap-2 p-2 border rounded outline-none bg-white";
+        const inputStyle = "flex items-center gap-2 p-2 border-2 border-gray-300 rounded outline-none bg-white";
 
         switch (step) {
             case 1:
                 return (
                     <div className='flex flex-col gap-4 min-h-80'>
                         <div className={inputStyle}>
-                            <FaUser />
-                            <input
-                                type="text"
-                                name="fullName"
-                                placeholder="Full Name"
-                                value={signupData.fullName}
-                                onChange={handleChange}
-                                className="w-full outline-none"
-                            />
+                            <FaUser className='text-gray-500' />
+                            <input type="text" name="fullName" placeholder="Full Name" value={signupData.fullName} onChange={handleChange} className="w-full outline-none" />
                         </div>
+                        {errors.fullName && <p className="text-red-500 absolute top-34 right-12 text-sm">{errors.fullName}</p>}
+
                         <div className={inputStyle}>
-                            <FaPhoneAlt />
-                            <input
-                                type="text"
-                                name="phone"
-                                placeholder="Phone Number"
-                                value={signupData.phone}
-                                onChange={handleChange}
-                                className="w-full outline-none"
-                            />
+                            <FaPhoneAlt className='text-gray-500' />
+                            <input type="text" name="phone" placeholder="Phone Number" value={signupData.phone} onChange={handleChange} className="w-full outline-none" />
                         </div>
+                        {errors.phone && <p className="text-red-500 absolute top-49 right-12 text-sm">{errors.phone}</p>}
+
                         <div className={inputStyle}>
-                            <FaEnvelope />
-                            <input
-                                type="email"
-                                name="email"
-                                placeholder="Email"
-                                value={signupData.email}
-                                onChange={handleChange}
-                                className="w-full outline-none"
-                            />
+                            <FaEnvelope className='text-gray-500' />
+                            <input type="email" name="email" placeholder="Email" value={signupData.email} onChange={handleChange} className="w-full outline-none" />
                         </div>
+                        {errors.email && <p className="text-red-500 absolute top-63 right-12 text-sm">{errors.email}</p>}
+
                         <div className={inputStyle}>
-                            <FaLock />
-                            <input
-                                type="password"
-                                name="password"
-                                placeholder="Password"
-                                value={signupData.password}
-                                onChange={handleChange}
-                                className="w-full outline-none"
-                            />
+                            <FaLock className='text-gray-500' />
+                            <input type="password" name="password" placeholder="Password" value={signupData.password} onChange={handleChange} className="w-full outline-none" />
                         </div>
+                        {errors.password && <p className="text-red-500 absolute top-78 right-12 text-sm">{errors.password}</p>}
                     </div>
                 );
 
             case 2:
                 return (
                     <div className="flex flex-col gap-4 min-h-80">
-                        {/* ID Proof Upload */}
                         <label className={inputStyle + " flex-col items-start"}>
                             <span className="flex items-center gap-2">
-                                <HiIdentification />
+                                <HiIdentification className='text-gray-500' />
                                 <span className="text-sm text-gray-600">Upload ID Proof</span>
                             </span>
-                            <input
-                                type="file"
-                                name="idProof"
-                                accept="image/*,application/pdf"
-                                onChange={handleChange}
-                                className="w-full mt-1"
-                            />
-                            {signupData.idProof && (
-                                <span className="text-xs text-gray-500 mt-1">
-                                    Selected File: {signupData.idProof.name}
-                                </span>
-                            )}
+                            <input type="file" name="idProof" onChange={handleChange} />
+                            {signupData.idProof && <span className="text-xs text-gray-500 mt-1">Selected File: {signupData.idProof.name}</span>}
                         </label>
-                        
-                        {/* License Upload */}
+                        {errors.idProof && <p className="text-red-500 absolute top-33 right-12 text-sm">{errors.idProof}</p>}
+
                         <label className={inputStyle + " flex-col items-start"}>
                             <span className="flex items-center gap-2">
-                                <MdUploadFile />
+                                <MdUploadFile className='text-gray-500' />
                                 <span className="text-sm text-gray-600">Upload License</span>
                             </span>
-                            <input
-                                type="file"
-                                name="license"
-                                accept="image/*,application/pdf"
-                                onChange={handleChange}
-                                className="w-full mt-1"
-                            />
-                            {signupData.license && (
-                                <span className="text-xs text-gray-500 mt-1">
-                                    Selected File: {signupData.license.name}
-                                </span>
-                            )}
+                            <input type="file" name="license" onChange={handleChange} />
+                            {signupData.license && <span className="text-xs text-gray-500 mt-1">Selected File: {signupData.license.name}</span>}
                         </label>
+                        {errors.license && <p className="text-red-500 absolute top-55 right-12 text-sm">{errors.license}</p>}
                     </div>
                 );
 
@@ -164,27 +173,16 @@ const DriverLoginSignup = () => {
                 return (
                     <div className="flex flex-col gap-4 min-h-80">
                         <div className={inputStyle}>
-                            <FaCarSide />
-                            <input
-                                type="text"
-                                name="vehicleType"
-                                placeholder="Vehicle Type"
-                                value={signupData.vehicleType}
-                                onChange={handleChange}
-                                className="w-full outline-none"
-                            />
+                            <FaCarSide className='text-gray-500' />
+                            <input type="text" name="vehicleType" placeholder="Vehicle Type" value={signupData.vehicleType} onChange={handleChange} className="w-full outline-none" />
                         </div>
+                        {errors.vehicleType && <p className="text-red-500 absolute top-34 right-12 text-sm">{errors.vehicleType}</p>}
+
                         <div className={inputStyle}>
-                            <FaClock />
-                            <input
-                                type="number"
-                                name="experience"
-                                placeholder="Experience (Years)"
-                                value={signupData.experience}
-                                onChange={handleChange}
-                                className="w-full outline-none"
-                            />
+                            <FaClock className='text-gray-500' />
+                            <input type="number" name="experience" placeholder="Experience (Years)" value={signupData.experience} onChange={handleChange} className="w-full outline-none" />
                         </div>
+                        {errors.experience && <p className="text-red-500 absolute top-49 right-12 text-sm">{errors.experience}</p>}
                     </div>
                 );
 
@@ -196,13 +194,13 @@ const DriverLoginSignup = () => {
     return (
         <div className="relative w-full h-screen flex flex-col items-center justify-between bg-gray-100">
             <div className='w-full mt-10 flex justify-center items-start'>
-                <img src="/LogiTruckLogo.png" className='w-90' />
+                <img onClick={() => navigate("/")} src="/LogiTruckLogo.png" className='w-90 cursor-pointer' />
             </div>
 
             <div className="mb-20 relative w-[900px] h-[550px] bg-white shadow-2xl rounded-xl flex flex-col overflow-hidden">
                 <div className="w-full flex items-center justify-between z-10">
                     {/* LOGIN FORM */}
-                    <form className={`w-1/2 p-10 flex flex-col gap-4`}>
+                    <form className={`relative w-1/2 p-10 flex flex-col gap-4`}>
                         <h2 className="text-3xl text-center font-bold text-[#192a67] mb-2">Driver Login</h2>
                         <input
                             type="email"
@@ -210,23 +208,25 @@ const DriverLoginSignup = () => {
                             placeholder="Email"
                             value={loginData.email}
                             onChange={e => setLoginData({ ...loginData, email: e.target.value })}
-                            className="p-2 border rounded outline-none"
+                            className="p-2 border-2 border-gray-300 rounded outline-none"
                         />
+                        {errors.email && <p className="text-red-500 absolute top-28 right-12 text-xs">{errors.email}</p>}
                         <input
                             type="password"
                             name="password"
                             placeholder="Password"
                             value={loginData.password}
                             onChange={e => setLoginData({ ...loginData, password: e.target.value })}
-                            className="p-2 border rounded outline-none"
+                            className="p-2 border-2 border-gray-300 rounded outline-none"
                         />
+                        {errors.password && <p className="text-red-500 absolute top-43 right-12 text-xs">{errors.password}</p>}
                         <button type="submit" onClick={handleLogin} className="bg-yellow-300 py-2 rounded font-semibold">
                             Login
                         </button>
                     </form>
 
                     {/* SIGN UP FORM */}
-                    <form className="w-1/2 p-10 flex flex-col gap-2">
+                    <form className="relative w-1/2 p-10 flex flex-col gap-2">
                         <h2 className="text-3xl text-center font-bold text-[#192a67] mb-2">Driver Signup</h2>
 
                         {/* Progress Bar */}
@@ -238,9 +238,9 @@ const DriverLoginSignup = () => {
 
                         <div className="flex justify-between items-center mt-4">
                             {step > 1 && (
-                                <button type="button" onClick={() => setStep(step - 1)} className="bg-yellow-300 py-2 px-4 rounded font-semibold">Back</button>
+                                <button type="button" onClick={() => setStep(step - 1)} className="bg-yellow-300 cursor-pointer py-2 px-4 rounded font-semibold">Back</button>
                             )}
-                            <button type="button" onClick={step < 3 ? () => setStep(step + 1) : handleSignup} className="bg-yellow-300 py-2 px-4 rounded font-semibold">
+                            <button type="button" onClick={handleNext} className="bg-yellow-300 cursor-pointer py-2 px-4 rounded font-semibold">
                                 {step < 3 ? "Next" : "Signup"}
                             </button>
                         </div>
@@ -269,6 +269,7 @@ const DriverLoginSignup = () => {
                         >
                             {isSignUp ? "Login" : "Signup"}
                         </button>
+                        <button onClick={() => navigate("/role-select")} className='bg-yellow-300 cursor-pointer text-black font-semibold px-6 py-2 rounded'>Change Role</button>
                     </div>
                 </div>
             </div>

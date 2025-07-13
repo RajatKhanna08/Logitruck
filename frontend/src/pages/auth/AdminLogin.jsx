@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { FaLock, FaEnvelope } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const AdminLogin = () => {
+    const navigate = useNavigate();
+    const [errors, setErrors] = useState({});
+
     const [adminData, setAdminData] = useState({
         email: '',
         password: ''
@@ -14,19 +18,41 @@ const AdminLogin = () => {
 
     const handleLogin = (e) => {
         e.preventDefault();
+
+        if (!validateLogin()) return;
+
         console.log("Admin login submitted:", adminData);
         // Add API call here
+    };
+
+    const validateLogin = () => {
+        const loginErrors = {};
+
+        if (!adminData.email.trim()) {
+            loginErrors.email = "Email is required";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminData.email)) {
+            loginErrors.email = "Invalid email format";
+        }
+
+        if (!adminData.password.trim()) {
+            loginErrors.password = "Password is required";
+        } else if (adminData.password.length < 6) {
+            loginErrors.password = "Password must be at least 6 characters";
+        }
+
+        setErrors(loginErrors);
+        return Object.keys(loginErrors).length === 0;
     };
 
     return (
         <div className="w-full h-screen flex flex-col items-center justify-center bg-gray-100">
             {/* Logo */}
-            <img src="/LogiTruckLogo.png" alt="Logo" className="w-75 mb-10" />
+            <img onClick={() => navigate("/")} src="/LogiTruckLogo.png" alt="Logo" className="w-75 cursor-pointer mb-10" />
 
             {/* Login Container */}
             <form
                 onSubmit={handleLogin}
-                className="w-[400px] bg-white p-8 rounded-lg shadow-xl flex flex-col gap-6"
+                className="relative w-[400px] bg-white p-8 rounded-lg shadow-xl flex flex-col gap-6"
             >
                 <h2 className="text-3xl text-center font-bold text-[#192a67]">Admin Login</h2>
 
@@ -38,9 +64,9 @@ const AdminLogin = () => {
                         placeholder="Email"
                         value={adminData.email}
                         onChange={handleChange}
-                        required
                         className="w-full outline-none"
                     />
+                    {errors.email && <p className="text-red-500 absolute top-25 right-12 text-sm mt-1 ml-1">{errors.email}</p>}
                 </div>
 
                 <div className="flex items-center border rounded px-3 py-2 bg-white">
@@ -51,9 +77,9 @@ const AdminLogin = () => {
                         placeholder="Password"
                         value={adminData.password}
                         onChange={handleChange}
-                        required
                         className="w-full outline-none"
                     />
+                    {errors.password && <p className="text-red-500 absolute top-41 right-12 text-sm mt-1 ml-1">{errors.password}</p>}
                 </div>
 
                 <button
