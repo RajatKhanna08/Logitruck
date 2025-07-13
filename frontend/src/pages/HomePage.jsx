@@ -21,9 +21,30 @@ const HomePage = () => {
     useEffect(() => {
     const interval = setInterval(() => {
         setCurrentSlide((prev) => (prev + 1) % imageSlides.length);
-    }, 5000);
+    }, 7000);
     return () => clearInterval(interval);
     }, []);
+
+    const textRef = useRef([]);
+    const subtextRef = useRef([]);
+
+    useEffect(() => {
+        const tl = gsap.timeline();
+
+        tl.fromTo(
+            textRef.current[currentSlide],
+            { y: 100, opacity: 0 },
+            { y: 0, opacity: 1, duration: 1.5, ease: 'power3.inOut' }
+        )
+        .fromTo(
+            subtextRef.current[currentSlide],
+            { y: 100, opacity: 0 },
+            { y: 0, opacity: 1, duration: 1, ease: 'power2.inOut' },
+            "+=0"
+        );
+
+        return () => tl.kill();
+    }, [currentSlide]);
 
     //Live Tracking Section
     const [openIndex, setOpenIndex] = useState(null);
@@ -85,19 +106,20 @@ const HomePage = () => {
 
             {/* FIRST SECTION */}
             <div className='relative w-screen h-screen'>
-                
+            
                 {/* PROGRESS BAR */}
                 <div className="absolute z-50 top-35 left-0 w-full h-1 bg-white/20 overflow-hidden">
                     <div
-                        key={currentSlide} // triggers animation on change
+                        key={currentSlide}
                         className="h-full bg-yellow-300 animate-progress"
-                        style={{ animationDuration: '5000ms' }} // same as your slide interval
+                        style={{ animationDuration: '7000ms' }}
                     />
                 </div>
 
-                {/* IMAGES SLIDESHOW */}
+                {/* SLIDES */}
                 {imageSlides.map((slide, index) => (
-                    <div key={index}
+                    <div
+                        key={index}
                         className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
                             index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
                         }`}
@@ -109,17 +131,22 @@ const HomePage = () => {
                         />
                         <div className="absolute left-0 inset-0 bg-black/50 flex items-center justify-start pl-15">
                             <div className="space-y-5">
-                                <p className="w-[65%] text-yellow-300 text-7xl font-bold leading-[1.2]">
+                                <p
+                                    ref={(el) => (textRef.current[index] = el)}
+                                    className="w-[65%] text-yellow-300 text-7xl font-bold leading-[1.2]"
+                                >
                                     {slide.text}
                                 </p>
-                                <p className="w-[60%] text-white text-3xl font-medium leading-snug">
+                                <p
+                                    ref={(el) => (subtextRef.current[index] = el)}
+                                    className="w-[60%] text-white text-3xl font-medium leading-snug"
+                                >
                                     {slide.subtext}
                                 </p>
                             </div>
                         </div>
                     </div>
                 ))}
-
             </div>
 
             {/* SERVICES SECTION */}
