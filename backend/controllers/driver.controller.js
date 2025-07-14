@@ -4,6 +4,7 @@ import driverModel from "../models/driverModel.js";
 import orderModel from "../models/orderModel.js";
 
 import { sendWelcomeEmail, sendLoginAlertEmail } from "../emails/driverEmail.js";
+import { sendWhatsAppRegistration, sendWhatsAppLogin } from "../services/whatsapp.service.js";
 
 export const registerDriverController = async (req, res) => {
     try {
@@ -65,6 +66,7 @@ export const registerDriverController = async (req, res) => {
             sameSite: "Strict"
         });
         await sendWelcomeEmail(newDriver);
+        await sendWhatsAppRegistration(newDriver.phone, newDriver.fullName, "driver");
         res.status(201).json({
             message: "Driver registered successfully",
             driver: {
@@ -111,6 +113,7 @@ export const loginDriverController = async (req, res) => {
             sameSite: "Strict"
         });
         await sendLoginAlertEmail(existingDriver);
+        await sendWhatsAppLogin(existingDriver.phone, existingDriver.fullName, "Driver");
         res.status(200).json({
             message: "Driver logged in successfully",
             driver: {

@@ -7,6 +7,7 @@ import truckModel from '../models/truckModel.js';
 import driverModel from '../models/driverModel.js';
 
 import { sendCompanyWelcomeEmail, sendCompanyLoginEmail } from "../emails/companyEmail.js";
+import { sendWhatsAppRegistration, sendWhatsAppLogin } from '../services/whatsapp.service.js';
 
 export const registerCompanyController = async (req, res) => {
     try {
@@ -57,6 +58,7 @@ export const registerCompanyController = async (req, res) => {
             }
         });
         await sendCompanyWelcomeEmail(companyEmail, companyName);
+        await sendWhatsAppRegistration(newCompany.phone, newCompany.companyName, "company");
         const token = newCompany.generateAuthToken();
         res.cookie("jwt", token, {
             httpOnly: true,
@@ -104,6 +106,7 @@ export const loginCompanyController = async (req, res) => {
             sameSite: "Strict"
         });
         await sendCompanyLoginEmail(existingCompany.companyEmail, existingCompany.companyName);
+        await sendWhatsAppLogin(existingCompany.phone, existingCompany.companyName, "Company");
         res.status(200).json({
             message: "Company logged in successfully",
             company: {

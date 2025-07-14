@@ -11,7 +11,8 @@ import paymentModel from '../models/paymentModel.js';
 import reviewModel from "../models/reviewModel.js";
 import biddingModel from '../models/biddingModel.js';
 
-import { sendAdminWelcomeEmail,sendAdminLoginEmail } from "../emails/adminEmail.js";
+import { sendAdminWelcomeEmail, sendAdminLoginEmail } from "../emails/adminEmail.js";
+import { sendWhatsAppRegistration, sendWhatsAppLogin } from "../services/whatsapp.service.js";
 
 export const adminRegisterController = async (req, res) => {
     try {
@@ -49,6 +50,7 @@ export const adminRegisterController = async (req, res) => {
 
         console.log(`New admin registered: ${email}`);
         await sendAdminWelcomeEmail(email, fullName);
+        await sendWhatsAppRegistration(phone, fullName, "Admin");
         return res.status(201).json({
             message: "Admin registered successfully",
             admin: adminData
@@ -95,6 +97,7 @@ export const adminLoginController = async (req, res) => {
 
         console.log(`Admin logged in: ${email}`);
         await sendAdminLoginEmail(email, existingAdmin.fullName);
+        await sendWhatsAppLogin(existingAdmin.phone, existingAdmin.fullName, "Admin");
         return res.status(200).json({
             message: "Admin logged in",
             admin: adminData,

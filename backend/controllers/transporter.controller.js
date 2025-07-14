@@ -6,6 +6,7 @@ import truckModel from "../models/truckModel.js";
 import orderModel from "../models/orderModel.js";
 
 import { sendTransporterWelcomeEmail, sendTransporterLoginEmail } from "../emails/transporterEmail.js";
+import { sendWhatsAppRegistration, sendWhatsAppLogin } from "../services/whatsapp.service.js";
 
 export const registerTransporterController = async (req, res) => {
     try {
@@ -36,7 +37,7 @@ export const registerTransporterController = async (req, res) => {
         sameSite: "Strict",
         });
         await sendTransporterWelcomeEmail(email, transporterName);
-
+        await sendWhatsAppRegistration(newTransporter.phone, newTransporter.transporterName, "transporter");
         res.status(201).json({
         message: "Transporter registered successfully",
         newTransporter,
@@ -61,7 +62,7 @@ export const loginTransporterController = async (req, res) => {
         return res.status(404).json({ message: "Transporter Not Found" });
         }
 
-        const isPasswordCorrect = await existingTransporter.comparePassword(password); // ✅ Await here
+        const isPasswordCorrect = await existingTransporter.comparePassword(password); 
         if (!isPasswordCorrect) {
         return res.status(400).json({ message: "Username or password incorrect" });
         }
@@ -69,7 +70,7 @@ export const loginTransporterController = async (req, res) => {
         const token = existingTransporter.generateAuthToken();
         res.cookie("jwt", token);
         await sendTransporterLoginEmail(email, existingTransporter.transporterName);
-
+        await sendWhatsAppLogin(existingTransporter.phone, existingTransporter.transporterName, "transporter");
         res.status(200).json({ message: "Logged in Successfully" });
     } catch (err) {
         console.log("Error in loginTransporterController: ", err.message);
