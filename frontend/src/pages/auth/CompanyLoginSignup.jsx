@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 //Icons
-import { FaBuilding, FaEnvelope, FaPhone, FaLock, FaAddressCard, FaIndustry, FaUserTie, FaLandmark, FaGlobeAsia, FaStreetView, FaPhoneAlt } from 'react-icons/fa';
+import { FaBuilding, FaEnvelope, FaLock, FaIndustry, FaUserTie, FaLandmark, FaGlobeAsia, FaStreetView, FaPhoneAlt } from 'react-icons/fa';
 import { FaCity } from 'react-icons/fa6';
 import { HiOutlineIdentification } from 'react-icons/hi';
 import { TbMapPinCode } from "react-icons/tb";
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const CompanyLoginSignup = () => {
+    const navigate = useNavigate();
     const location = useLocation();
     const params = new URLSearchParams(location.search);
     const paramsEmail = params.get("email");
+
+    const [errors, setErrors] = useState({});
 
     const [isSignUp, setIsSignUp] = useState(false);
     const [step, setStep] = useState(1);
@@ -34,6 +37,11 @@ const CompanyLoginSignup = () => {
             name: "",
             phone: "",
             email: ""
+        },
+        documents: {
+            idProof: null,
+            businessLicense: null,
+            gstCertificate: null
         }
     });
     
@@ -43,7 +51,7 @@ const CompanyLoginSignup = () => {
     });
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value, files } = e.target;
 
         if (isSignUp) {
             if (name.startsWith("contactPerson.")) {
@@ -55,8 +63,7 @@ const CompanyLoginSignup = () => {
                         [field]: value
                     }
                 }));
-            }
-            else if(name.startsWith("address.")){
+            } else if (name.startsWith("address.")) {
                 const field = name.split(".")[1];
                 setSignupData((prev) => ({
                     ...prev,
@@ -65,15 +72,31 @@ const CompanyLoginSignup = () => {
                         [field]: value
                     }
                 }));
-            }
-            else{
+            } else if (["idProof", "businessLicense", "gstCertificate"].includes(name)) {
+                const file = files[0];
+                setSignupData((prev) => ({
+                    ...prev,
+                    documents: {
+                        ...prev.documents,
+                        [name]: file
+                    }
+                }));
+            } else {
                 setSignupData((prev) => ({
                     ...prev,
                     [name]: value
                 }));
             }
-        } 
-        else{
+
+            if (errors[name] || errors[`documents.${name}`]) {
+                setErrors((prev) => {
+                    const updated = { ...prev };
+                    delete updated[name];
+                    delete updated[`documents.${name}`];
+                    return updated;
+                });
+            }
+        } else {
             setLoginData((prev) => ({
                 ...prev,
                 [name]: value
@@ -82,8 +105,10 @@ const CompanyLoginSignup = () => {
     };
 
     const handleNext = () => {
-        if (step < 4) setStep(step + 1);
-        else handleSubmit();
+        if (validateStep()) {
+            if (step < 5) setStep((prev) => prev + 1);
+            else handleSubmit();
+        }
     };
 
     const handleBack = () => {
@@ -110,6 +135,11 @@ const CompanyLoginSignup = () => {
                 name: '',
                 phone: '',
                 email: ''
+            },
+            documents: {
+                idProof: null,
+                businessLicense: null,
+                gstCertificate: null
             }
          });
         setStep(1);
@@ -119,13 +149,14 @@ const CompanyLoginSignup = () => {
 
     const handleLogin = (e) => {
         e.preventDefault();
-        setLoginData({ email: '', password: '' });
+        if (!validateLogin()) return;
+
         console.log("Login Data Submitted:", loginData);
-        // API call for login goes here
+        // Login API here
     };
 
     const renderStep = () => {
-        const inputStyle = "flex items-center gap-2 p-2 border rounded outline-none bg-white";
+        const inputStyle = "flex items-center gap-2 p-2 border-2 border-gray-300 rounded outline-none bg-white";
 
         switch (step) {
             case 1:
@@ -141,6 +172,7 @@ const CompanyLoginSignup = () => {
                                 onChange={handleChange}
                                 className="w-full outline-none"
                             />
+                            {errors.companyName && <p className="text-red-500 text-xs">{errors.companyName}</p>}
                         </div>
                         <div className={inputStyle}>
                             <FaEnvelope className="text-gray-500" />
@@ -152,6 +184,7 @@ const CompanyLoginSignup = () => {
                                 onChange={handleChange}
                                 className="w-full outline-none"
                             />
+                            {errors.companyEmail && <p className="text-red-500 text-xs">{errors.companyEmail}</p>}
                         </div>
                     </div>
                 );
@@ -169,6 +202,7 @@ const CompanyLoginSignup = () => {
                                 onChange={handleChange}
                                 className="w-full outline-none"
                             />
+                            {errors.companyPhone && <p className="text-red-500 text-xs">{errors.companyPhone}</p>}
                         </div>
                         <div className={inputStyle}>
                             <FaLock className="text-gray-500" />
@@ -180,6 +214,7 @@ const CompanyLoginSignup = () => {
                                 onChange={handleChange}
                                 className="w-full outline-none"
                             />
+                            {errors.password && <p className="text-red-500 text-xs">{errors.password}</p>}
                         </div>
                     </div>
                 );
@@ -199,6 +234,7 @@ const CompanyLoginSignup = () => {
                                     onChange={handleChange}
                                     className="w-full outline-none"
                                 />
+                                {errors["address.street"] && <p className="text-red-500 text-xs">{errors["address.street"]}</p>}
                             </div>
                             <div className={inputStyle}>
                                 <FaCity className="text-gray-500" />
@@ -210,6 +246,7 @@ const CompanyLoginSignup = () => {
                                     onChange={handleChange}
                                     className="w-full outline-none"
                                 />
+                                {errors["address.city"] && <p className="text-red-500 text-xs">{errors["address.city"]}</p>}
                             </div>
                             <div className={inputStyle}>
                                 <FaCity className="text-gray-500" />
@@ -221,6 +258,7 @@ const CompanyLoginSignup = () => {
                                     onChange={handleChange}
                                     className="w-full outline-none"
                                 />
+                                {errors["address.state"] && <p className="text-red-500 text-xs">{errors["address.state"]}</p>}
                             </div>
                             <div className={inputStyle}>
                                 <TbMapPinCode className="text-gray-500" />
@@ -232,6 +270,7 @@ const CompanyLoginSignup = () => {
                                     onChange={handleChange}
                                     className="w-full outline-none"
                                 />
+                                {errors["address.pincode"] && <p className="text-red-500 text-xs">{errors["address.pincode"]}</p>}
                             </div>
                             <div className={inputStyle}>
                                 <FaGlobeAsia className="text-gray-500" />
@@ -243,6 +282,7 @@ const CompanyLoginSignup = () => {
                                     onChange={handleChange}
                                     className="w-full outline-none"
                                 />
+                                {errors["address.country"] && <p className="text-red-500 text-xs">{errors["address.country"]}</p>}
                             </div>
                             <div className={inputStyle}>
                                 <FaLandmark className="text-gray-500" />
@@ -254,6 +294,7 @@ const CompanyLoginSignup = () => {
                                     onChange={handleChange}
                                     className="w-full outline-none"
                                 />
+                                {errors["address.landmark"] && <p className="text-red-500 text-xs">{errors["address.landmark"]}</p>}
                             </div>
                         </div>
                         {/* OTHER */}
@@ -267,6 +308,7 @@ const CompanyLoginSignup = () => {
                                 onChange={handleChange}
                                 className="w-full outline-none"
                             />
+                            {errors.registrationNumber && <p className="text-red-500 text-xs">{errors.registrationNumber}</p>}
                         </div>
 
                         <div className={inputStyle}>
@@ -279,6 +321,7 @@ const CompanyLoginSignup = () => {
                                 onChange={handleChange}
                                 className="w-full outline-none"
                             />
+                            {errors.industry && <p className="text-red-500 text-xs">{errors.industry}</p>}
                         </div>
                     </div>
                     );
@@ -296,6 +339,7 @@ const CompanyLoginSignup = () => {
                                 onChange={handleChange}
                                 className="w-full outline-none"
                             />
+                            {errors["contactPerson.name"] && <p className="text-red-500 text-xs">{errors["contactPerson.name"]}</p>}
                         </div>
                         <div className={inputStyle}>
                             <FaPhoneAlt className="text-gray-500" />
@@ -307,6 +351,7 @@ const CompanyLoginSignup = () => {
                                 onChange={handleChange}
                                 className="w-full outline-none"
                             />
+                            {errors["contactPerson.phone"] && <p className="text-red-500 text-xs">{errors["contactPerson.phone"]}</p>}
                         </div>
                         <div className={inputStyle}>
                             <FaEnvelope className="text-gray-500" />
@@ -318,6 +363,46 @@ const CompanyLoginSignup = () => {
                                 onChange={handleChange}
                                 className="w-full outline-none"
                             />
+                            {errors["contactPerson.email"] && <p className="text-red-500 text-xs">{errors["contactPerson.email"]}</p>}
+                        </div>
+                    </div>
+                );
+
+            case 5:
+                return (
+                    <div className="flex flex-col gap-3 min-h-80">
+                        <div className={inputStyle}>
+                            <label className="w-full text-gray-500 font-medium">ID Proof (PDF/Image):
+                            <input
+                                type="file"
+                                name="documents.idProof"
+                                onChange={handleChange}
+                                className="w-full mt-1 cursor-pointer"
+                            />
+                            {errors["documents.idProof"] && <p className="text-red-500 text-xs">{errors["documents.idProof"]}</p>}
+                            </label>
+                        </div>
+                        <div className={inputStyle}>
+                            <label className="w-full text-gray-500 font-medium">Business License:
+                            <input
+                                type="file"
+                                name="documents.businessLicense"
+                                onChange={handleChange}
+                                className="w-full mt-1 cursor-pointer"
+                            />
+                            {errors["documents.businessLicense"] && <p className="text-red-500 text-xs">{errors["documents.businessLicense"]}</p>}
+                            </label>
+                        </div>
+                        <div className={inputStyle}>
+                            <label className="w-full text-gray-500 font-medium">GST Certificate:
+                            <input
+                                type="file"
+                                name="documents.gstCertificate"
+                                onChange={handleChange}
+                                className="w-full mt-1 cursor-pointer"
+                            />
+                            {errors["documents.gstCertificate"] && <p className="text-red-500 text-xs">{errors["documents.gstCertificate"]}</p>}
+                            </label>
                         </div>
                     </div>
                 );
@@ -327,11 +412,77 @@ const CompanyLoginSignup = () => {
         }
     };
 
+    const validateStep = () => {
+        const newErrors = {};
+
+        // Step 1: Company name and email
+        if (step === 1) {
+            if (!signupData.companyName.trim()) newErrors.companyName = "required";
+            if (!signupData.companyEmail.trim()) newErrors.companyEmail = "required";
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupData.companyEmail)) newErrors.companyEmail = "Invalid";
+        }
+
+        // Step 2: Phone and Password
+        if (step === 2) {
+            if (!signupData.companyPhone.trim()) newErrors.companyPhone = "required";
+            else if (!/^\d{10}$/.test(signupData.companyPhone)) newErrors.companyPhone = "Invalid";
+            if (!signupData.password.trim()) newErrors.password = "required";
+            else if (signupData.password.length < 6) newErrors.password = "At least 6 characters";
+        }
+
+        // Step 3: Address, Reg No, Industry
+        if (step === 3) {
+            const address = signupData.address;
+            if (!address.street.trim()) newErrors["address.street"] = "required";
+            if (!address.city.trim()) newErrors["address.city"] = "required";
+            if (!address.state.trim()) newErrors["address.state"] = "required";
+            if (!address.pincode) newErrors["address.pincode"] = "required";
+            else if (!/^\d{6}$/.test(address.pincode)) newErrors["address.pincode"] = "Invalid";
+            if (!address.country.trim()) newErrors["address.country"] = "required";
+            if (!address.landmark.trim()) newErrors["address.landmark"] = "required";
+            if (!signupData.registrationNumber.trim()) newErrors.registrationNumber = "required";
+            if (!signupData.industry.trim()) newErrors.industry = "required";
+        }
+
+        // Step 4: Contact Person
+        if (step === 4) {
+            const contact = signupData.contactPerson;
+            if (!contact.name.trim()) newErrors["contactPerson.name"] = "required";
+            if (!contact.phone) newErrors["contactPerson.phone"] = "required";
+            else if (!/^\d{10}$/.test(contact.phone)) newErrors["contactPerson.phone"] = "Invalid";
+            if (!contact.email.trim()) newErrors["contactPerson.email"] = "Email is required";
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email)) newErrors["contactPerson.email"] = "Invalid";
+        }
+
+        // Step 5: Files
+        if (step === 5) {
+            if (!signupData.documents.idProof) newErrors["documents.idProof"] = "required";
+            if (!signupData.documents.businessLicense) newErrors["documents.businessLicense"] = "required";
+            if (!signupData.documents.gstCertificate) newErrors["documents.gstCertificate"] = "required";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const validateLogin = () => {
+        const loginErrors = {};
+
+        if (!loginData.email.trim()) loginErrors.email = "Email is required";
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginData.email)) loginErrors.email = "Invalid email format";
+
+        if (!loginData.password.trim()) loginErrors.password = "Password is required";
+        else if (loginData.password.length < 6) loginErrors.password = "Password must be at least 6 characters";
+
+        setErrors(loginErrors);
+        return Object.keys(loginErrors).length === 0;
+    };
+
     return (
         <div className="relative w-full h-screen flex flex-col items-center justify-between bg-gray-100">
             {/* LOGO */}
             <div className='w-full h-18 mt-10 flex justify-center items-start'>
-                <img src="/LogiTruckLogo.png" className='ml-8 w-90'/>
+                <img onClick={() => navigate("/")} src="/LogiTruckLogo.png" className='ml-8 cursor-pointer w-90'/>
             </div>
 
             {/* Main container */}
@@ -340,7 +491,7 @@ const CompanyLoginSignup = () => {
                 {/* Forms container */}
                 <div className="w-full flex items-center justify-between z-10">
                         {/* LOGIN FORM */}
-                        <form className={`w-1/2 p-10 flex flex-col gap-4`}>
+                        <form className={`relative w-1/2 p-10 flex flex-col gap-4`}>
                             <h2 className="text-3xl text-center font-bold text-[#192a67] mb-2">Company Login</h2>
                             <input
                                 type="email"
@@ -348,16 +499,18 @@ const CompanyLoginSignup = () => {
                                 placeholder="Email"
                                 value={loginData.email}
                                 onChange={handleChange}
-                                className="p-2 border rounded outline-none"
+                                className="p-2 border-2 border-gray-300 rounded outline-none"
                             />
+                            {errors.email && <p className="text-red-500 absolute top-28 right-12 text-xs">{errors.email}</p>}
                             <input
                                 type="password"
                                 name="password"
                                 placeholder="Password"
                                 value={loginData.password}
                                 onChange={handleChange}
-                                className="p-2 border rounded outline-none"
+                                className="p-2 border-2 border-gray-300 rounded outline-none"
                             />
+                            {errors.password && <p className="text-red-500 absolute top-43 right-12 text-xs">{errors.password}</p>}
                             <button type="submit" onClick={handleLogin} className="bg-yellow-300 cursor-pointer py-2 rounded font-semibold">
                                 Login
                             </button>
@@ -369,7 +522,7 @@ const CompanyLoginSignup = () => {
 
                             {/* Progress Bar */}
                             <div className="w-full h-2 bg-gray-200 rounded overflow-hidden mb-4">
-                                <div className={`h-full bg-yellow-300 transition-all duration-500`} style={{ width: `${(step / 4) * 100}%` }}></div>
+                                <div className={`h-full bg-yellow-300 transition-all duration-500`} style={{ width: `${(step / 5) * 100}%` }}></div>
                             </div>
 
                             {/* FORM SECTIONS */}
@@ -427,6 +580,11 @@ const CompanyLoginSignup = () => {
                                         name: '',
                                         phone: '',
                                         email: ''
+                                    },
+                                    documents: {
+                                        idProof: null,
+                                        businessLicense: null,
+                                        gstCertificate: null
                                     }
                                 });
                                 setLoginData({ email: '', password: '' });
@@ -437,6 +595,7 @@ const CompanyLoginSignup = () => {
                         >
                             {isSignUp ? "Login" : "Signup"}
                         </button>
+                        <button onClick={() => navigate("/role-select")} className='bg-yellow-300 cursor-pointer text-black font-semibold px-6 py-2 rounded'>Change Role</button>
                     </div>
                 </div>
             </div>

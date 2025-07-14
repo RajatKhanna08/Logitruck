@@ -97,7 +97,7 @@ const transporterSchema = new mongoose.Schema({
     
     fleetSize: {
         type: Number,
-        required: true
+        default: 0
     },
     
     trucks: [

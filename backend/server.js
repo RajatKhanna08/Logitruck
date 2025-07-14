@@ -1,7 +1,8 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import dotenv from 'dotenv';
-import http from 'http';
+import http, { METHODS } from 'http';
 import { Server } from 'socket.io';
 
 dotenv.config(); // Load environment variables
@@ -24,8 +25,8 @@ const app = express();
 const server = http.createServer(app); // Required for Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: "*", // You can restrict this later
-    methods: ["GET", "POST"]
+    origin: "http://localhost:5173", // You can restrict this later
+    METHODS: ["GET", "POST", "PUT", "DELETE"],
   }
 });
 
@@ -39,6 +40,10 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}))
 
 // All Routes
 app.use('/api/admin', adminRoutes);

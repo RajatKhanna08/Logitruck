@@ -103,7 +103,7 @@ const Footer = () => {
 			</div>
 
 			{/* RIGHT SECTION */}
-				<div className='z-10 mr-10 flex items-start flex-col text-white'>
+			<div className='z-10 mr-10 flex items-start flex-col text-white'>
 					{/* HEADING */}
 					<div className='relative text-2xl font-bold mb-10'>
 						Join Us
@@ -120,23 +120,22 @@ const Footer = () => {
 							</form>
 						</li>
 					</ul>
-				</div>
+			</div>
 
-				{/* Truck image */}
-				<img src="/TruckImageForFooter.png"
+			{/* Truck image */}
+			<img src="/TruckImageForFooter.png"
 					alt="truck"
 					className="absolute z-10 right-35 bottom-40 w-[120px] drop-shadow-2xl select-none pointer-events-none animate-moveX"
 					draggable="false"
-				/>
+			/>
 
-				{/* SEPERATOR */}
-				<span className="absolute bottom-25 left-35 w-[80%] h-[1px] bg-gray-600" />
+			{/* SEPERATOR */}
+			<span className="absolute bottom-25 left-35 w-[80%] h-[1px] bg-gray-600" />
 
-				{/* Copyright */}
-				<div className='z-10 absolute bottom-10 text-gray-300 flex items-center text-xl'>
-					<p className='flex items-center gap-2'>Copyright <FaCopyright /> 2025 by <span className='text-yellow-300'>LogiTruck</span> | All rights reserved</p>
-				</div>
-			{/* </div> */}
+			{/* Copyright */}
+			<div className='z-10 absolute bottom-10 text-gray-300 flex items-center text-xl'>
+				<p className='flex items-center gap-2'>Copyright <FaCopyright /> 2025 by <span className='text-yellow-300'>LogiTruck</span> | All rights reserved</p>
+			</div>
 		</footer>
 	);
 };
