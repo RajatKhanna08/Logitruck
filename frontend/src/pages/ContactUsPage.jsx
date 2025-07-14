@@ -18,7 +18,7 @@ const ContactUsPage = () => {
                     {/* LEFT-UPPER SECTION */}
                     <div className='flex flex-col gap-5'>
                         <p className='text-5xl font-semibold'>Get In Touch</p>
-                        <p className='text-yellow-300 font-medium text-3xl max-w-150'>"LG Transports specializes in smart, reliable, and budget-friendly logistics solutions, connecting verified trucks and drivers across India for fast and secure deliveries."</p>
+                        <p className='text-yellow-300 font-medium text-3xl text-shadow-xs text-shadow-black max-w-150'>"LG Transports specializes in smart, reliable, and budget-friendly logistics solutions, connecting verified trucks and drivers across India for fast and secure deliveries."</p>
                     </div>
 
                     {/* LEFT-LOWER SECTION */}

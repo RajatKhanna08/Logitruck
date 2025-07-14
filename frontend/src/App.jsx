@@ -5,7 +5,7 @@ import IntroLoader from './components/IntroLoader';
 
 import HomePage from './pages/HomePage';
 import ServicePage from './pages/ServicePage';
-// import ContactUsPage from './pages/ContactUsPage';
+import ContactUsPage from './pages/ContactUsPage';
 
 import CompanyLoginSignup from './pages/auth/CompanyLoginSignup';
 import TransporterLoginSignup from './pages/auth/TransporterLoginSignup';
@@ -17,15 +17,16 @@ import { useUserProfile } from './hooks/useUserProfile';
 import PageLoader from './components/PageLoader';
 
 // DASHBOARDS & PROFILES
-// import CompanyDashboard from './pages/company/CompanyDashboard';
-// import TransporterDashboard from './pages/transporter/TransporterDashboard';
-// import DriverDashboard from './pages/driver/DriverDashboard';
-// import AdminDashboard from './pages/admin/AdminDashboard';
+import CompanyDashboard from './pages/dashboard/CompanyDashboard';
+import TransporterDashboard from './pages/dashboard/TransporterDashboard';
+import DriverDashboard from './pages/dashboard/DriverDashboard';
+import AdminDashboard from './pages/dashboard/AdminDashboard';
 
-// import CompanyProfile from './pages/company/CompanyProfile';
-// import TransporterProfile from './pages/transporter/TransporterProfile';
-// import DriverProfile from './pages/driver/DriverProfile';
-// import AdminProfile from './pages/admin/AdminProfile';
+import CompanyProfile from './pages/profile/CompanyProfile';
+import TransporterProfile from './pages/profile/TransporterProfile';
+import DriverProfile from './pages/profile/DriverProfile';
+import AdminProfile from './pages/profile/AdminProfile';
+import HelpCentrePage from './pages/HelpCentrePage';
 
 // // SHARED ORDER ROUTES
 // import BookOrderPage from './pages/orders/BookOrderPage';
@@ -69,7 +70,8 @@ const AppWrapper = () => {
                     {/* Public Routes */}
                     <Route path='/' element={<HomePage />} />
                     <Route path='/services/:id' element={<ServicePage />} />
-                    {/* <Route path='/contact' element={<ContactUsPage />} /> */}
+                    <Route path='/contact' element={<ContactUsPage />} />
+                    <Route path='/help-centre' element={<HelpCentrePage />} />
                     <Route path='/role-select' element={<RoleSelectorPage />} />
                     <Route path='/admin/login' element={<AdminLogin />} />
                     <Route path='/company/register' element={<CompanyLoginSignup />} />
@@ -77,7 +79,7 @@ const AppWrapper = () => {
                     <Route path='/driver/register' element={<DriverLoginSignup />} />
 
                     {/* Protected Dashboards */}
-                    {/* <Route path='/company/dashboard' element={
+                    <Route path='/company/dashboard' element={
                         <ProtectedRoute role={role} allowedRoles={['company']}>
                             <CompanyDashboard />
                         </ProtectedRoute>
@@ -96,10 +98,10 @@ const AppWrapper = () => {
                         <ProtectedRoute role={role} allowedRoles={['admin']}>
                             <AdminDashboard />
                         </ProtectedRoute>
-                    } /> */}
+                    } />
 
                     {/* Protected Profiles */}
-                    {/* <Route path='/company/profile' element={
+                    <Route path='/company/profile' element={
                         <ProtectedRoute role={role} allowedRoles={['company']}>
                             <CompanyProfile />
                         </ProtectedRoute>
@@ -118,7 +120,7 @@ const AppWrapper = () => {
                         <ProtectedRoute role={role} allowedRoles={['admin']}>
                             <AdminProfile />
                         </ProtectedRoute>
-                    } /> */}
+                    } />
 
                     {/* Shared Order Routes */}
                     {/* <Route path='/orders/book' element={

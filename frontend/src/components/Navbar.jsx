@@ -89,7 +89,7 @@ const Navbar = () => {
                     </div>
                 </li>
                 <li className="relative group cursor-pointer transition-all duration-200">
-                    <Link to="/help" className="hover:text-yellow-300">
+                    <Link to="/help-centre" className="hover:text-yellow-300">
                         Help Centre
                         <span className="absolute left-0 -bottom-0 w-0 h-[2px] bg-yellow-300 transition-all duration-300 group-hover:w-full"></span>
                     </Link>
