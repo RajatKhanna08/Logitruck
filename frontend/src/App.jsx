@@ -46,19 +46,21 @@ const AppWrapper = () => {
     const isHome = location.pathname === "/";
     const [showIntro, setShowIntro] = useState(false);
 
+    //global states
     const { data: userProfile, isLoading } = useUserProfile();
     const role = userProfile?.role;
 
+    //code for intro swipe up
     useEffect(() => {
         const hasSeenIntro = sessionStorage.getItem("homeIntroSeen");
         if (!hasSeenIntro && isHome) setShowIntro(true);
     }, [isHome]);
-
     const handleIntroFinish = () => {
         sessionStorage.setItem("homeIntroSeen", "true");
         setShowIntro(false);
     };
 
+    //pageloader
     if (isLoading) return <PageLoader />;
 
     return (

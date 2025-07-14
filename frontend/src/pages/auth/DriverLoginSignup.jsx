@@ -5,8 +5,14 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { FaUser, FaPhoneAlt, FaEnvelope, FaLock, FaTruck, FaClock, FaMapMarkedAlt, FaIdCard, FaCarSide } from 'react-icons/fa';
 import { HiIdentification } from 'react-icons/hi';
 import { MdUploadFile } from 'react-icons/md';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { getDriverProfile, loginDriver, registerDriver } from '../../api/driverApi';
+import { useUserStore } from '../../store/userUserStore';
 
 const DriverLoginSignup = () => {
+    const queryClient = useQueryClient();
+    const setUser = useUserStore((state) => state.setUser);
+
     const navigate = useNavigate();
     const location = useLocation();
     const params = new URLSearchParams(location.search);
@@ -16,6 +22,7 @@ const DriverLoginSignup = () => {
     const [step, setStep] = useState(1);
     const [errors, setErrors] = useState({});
 
+    //signup usestate
     const [signupData, setSignupData] = useState({
         fullName: "",
         phone: "",
@@ -27,6 +34,7 @@ const DriverLoginSignup = () => {
         license: null
     });
 
+    //login usestate
     const [loginData, setLoginData] = useState({
         email: paramsEmail || "",
         password: ""
@@ -49,41 +57,21 @@ const DriverLoginSignup = () => {
         }
     };
 
-    const handleLogin = (e) => {
-        e.preventDefault();
-        if (!validateLogin()) return;
-        console.log("Login Data Submitted:", loginData);
-        setLoginData({ email: '', password: '' });
-    };
-
-    const handleSignup = () => {
-        console.log("Signup Data Submitted:", signupData);
-        setSignupData({
-            fullName: "",
-            phone: "",
-            email: "",
-            password: "",
-            vehicleType: "",
-            experience: "",
-            idProof: null,
-            license: null
-        });
-        setStep(1);
-    };
-
+    //validations for login
     const validateLogin = () => {
         const loginErrors = {};
 
-        if (!loginData.email.trim()) loginErrors.email = "Email is required";
-        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginData.email)) loginErrors.email = "Invalid email format";
+        if (!loginData.email.trim()) loginErrors.loginEmail = "Email is required";
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginData.email)) loginErrors.loginEmail = "Invalid email format";
 
-        if (!loginData.password.trim()) loginErrors.password = "Password is required";
-        else if (loginData.password.length < 6) loginErrors.password = "Password must be at least 6 characters";
+        if (!loginData.password.trim()) loginErrors.loginPassword = "Password is required";
+        else if (loginData.password.length < 6) loginErrors.loginPassword = "Password must be at least 6 characters";
 
         setErrors(loginErrors);
         return Object.keys(loginErrors).length === 0;
     };
 
+    //validations for signup
     const validateStep = () => {
         const newErrors = {};
 
@@ -111,51 +99,51 @@ const DriverLoginSignup = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    //steps for signup
     const renderStep = () => {
         const inputStyle = "flex items-center gap-2 p-2 border-2 border-gray-300 rounded outline-none bg-white";
 
         switch (step) {
             case 1:
                 return (
-                    <div className='flex flex-col gap-4 min-h-80'>
+                    <div className='flex flex-col gap-6 min-h-80'>
                         <div className={inputStyle}>
                             <FaUser className='text-gray-500' />
                             <input type="text" name="fullName" placeholder="Full Name" value={signupData.fullName} onChange={handleChange} className="w-full outline-none" />
                         </div>
-                        {errors.fullName && <p className="text-red-500 absolute top-34 right-12 text-sm">{errors.fullName}</p>}
+                        {errors.fullName && <p className="text-red-500 absolute top-42 right-12 text-sm">{errors.fullName}</p>}
 
                         <div className={inputStyle}>
                             <FaPhoneAlt className='text-gray-500' />
                             <input type="text" name="phone" placeholder="Phone Number" value={signupData.phone} onChange={handleChange} className="w-full outline-none" />
                         </div>
-                        {errors.phone && <p className="text-red-500 absolute top-49 right-12 text-sm">{errors.phone}</p>}
+                        {errors.phone && <p className="text-red-500 absolute top-59 right-12 text-sm">{errors.phone}</p>}
 
                         <div className={inputStyle}>
                             <FaEnvelope className='text-gray-500' />
                             <input type="email" name="email" placeholder="Email" value={signupData.email} onChange={handleChange} className="w-full outline-none" />
                         </div>
-                        {errors.email && <p className="text-red-500 absolute top-63 right-12 text-sm">{errors.email}</p>}
+                        {errors.email && <p className="text-red-500 absolute top-76 right-12 text-sm">{errors.email}</p>}
 
                         <div className={inputStyle}>
                             <FaLock className='text-gray-500' />
                             <input type="password" name="password" placeholder="Password" value={signupData.password} onChange={handleChange} className="w-full outline-none" />
                         </div>
-                        {errors.password && <p className="text-red-500 absolute top-78 right-12 text-sm">{errors.password}</p>}
+                        {errors.password && <p className="text-red-500 absolute top-93 right-12 text-sm">{errors.password}</p>}
                     </div>
                 );
 
             case 2:
                 return (
-                    <div className="flex flex-col gap-4 min-h-80">
+                    <div className="flex flex-col gap-6 min-h-80">
                         <label className={inputStyle + " flex-col items-start"}>
                             <span className="flex items-center gap-2">
                                 <HiIdentification className='text-gray-500' />
                                 <span className="text-sm text-gray-600">Upload ID Proof</span>
                             </span>
                             <input type="file" name="idProof" onChange={handleChange} />
-                            {signupData.idProof && <span className="text-xs text-gray-500 mt-1">Selected File: {signupData.idProof.name}</span>}
                         </label>
-                        {errors.idProof && <p className="text-red-500 absolute top-33 right-12 text-sm">{errors.idProof}</p>}
+                        {errors.idProof && <p className="text-red-500 absolute top-49 right-12 text-sm">{errors.idProof}</p>}
 
                         <label className={inputStyle + " flex-col items-start"}>
                             <span className="flex items-center gap-2">
@@ -163,32 +151,89 @@ const DriverLoginSignup = () => {
                                 <span className="text-sm text-gray-600">Upload License</span>
                             </span>
                             <input type="file" name="license" onChange={handleChange} />
-                            {signupData.license && <span className="text-xs text-gray-500 mt-1">Selected File: {signupData.license.name}</span>}
                         </label>
-                        {errors.license && <p className="text-red-500 absolute top-55 right-12 text-sm">{errors.license}</p>}
+                        {errors.license && <p className="text-red-500 absolute top-73 right-12 text-sm">{errors.license}</p>}
                     </div>
                 );
 
             case 3:
                 return (
-                    <div className="flex flex-col gap-4 min-h-80">
+                    <div className="flex flex-col gap-6 min-h-80">
                         <div className={inputStyle}>
                             <FaCarSide className='text-gray-500' />
                             <input type="text" name="vehicleType" placeholder="Vehicle Type" value={signupData.vehicleType} onChange={handleChange} className="w-full outline-none" />
                         </div>
-                        {errors.vehicleType && <p className="text-red-500 absolute top-34 right-12 text-sm">{errors.vehicleType}</p>}
+                        {errors.vehicleType && <p className="text-red-500 absolute top-42 right-12 text-sm">{errors.vehicleType}</p>}
 
                         <div className={inputStyle}>
                             <FaClock className='text-gray-500' />
                             <input type="number" name="experience" placeholder="Experience (Years)" value={signupData.experience} onChange={handleChange} className="w-full outline-none" />
                         </div>
-                        {errors.experience && <p className="text-red-500 absolute top-49 right-12 text-sm">{errors.experience}</p>}
+                        {errors.experience && <p className="text-red-500 absolute top-59 right-12 text-sm">{errors.experience}</p>}
                     </div>
                 );
 
             default:
                 return null;
         }
+    };
+
+    //function that sends the api call
+    const signupMutation = useMutation({
+        mutationFn: registerDriver,
+        onSuccess: async () => {
+            const profile = await getDriverProfile();
+            setUser(profile);
+            navigate("/");
+        },
+        onError: (err) => {
+            console.log("Login Failed: ", err.message);
+            alert("Login failed. Please check your credentials");
+        }
+    })
+
+    //function to change the data in a formData as it contains files and calling the above mutation function with that data
+    const handleSignup = () => {
+        const formData = new FormData();
+
+        Object.entries(signupData).forEach(([key, value]) => {
+            formData.append(key, value); 
+        });
+
+        signupMutation.mutate(formData, {
+            onSuccess: () => {
+                setSignupData({
+                fullName: "",
+                phone: "",
+                email: "",
+                password: "",
+                vehicleType: "",
+                experience: "",
+                idProof: null,
+                license: null
+            });
+            setStep(1);
+            }
+        })
+    };
+
+    const loginMutation = useMutation({
+        mutationFn: loginDriver,
+        onSuccess: async () => {
+            const profile = await queryClient.fetchQuery(['userProfile']);
+            setUser(profile);
+            navigate("/");
+        },
+        onError: (err) => {
+            console.log("Login Failed: ", err.message);
+            alert("Login failed. Please check your credentials");
+        }
+    })
+
+    const handleLogin = (e) => {
+        e.preventDefault();
+        if (!validateLogin()) return;
+        loginMutation.mutate(loginData);
     };
 
     return (
@@ -200,7 +245,7 @@ const DriverLoginSignup = () => {
             <div className="mb-20 relative w-[900px] h-[550px] bg-white shadow-2xl rounded-xl flex flex-col overflow-hidden">
                 <div className="w-full flex items-center justify-between z-10">
                     {/* LOGIN FORM */}
-                    <form className={`relative w-1/2 p-10 flex flex-col gap-4`}>
+                    <form className={`relative w-1/2 p-10 flex flex-col gap-6`}>
                         <h2 className="text-3xl text-center font-bold text-[#192a67] mb-2">Driver Login</h2>
                         <input
                             type="email"
@@ -210,7 +255,7 @@ const DriverLoginSignup = () => {
                             onChange={e => setLoginData({ ...loginData, email: e.target.value })}
                             className="p-2 border-2 border-gray-300 rounded outline-none"
                         />
-                        {errors.email && <p className="text-red-500 absolute top-28 right-12 text-xs">{errors.email}</p>}
+                        {errors.loginEmail && <p className="text-red-500 absolute top-38 right-12 text-xs">{errors.loginEmail}</p>}
                         <input
                             type="password"
                             name="password"
@@ -219,8 +264,8 @@ const DriverLoginSignup = () => {
                             onChange={e => setLoginData({ ...loginData, password: e.target.value })}
                             className="p-2 border-2 border-gray-300 rounded outline-none"
                         />
-                        {errors.password && <p className="text-red-500 absolute top-43 right-12 text-xs">{errors.password}</p>}
-                        <button type="submit" onClick={handleLogin} className="bg-yellow-300 py-2 rounded font-semibold">
+                        {errors.loginPassword && <p className="text-red-500 absolute top-55 right-12 text-xs">{errors.loginPassword}</p>}
+                        <button type="submit" onClick={handleLogin} className="bg-yellow-300 py-2 cursor-pointer rounded font-semibold">
                             Login
                         </button>
                     </form>

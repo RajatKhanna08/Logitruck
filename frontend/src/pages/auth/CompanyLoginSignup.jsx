@@ -6,8 +6,12 @@ import { FaCity } from 'react-icons/fa6';
 import { HiOutlineIdentification } from 'react-icons/hi';
 import { TbMapPinCode } from "react-icons/tb";
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useLoginCompany, useRegisterCompany } from '../../hooks/roles/useCompany';
 
 const CompanyLoginSignup = () => {
+    const { mutate:registerCompanyMutation, isPending:isRegisterLoading } = useRegisterCompany();
+    const { mutate:loginCompanyMutation, isPending:isLoginLoading } = useLoginCompany();
+
     const navigate = useNavigate();
     const location = useLocation();
     const params = new URLSearchParams(location.search);
@@ -46,7 +50,7 @@ const CompanyLoginSignup = () => {
     });
     
     const [loginData, setLoginData] = useState({
-        email: paramsEmail || "",
+        companyEmail: paramsEmail || "",
         password: ""
     });
 
@@ -116,43 +120,30 @@ const CompanyLoginSignup = () => {
     };
 
     const handleSubmit = () => {
-        setSignupData({
-            companyName: '',
-            companyEmail: '',
-            companyPhone: '',
-            password: '',
-            address: {
-                street: "",
-                city: "",
-                state: "",
-                pincode: "",
-                country: "",
-                landmark: ""
-            },
-            registrationNumber: '',
-            industry: '',
-            contactPerson: {
-                name: '',
-                phone: '',
-                email: ''
-            },
-            documents: {
-                idProof: null,
-                businessLicense: null,
-                gstCertificate: null
+        if (!validateStep()) return;
+        
+        const formData = new FormData();
+        
+        for (const key in signupData) {
+            if (key === 'address' || key === 'contactPerson') {
+                formData.append(key, JSON.stringify(signupData[key]));
+            } else if (key === 'documents') {
+                formData.append("idProof", signupData.documents.idProof);
+                formData.append("businessLicense", signupData.documents.businessLicense);
+                formData.append("gstCertificate", signupData.documents.gstCertificate);
+            } else {
+                formData.append(key, signupData[key]);
             }
-         });
-        setStep(1);
-        console.log("Signup Data Submitted:", signupData);
-        // API call for signup goes here
+        }
+    
+        registerCompanyMutation(formData);
     };
 
     const handleLogin = (e) => {
         e.preventDefault();
         if (!validateLogin()) return;
 
-        console.log("Login Data Submitted:", loginData);
-        // Login API here
+        loginCompanyMutation(loginData);
     };
 
     const renderStep = () => {
@@ -375,7 +366,7 @@ const CompanyLoginSignup = () => {
                             <label className="w-full text-gray-500 font-medium">ID Proof (PDF/Image):
                             <input
                                 type="file"
-                                name="documents.idProof"
+                                name="idProof"
                                 onChange={handleChange}
                                 className="w-full mt-1 cursor-pointer"
                             />
@@ -386,7 +377,7 @@ const CompanyLoginSignup = () => {
                             <label className="w-full text-gray-500 font-medium">Business License:
                             <input
                                 type="file"
-                                name="documents.businessLicense"
+                                name="businessLicense"
                                 onChange={handleChange}
                                 className="w-full mt-1 cursor-pointer"
                             />
@@ -397,7 +388,7 @@ const CompanyLoginSignup = () => {
                             <label className="w-full text-gray-500 font-medium">GST Certificate:
                             <input
                                 type="file"
-                                name="documents.gstCertificate"
+                                name="gstCertificate"
                                 onChange={handleChange}
                                 className="w-full mt-1 cursor-pointer"
                             />
@@ -468,8 +459,8 @@ const CompanyLoginSignup = () => {
     const validateLogin = () => {
         const loginErrors = {};
 
-        if (!loginData.email.trim()) loginErrors.email = "Email is required";
-        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginData.email)) loginErrors.email = "Invalid email format";
+        if (!loginData.companyEmail.trim()) loginErrors.email = "Email is required";
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginData.companyEmail)) loginErrors.email = "Invalid email format";
 
         if (!loginData.password.trim()) loginErrors.password = "Password is required";
         else if (loginData.password.length < 6) loginErrors.password = "Password must be at least 6 characters";
@@ -491,17 +482,17 @@ const CompanyLoginSignup = () => {
                 {/* Forms container */}
                 <div className="w-full flex items-center justify-between z-10">
                         {/* LOGIN FORM */}
-                        <form className={`relative w-1/2 p-10 flex flex-col gap-4`}>
+                        <form className={`relative w-1/2 p-10 flex flex-col gap-6`}>
                             <h2 className="text-3xl text-center font-bold text-[#192a67] mb-2">Company Login</h2>
                             <input
                                 type="email"
-                                name="email"
+                                name="companyEmail"
                                 placeholder="Email"
                                 value={loginData.email}
                                 onChange={handleChange}
                                 className="p-2 border-2 border-gray-300 rounded outline-none"
                             />
-                            {errors.email && <p className="text-red-500 absolute top-28 right-12 text-xs">{errors.email}</p>}
+                            {errors.email && <p className="text-red-500 absolute top-38 right-12 text-xs">{errors.email}</p>}
                             <input
                                 type="password"
                                 name="password"
@@ -510,7 +501,7 @@ const CompanyLoginSignup = () => {
                                 onChange={handleChange}
                                 className="p-2 border-2 border-gray-300 rounded outline-none"
                             />
-                            {errors.password && <p className="text-red-500 absolute top-43 right-12 text-xs">{errors.password}</p>}
+                            {errors.password && <p className="text-red-500 absolute top-55 right-12 text-xs">{errors.password}</p>}
                             <button type="submit" onClick={handleLogin} className="bg-yellow-300 cursor-pointer py-2 rounded font-semibold">
                                 Login
                             </button>
@@ -533,7 +524,7 @@ const CompanyLoginSignup = () => {
                                     <button type="button" onClick={handleBack} className={`bg-yellow-300 cursor-pointer py-2 px-4 rounded font-semibold`}>Back</button>
                                 )}
                                 <button type="button" onClick={handleNext} className={`bg-yellow-300 cursor-pointer py-2 px-4 rounded font-semibold`}>
-                                    {step < 4 ? "Next" : "Signup"}
+                                    {step < 5 ? "Next" : "Signup"}
                                 </button>
                             </div>
                         </form>

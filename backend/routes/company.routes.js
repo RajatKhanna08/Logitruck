@@ -1,5 +1,7 @@
 import express from 'express';
 import { body, param } from 'express-validator';
+
+import { companyFields, upload } from '../middlewares/upload.js';
 import {
     registerCompanyController,              // Controller for company registration
     loginCompanyController,                 // Controller for company login
@@ -34,9 +36,9 @@ const registerCompanyValidation = [
     body('address.pincode').isNumeric().withMessage('Pincode must be a number'),
     body('address.country').notEmpty().withMessage('Country is required'),
     body('address.landmark').notEmpty().withMessage('Landmark is required'),
-    body('documents.idProof').notEmpty().withMessage('ID Proof is required'),
-    body('documents.businesLicense').notEmpty().withMessage('Business License is required'),
-    body('documents.gstCertificate').notEmpty().withMessage('GST Certificate is required')
+    // body('documents.idProof').notEmpty().withMessage('ID Proof is required'),
+    // body('documents.businesLicense').notEmpty().withMessage('Business License is required'),
+    // body('documents.gstCertificate').notEmpty().withMessage('GST Certificate is required')
 ];
 
 const loginCompanyValidation = [
@@ -69,7 +71,8 @@ const router = express.Router();
 
 // ==================== Company Profile Routes ====================
 
-router.post('/register', registerCompanyValidation, registerCompanyController);
+router.post('/register', registerCompanyValidation, companyFields, registerCompanyController);
+
 router.post('/login', loginCompanyValidation, loginCompanyController);
 router.delete('/logout', isLoggedIn, correctRole("company"), logoutCompanyController);
 router.get('/profile', isLoggedIn, correctRole("company"), getCompanyProfileController);
