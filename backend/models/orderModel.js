@@ -11,37 +11,38 @@ const ordersSchema = new  mongoose.Schema({
     pickupLocation: {
         address: {
             type: String,
-            required:true
+            required: true
         },
-        latitude: {
-            type: String,
-            required:true
-        },
-        longitude: {
-            type: String,
-            required:true
+        coordinates: {
+            type: {
+                type: String,
+                enum: ['Point'],
+                default: 'Point',
+            },
+            coordinates: {
+                type: [Number], // [lng, lat]
+                required: true
+            }
         }
     },
     
     dropLocations: [
         {
-            stopIndex: {
-            type: Number,
-            },
-            address: {
-                type: String,
-                required: true
-            },
-            latitude: {
-                type: String, 
-                required: true
-            },
-            longitude: {
-                type: String,
-                required: true
+            stopIndex: { type: Number },
+            address: { type: String, required: true },
+            coordinates: {
+                type: {
+                    type: String,
+                    enum: ['Point'],
+                    default: 'Point',
+                },
+                coordinates: {
+                    type: [Number],
+                    required: true
+                }
             },
             contactName: {
-                type:String,
+                type: String,
                 required: true
             },
             contactPhone: {
@@ -54,7 +55,17 @@ const ordersSchema = new  mongoose.Schema({
             }
         }
     ],
-    
+    routeInfo: {
+        estimatedDistance: {
+            type: String
+        },
+        estimatedDuration: {
+            type: String
+        },
+        polyline: {
+            type: [[Number]]
+        },
+    },
     scheduleAt: Date,
     startTime: Date,
     endTime: Date,
@@ -156,11 +167,13 @@ const ordersSchema = new  mongoose.Schema({
     },
     
     currentLocation: {
-        latitude: {
+        type: {
             type: String,
+            enum: ["Point"],
+            default: "Point",
         },
-        longitude: {
-            type: String
+        coordinates: {
+            type: [Number],
         },
         updatedAt: Date
     },

@@ -129,3 +129,11 @@ export const driverByTruck = async (truckId) => {
         console.log("Error in driverByTruck: ", err.message);
     }
 }
+export const createOrder = async (orderData) => {
+  try {
+    const res = await axiosInstance.post("/order", orderData);
+    return res.data;
+  } catch (err) {
+    console.log("Error in createOrder: ", err.message);
+  }
+};

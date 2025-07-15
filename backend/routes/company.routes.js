@@ -35,7 +35,7 @@ const registerCompanyValidation = [
     body('address.country').notEmpty().withMessage('Country is required'),
     body('address.landmark').notEmpty().withMessage('Landmark is required'),
     body('documents.idProof').notEmpty().withMessage('ID Proof is required'),
-    body('documents.businesLicense').notEmpty().withMessage('Business License is required'),
+    body('documents.businessLicense').notEmpty().withMessage('Business License is required'),
     body('documents.gstCertificate').notEmpty().withMessage('GST Certificate is required')
 ];
 

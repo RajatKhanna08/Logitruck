@@ -1,61 +1,74 @@
 import orderModel from "../models/orderModel.js";
 import { validationResult } from 'express-validator';
 import reviewModel from "../models/reviewModel.js";
+import { geocodeAddress } from "../utils/geocodeAddress.js";
+import { getORSRoute } from "../utils/getORSRoute.js";
 
 export const createOrderController = async (req, res) => {
-    try{
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ message: errors.array() });
-        }
-
-        const { 
-            pickupLocation,
-            dropLocations,
-            scheduledAt,
-            isBiddingEnabled,
-            biddingExpiresAt,
-            loadDetails,
-            completedStops,
-            distance,
-            duration,
-            fare,
-            paymentMode
-        } = req.body;
-
-        if(!Array.isArray(dropLocations) || dropLocations.length === 0){
-            return res.status(400).json({ message: "At least one drop location is required" });
-        }
-
-        const companyId = req.user?._id;
-        if(!companyId){
-            return res.status(401).json({ message: "Unauthorized access" });
-        }
-
-        const newOrder = await orderModel.create({
-            customerId: companyId,
-            pickupLocation,
-            dropLocations,
-            scheduleAt: scheduledAt || null,
-            isBiddingEnabled: isBiddingEnabled ? "open" : "closed",
-            biddingExpiresAt: biddingExpiresAt || null,
-            loadDetails,
-            completedStops,
-            distance,
-            duration,
-            fare,
-            paymentMode,
-            currentStatus: "pending",
-            status: "pending"
-        });
-
-        res.status(201).json({ message: "Order created successfully", order: newOrder });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: errors.array() });
     }
-    catch(err){
-        console.log("Error in createOrderController: ", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+
+    const {
+      pickupLocation,
+      dropLocations,
+      scheduledAt,
+      isBiddingEnabled,
+      biddingExpiresAt,
+      loadDetails,
+      completedStops,
+      paymentMode
+    } = req.body;
+
+    if (!Array.isArray(dropLocations) || dropLocations.length === 0) {
+      return res.status(400).json({ message: "At least one drop location is required" });
     }
-}
+
+    const companyId = req.user?._id;
+    if (!companyId) {
+      return res.status(401).json({ message: "Unauthorized access" });
+    }
+
+    // STEP 1: Build coordinates list for full route
+    const coordinates = [
+      [parseFloat(pickupLocation.longitude), parseFloat(pickupLocation.latitude)],
+      ...dropLocations.map(loc => [parseFloat(loc.longitude), parseFloat(loc.latitude)])
+    ];
+
+    // STEP 2: Get full route using ORS
+    const routeData = await getORSRoute(coordinates);
+
+    // STEP 3: Create the order with route info
+    const newOrder = await orderModel.create({
+      customerId: companyId,
+      pickupLocation,
+      dropLocations,
+      scheduleAt: scheduledAt || null,
+      isBiddingEnabled: isBiddingEnabled ? true : false,
+      biddingExpiresAt: biddingExpiresAt || null,
+      loadDetails,
+      completedStops,
+      distance: parseFloat(routeData.distanceInKm),
+      duration: parseFloat(routeData.durationInMin),
+      fare: 0,
+      paymentMode,
+      currentStatus: "pending",
+      status: "pending",
+      routeInfo: {
+        polyline: routeData.polyline,
+        estimatedDistance: routeData.distanceInKm,
+        estimatedDuration: routeData.durationInMin,
+      }
+    });
+
+    res.status(201).json({ message: "Order created successfully", order: newOrder });
+  } catch (err) {
+    console.error("Error in createOrderController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 export const uploadEwayBillController = async (req, res) => {
     try {
@@ -65,12 +78,12 @@ export const uploadEwayBillController = async (req, res) => {
         }
         
         const { orderId, ewayBillNumber } = req.params;
-        if(!req.file || !req.file.path){
+        if (!req.file || !req.file.path) {
             return res.status(400).json({ message: "E-way bill file is required" });
         }
 
         const order = await orderModel.findById(orderId);
-        if(!order){
+        if (!order) {
             return res.status(404).json({ message: "Order not found" });
         }
 
@@ -83,11 +96,11 @@ export const uploadEwayBillController = async (req, res) => {
         await order.save();
 
         res.status(200).json({ message: "E-way bill uploaded successfully", eWayBill: order.eWayBill })
-    } catch(err) {
+    } catch (err) {
         console.log("Error in uploadEwayBillController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const trackOrderController = async (req, res) => {
     try {
@@ -99,8 +112,8 @@ export const trackOrderController = async (req, res) => {
         const { orderId } = req.params;
 
         const order = await orderModel.findById(orderId)
-        .select("currentLocation trackingHistory status currentStatus pickupLocation dropLocations");
-        if(!order){
+            .select("currentLocation trackingHistory status currentStatus pickupLocation dropLocations");
+        if (!order) {
             return res.status(404).json({ message: "Order not found" });
         }
 
@@ -113,11 +126,11 @@ export const trackOrderController = async (req, res) => {
             dropLocations: order.dropLocations
         });
     }
-    catch(err){
+    catch (err) {
         console.log("Error in trackOrderController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const rateOrderController = async (req, res) => {
     try {
@@ -130,21 +143,21 @@ export const rateOrderController = async (req, res) => {
         const { rating, reviewText, reviewFor } = req.body;
         const reviewerId = req.user?._id;
 
-        if(!["driver", "transporter"].includes(reviewFor)){
+        if (!["driver", "transporter"].includes(reviewFor)) {
             return res.status(400).json({ message: "Invalid review target, must be 'driver' or 'transporter" });
         }
         
         const order = await orderModel.findById(orderId);
-        if(!order){
+        if (!order) {
             return res.status(404).json({ message: "Order not found" });
         }
 
-        if(!order.status !== "delivered"){
+        if (order.status !== "delivered") {
             return res.status(400).json({ message: "Only delivered orders can be rated" });
         }
 
         const reviewedEntityId = reviewFor === "driver" ? order.acceptedDriverId : order.acceptedTransporterId;
-        if(!reviewedEntityId){
+        if (!reviewedEntityId) {
             return res.status(400).json({ message: `${reviewFor} not assigned to this order` });
         }
 
@@ -155,7 +168,7 @@ export const rateOrderController = async (req, res) => {
             reviewedEntityType: reviewFor
         });
 
-        if(existingReview){
+        if (existingReview) {
             return res.status(400).json({ message: "You've already rated this entity for this order" });
         }
 
@@ -171,63 +184,63 @@ export const rateOrderController = async (req, res) => {
 
         res.status(201).json({ message: `Review submitted for ${reviewFor}`, review: newReview });
     }
-    catch(err){
+    catch (err) {
         console.log("Error in rateOrderController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const getCurrentOrdersController = async (req, res) => {
-    try{
+    try {
         const companyId = req.user?._id;
 
         const currentOrders = await orderModel.find({
             customerId: companyId,
             status: { $in: ["in_transit", "pending", "delayed"] }
         }).sort({ scheduleAt: -1 })
-        .populate("acceptedDriverId acceptedTruckId acceptedTransporterId");
+            .populate("acceptedDriverId acceptedTruckId acceptedTransporterId");
 
-        if(!currentOrders.length){
+        if (!currentOrders.length) {
             return res.status(200).json({ message: "No active orders found", currentOrders: [] });
         }
 
         res.status(200).json({ currentOrders });
     }
-    catch(err){
+    catch (err) {
         console.log("Error in getCurrentOrderController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const getOrdersController = async (req, res) => {
-    try{
+    try {
         const companyId = req.user?._id;
-        if(!companyId){
+        if (!companyId) {
             return res.status(401).json({ message: "Unauthorized access" });
         }
 
         const allOrders = await orderModel.find({ customerId: companyId })
-        .sort({ scheduleAt: -1 })
-        .populate("acceptedDriverId", "fullName phone")
-        .populate("acceptedTruckId", "vehicleNumber truckType")
-        .populate("acceptedTransporterId", "fullName phone");
+            .sort({ scheduleAt: -1 })
+            .populate("acceptedDriverId", "fullName phone")
+            .populate("acceptedTruckId", "vehicleNumber truckType")
+            .populate("acceptedTransporterId", "fullName phone");
 
-        if(!allOrders.length){
+        if (!allOrders.length) {
             return res.status(200).json({ message: "No orders found", orders: [] });
         }
 
         res.status(200).json({ allOrders });
     }
-    catch(err){
+    catch (err) {
         console.log("Error in getOrdersController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const getCurrentDriverOrderController = async (req, res) => {
-    try{
+    try {
         const driverId = req.user?._id;
-        if(!driverId){
+        if (!driverId) {
             return res.status(401).json({ message: "Unauthorized access" });
         }
 
@@ -235,49 +248,49 @@ export const getCurrentDriverOrderController = async (req, res) => {
             acceptedDriverId: driverId,
             status: { $in: ["in_transit", "pending", "delayed"] }
         }).sort({ scheduleAt: -1 })
-        .populate("customerId", "fullName email phone")
-        .populate("acceptedTruckId", "vehicleNumber truckType")
-        .populate("acceptedTransporterId", "fullName phone");
+            .populate("customerId", "fullName email phone")
+            .populate("acceptedTruckId", "vehicleNumber truckType")
+            .populate("acceptedTransporterId", "fullName phone");
 
-        if(!currentOrder){
+        if (!currentOrder) {
             return res.status(200).json({ message: "No active order found", currentOrder: null });
         }
 
         res.status(200).json({ currentOrder });
     }
-    catch(err){
+    catch (err) {
         console.log("Error in getCurrentDriverOrderController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const getTransporterAllOrdersController = async (req, res) => {
-    try{
+    try {
         const transporterId = req.user?._id;
-        if(!transporterId){
+        if (!transporterId) {
             return res.status(401).json({ message: "Unauthorized access" });
         }
 
         const transporterOrders = await orderModel.find({ acceptedTransporterId: transporterId })
-        .sort({ scheduleAt: -1 })
-        .populate("customerId", "fullName email phone")
-        .populate("acceptedDriverId", "fullName phone currentMode")
-        .populate("acceptedTruckId", "vehicleNumber truckType");
+            .sort({ scheduleAt: -1 })
+            .populate("customerId", "fullName email phone")
+            .populate("acceptedDriverId", "fullName phone currentMode")
+            .populate("acceptedTruckId", "vehicleNumber truckType");
 
-        if(!transporterOrders.length){
+        if (!transporterOrders.length) {
             return res.status(200).json({ message: "No orders found", transporterOrders: [] });
         }
 
         res.status(200).json({ transporterOrders });
     }
-    catch(err){
+    catch (err) {
         console.log("Error in getTransporterAllOrdersController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const getTransporterOrderStatusController = async (req, res) => {
-    try{
+    try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ message: errors.array() });
@@ -286,16 +299,16 @@ export const getTransporterOrderStatusController = async (req, res) => {
         const transporterId = req.user?._id;
         const { orderId } = req.params;
 
-        if(!transporterId){
+        if (!transporterId) {
             return res.status(401).json({ message: "Unauthorized access" });
         }
 
         const order = await orderModel.findOne({ _id: orderId, acceptedTransporterId: transporterId })
-        .populate("acceptedDriverId", "fullName phone currentMode")
-        .populate("acceptedTruckId", "vehicleNumber truckType")
-        .populate("customerId", "fullName email phone");
+            .populate("acceptedDriverId", "fullName phone currentMode")
+            .populate("acceptedTruckId", "vehicleNumber truckType")
+            .populate("customerId", "fullName email phone");
 
-        if(!order){
+        if (!order) {
             return res.status(404).json({ message: "Order not found" });
         }
 
@@ -312,16 +325,16 @@ export const getTransporterOrderStatusController = async (req, res) => {
             customerDetails: order.customerId
         });
     }
-    catch(err){
+    catch (err) {
         console.log("Error in getTransporterOrderStatusController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const getTransporterActiveOrdersController = async (req, res) => {
-    try{
+    try {
         const transporterId = req.user?._id;
-        if(!transporterId){
+        if (!transporterId) {
             return res.status(401).json({ message: "Unauthorized access" });
         }
 
@@ -329,26 +342,26 @@ export const getTransporterActiveOrdersController = async (req, res) => {
             acceptedTransporterId: transporterId,
             status: { $in: ["pending", "in_transit", "delayed"] }
         }).sort({ scheduleAt: -1 })
-        .populate("customerId", "fullName email phone")
-        .populate("acceptedDriverId", "fullName phone")
-        .populate("acceptedTruckId", "vehicleNumber truckType");
+            .populate("customerId", "fullName email phone")
+            .populate("acceptedDriverId", "fullName phone")
+            .populate("acceptedTruckId", "vehicleNumber truckType");
 
-        if(!activeOrders.length){
+        if (!activeOrders.length) {
             return res.status(200).json({ message: "No active orders found", activeOrders: [] });
         }
 
         res.status(200).json({ activeOrders });
     }
-    catch(err){
+    catch (err) {
         console.log("Error in getTransporterActiveOrdersController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const getDriverHistoryController = async (req, res) => {
-    try{
+    try {
         const driverId = req.user?._id;
-        if(!driverId){
+        if (!driverId) {
             return res.status(401).json({ message: "Unauthorized access" });
         }
 
@@ -356,21 +369,21 @@ export const getDriverHistoryController = async (req, res) => {
             acceptedDriverId: driverId,
             status: "delivered"
         }).sort({ scheduleAt: -1 })
-        .populate("customerId", "fullName email phone")
-        .populate("acceptedTruckId", "vehicleNumber truckType")
-        .populate("acceptedTransporterId", "fullName phone");
+            .populate("customerId", "fullName email phone")
+            .populate("acceptedTruckId", "vehicleNumber truckType")
+            .populate("acceptedTransporterId", "fullName phone");
 
-        if(!completedOrders.length){
+        if (!completedOrders.length) {
             return res.status(200).json({ message: "No completed orders found", completedOrders: [] });
         }
 
         res.status(200).json({ completedOrders });
     }
-    catch(err){
+    catch (err) {
         console.log("Error in getDriverHistoryController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const updateOrderStatusController = async (req, res) => {
     try {
@@ -383,12 +396,12 @@ export const updateOrderStatusController = async (req, res) => {
         const { orderId } = req.params;
         const { status } = req.body;
 
-        if(!driverId){
+        if (!driverId) {
             return res.status(401).json({ message: "Unauthorized access" });
         }
 
         const order = await orderModel.findOne({ _id: orderId, acceptedDriverId: driverId });
-        if(!order){
+        if (!order) {
             return res.status(404).json({ message: "No order found" });
         }
 
@@ -398,7 +411,7 @@ export const updateOrderStatusController = async (req, res) => {
 
         const now = new Date();
 
-        switch(status){
+        switch (status) {
             case "arrived":
                 newStatus = "pending";
                 currentStatus = "in-progress";
@@ -435,27 +448,27 @@ export const updateOrderStatusController = async (req, res) => {
         await order.save();
         res.status(200).json({ message: "Order status updated successfully", updatedOrder: order });
     }
-    catch(err){
+    catch (err) {
         console.log("Error in updateOrderStatusController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 export const cancelOrderController = async (req, res) => {
-    try{
+    try {
         const companyId = req.user?._id;
         const { orderId } = req.params;
 
-        if(!companyId){
+        if (!companyId) {
             return res.status(404).json({ message: "Unauthorized access" });
         }
 
         const order = await orderModel.findOne({ _id: orderId, customerId: companyId });
-        if(!order){
+        if (!order) {
             return res.status(404).json({ message: "Order not found" });
         }
 
-        if(["delivered", "cancelled"].includes(order.status)){
+        if (["delivered", "cancelled"].includes(order.status)) {
             return res.status(400).json({ message: `Cannot cancel the order that is already ${order.status}` });
         }
 
@@ -465,8 +478,8 @@ export const cancelOrderController = async (req, res) => {
 
         res.status(200).json({ message: "Order cancelled successfully", cancelledOrder: order });
     }
-    catch(err){
+    catch (err) {
         console.log("Error in cancelOrderController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};

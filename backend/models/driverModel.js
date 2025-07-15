@@ -138,6 +138,25 @@ const driverSchema = new mongoose.Schema({
             type: String,
         }
     },
+    locationHistory: [
+    {
+        latitude: { type: String, required: true },
+        longitude: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now }
+        }],
+    statusLogs: [
+    {
+        status: {
+            type: String,
+            enum: ["started", "paused", "resumed", "reached_stop", "completed"],
+            required: true
+        },
+        timestamp: {
+            type: Date,
+            default: Date.now
+        },
+        note: String
+    }],
     kataParchiAfter: {
         fileURL: {
             type: String,

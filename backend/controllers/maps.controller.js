@@ -2,6 +2,7 @@ import axios from "axios";
 import driverModel from "../models/driverModel.js";
 import orderModel from "../models/orderModel.js";
 import { geocodeAddress } from "../utils/geocodeAddress.js";
+import { getORSRoute } from "../utils/getORSRoute.js";  
 
 export const updateLocation = async (req, res) => {
   const { lat, lng } = req.body;
@@ -51,7 +52,7 @@ export const updateDriverStatus = async (req, res) => {
     driver.lastModeUpdateTime = Date.now();
     await driver.save();
 
-    // 🔄 Get the active order where this driver is assigned
+    // Get the active order where this driver is assigned
     const activeOrder = await orderModel.findOne({
       acceptedDriverId: driverId,
       status: { $in: ["in_transit", "delayed"] },
@@ -77,44 +78,27 @@ export const calculateETA = async (req, res) => {
   try {
     let { start, end } = req.body;
 
-    // Step 1: Convert addresses to coordinates if they are strings
-    if (typeof start === "string") {
-      start = await geocodeAddress(start); // returns [lng, lat]
-    }
-
-    if (typeof end === "string") {
-      end = await geocodeAddress(end); // returns [lng, lat]
-    }
+    if (typeof start === "string") start = await geocodeAddress(start);
+    if (typeof end === "string") end = await geocodeAddress(end);
 
     if (!Array.isArray(start) || !Array.isArray(end)) {
-      return res.status(400).json({ message: "Invalid coordinates or address" });
+      return res.status(400).json({ success: false, message: "Invalid start or end format" });
     }
 
-    // Step 2: Call ORS directions API
-    const response = await axios.post(
-      "https://api.openrouteservice.org/v2/directions/driving-car",
-      {
-        coordinates: [start, end],
-      },
-      {
-        headers: {
-          Authorization: process.env.ORS_API_KEY,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const routeData = await getORSRoute(start, end);
 
-    const data = response.data;
-    const { distance, duration } = data.routes[0].summary;
-
-    res.status(200).json({
+    return res.status(200).json({
+      success: true,
       message: "ETA calculated successfully",
-      distanceInKm: (distance / 1000).toFixed(2), // meters to km
-      durationInMin: (duration / 60).toFixed(2),  // seconds to minutes
+      ...routeData, // includes distanceInKm, durationInMin, polyline
     });
   } catch (err) {
     console.error("Error in calculateETA:", err.message);
-    res.status(500).json({ message: "Failed to calculate ETA", error: err.message });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to calculate ETA",
+      error: err.message,
+    });
   }
 };
 
@@ -192,7 +176,6 @@ export const getTripRoute = async (req, res) => {
       return res.status(404).json({ success: false, message: "Order not found" });
     }
 
-    // Role-based access control
     const isDriver = user.role === "driver" && order.acceptedDriverId?.toString() === user._id.toString();
     const isTransporter = user.role === "transporter" && order.acceptedTransporterId?.toString() === user._id.toString();
     const isCompany = user.role === "company" && order.customerId?.toString() === user._id.toString();
@@ -202,12 +185,25 @@ export const getTripRoute = async (req, res) => {
       return res.status(403).json({ success: false, message: "Access denied" });
     }
 
+    const start = order.pickupLocation?.coordinates;
+
+    // Use last drop location if multiple, otherwise the first (single-stop also works)
+    const dropCount = order.dropLocations?.length || 0;
+    const end = dropCount > 0 ? order.dropLocations[dropCount - 1]?.coordinates : null;
+
+    if (!start || !end) {
+      return res.status(400).json({ success: false, message: "Invalid route coordinates" });
+    }
+
+    const routeData = await getORSRoute(start, end);
+
     return res.status(200).json({
       success: true,
       pickupLocation: order.pickupLocation,
       dropLocations: order.dropLocations,
       currentLocation: order.currentLocation,
-      status: order.status
+      status: order.status,
+      route: routeData,
     });
   } catch (err) {
     console.error("Trip route error:", err);
