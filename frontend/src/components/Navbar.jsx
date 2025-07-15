@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import { FaGlobe, FaPhone, FaClipboardList, FaEye, FaUser } from 'react-icons/fa6';
-import { IoMail } from 'react-icons/io5';
-import { FiLogOut, FiMenu } from 'react-icons/fi';
-import { IoMdNotificationsOutline } from 'react-icons/io';
+import { FaGlobe, FaPhone, FaClipboardList, FaUser } from 'react-icons/fa6';
+import { IoMail, IoNotifications } from 'react-icons/io5';
+import { FiLogOut, FiMenu, FiPackage } from 'react-icons/fi';
+import { RiDashboardFill } from "react-icons/ri";
 
 import { servicesData } from '../constants/ServicePageConstants';
 import { useUserProfile } from '../hooks/useUserProfile';
@@ -141,16 +141,20 @@ const Navbar = () => {
                                 />
                                 {showDropdown && (
                                     <ul className="absolute top-12 right-0 w-48 bg-gray-200 shadow-lg rounded-md text-black text-sm z-50">
-                                        <li className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
+                                        <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <FaUser />
                                             <Link to={`/profile`}>Profile</Link>
                                         </li>
-                                        <li className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
-                                            <FaEye />
+                                        <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
+                                            <RiDashboardFill />
+                                            <Link to={`/dashboard`}>Dashboard</Link>
+                                        </li>
+                                        <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
+                                            <FiPackage />
                                             <Link to={`/orders`}>View Orders</Link>
                                         </li>
-                                        <li className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
-                                            <IoMdNotificationsOutline />
+                                        <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
+                                            <IoNotifications />
                                             <Link to={`/notifications`}>Notifications</Link>
                                         </li>
                                         <li
@@ -169,11 +173,11 @@ const Navbar = () => {
                 </div>
 
                 {/* Separator */}
-                <span className={`absolute bottom-17 ${isLoggedIn ? "opacity-0" : "opacity-100"} left-7 w-[96%] h-[1px] bg-yellow-300/40`} />
+                <span className={`absolute bottom-14 ${isLoggedIn ? "opacity-0" : "opacity-100"} left-7 w-[96%] h-[1px] bg-yellow-300/40`} />
 
                 {/* LOWER SECTION (Shown only if NOT logged in) */}
                 {!isLoggedIn && (
-                    <ul className='flex mt-8 items-center text-shadow justify-end gap-10 text-white text-lg font-medium'>
+                    <ul className='flex py-4 pl-4 items-center text-shadow justify-end gap-10 text-white text-lg font-medium'>
                         <li className="relative group cursor-pointer transition-all duration-200">
                             <Link to="/" onClick={() => window.scroll({ top: 0, behavior: "smooth" })}
                                 className={`${pathname === '/' ? 'text-yellow-300' : 'hover:text-yellow-300'}`}>

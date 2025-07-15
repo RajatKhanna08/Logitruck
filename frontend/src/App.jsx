@@ -88,7 +88,7 @@ const AppWrapper = () => {
                     <Route path='/notifications' element={<NotificationPage />} />
 
                     {/* Protected Dashboards */}
-                    <Route path='/company/dashboard' element={
+                    <Route path='/dashboard' element={
                         <ProtectedRoute role={role} allowedRoles={['company']}>
                             <CompanyDashboard />
                         </ProtectedRoute>

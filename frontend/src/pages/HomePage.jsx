@@ -111,7 +111,7 @@ const HomePage = () => {
             <div className='relative w-screen h-screen'>
             
                 {/* PROGRESS BAR */}
-                <div className={`absolute z-50 ${userProfile ? "top-24" : "top-35"} left-0 w-full h-1 bg-white/20 overflow-hidden`}>
+                <div className={`absolute z-50 ${userProfile ? "top-21" : "top-31"} left-0 w-full h-1 bg-white/20 overflow-hidden`}>
                     <div
                         key={currentSlide}
                         className="h-full bg-yellow-300 animate-progress"

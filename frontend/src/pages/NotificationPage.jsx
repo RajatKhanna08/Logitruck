@@ -67,19 +67,20 @@ const NotificationPage = () => {
     }, []);
 
     return (
-        <div className="min-h-screen text-black px-5 py-12 sm:px-10">
-            <div className="mt-20 max-w-4xl mx-auto">
-                <div className="flex items-center justify-between mb-10">
-                    <div>
+        <div className="min-h-screen relative text-black px-5 py-12 sm:px-10">
+            <div className="absolute w-full h-80 top-30 left-0 bg-yellow-300 z-[-10]" />
+            <div className="mt-30 max-w-4xl mx-auto">
+                <div className="relative flex items-center justify-between mb-1">
+                    <div className="z-10">
                         <h1 className="text-4xl font-bold text-black">Notifications</h1>
-                        <p className="text-gray-400 mt-1 text-sm">
+                        <p className="text-white font-semibold mt-1 text-sm">
                             Stay up-to-date with all your logistics activity
                         </p>
                     </div>
-                    <FaBell className="text-yellow-300 text-3xl animate-pulse" />
+                    <FaBell size={50} className="text-yellow-300 z-10 text-3xl p-2 rounded-full bg-black" />
                 </div>
 
-                <div className="space-y-5">
+                <div className="space-y-5 z-100">
                     {notifications.map((notif) => (
                         <NotificationCard key={notif.id} {...notif} />
                     ))}
