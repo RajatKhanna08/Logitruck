@@ -168,11 +168,11 @@ const TransporterLoginSignup = () => {
     const validateLogin = () => {
         const loginErrors = {};
 
-        if (!loginData.email.trim()) loginErrors.email = "Email is required";
-        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginData.email)) loginErrors.email = "Invalid email format";
+        if (!loginData.email.trim()) loginErrors.loginEmail = "Email is required";
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginData.email)) loginErrors.loginEmail = "Invalid email format";
 
-        if (!loginData.password.trim()) loginErrors.password = "Password is required";
-        else if (loginData.password.length < 6) loginErrors.password = "Password must be at least 6 characters";
+        if (!loginData.password.trim()) loginErrors.loginPassword = "Password is required";
+        else if (loginData.password.length < 6) loginErrors.loginPassword = "Password must be at least 6 characters";
 
         setErrors(loginErrors);
         return Object.keys(loginErrors).length === 0;
@@ -450,7 +450,7 @@ const TransporterLoginSignup = () => {
                 {/* Forms container */}
                 <div className="w-full flex items-center justify-between z-10">
                         {/* LOGIN FORM */}
-                        <form className={`relative w-1/2 p-10 flex flex-col gap-4`}>
+                        <form className={`relative w-1/2 p-10 flex flex-col gap-6`}>
                             <h2 className="text-3xl text-center font-bold text-[#192a67] mb-2">Transporter Login</h2>
                             <input
                                 type="email"
@@ -460,7 +460,7 @@ const TransporterLoginSignup = () => {
                                 onChange={handleChange}
                                 className="p-2 border-2 border-gray-300 rounded outline-none"
                             />
-                            {errors.email && <p className="text-red-500 absolute top-28 right-12 text-xs">{errors.email}</p>}
+                            {errors.loginEmail && <p className="text-red-500 absolute top-38 right-12 text-xs">{errors.loginEmail}</p>}
                             <input
                                 type="password"
                                 name="password"
@@ -469,7 +469,7 @@ const TransporterLoginSignup = () => {
                                 onChange={handleChange}
                                 className="p-2 border-2 border-gray-300 rounded outline-none"
                             />
-                            {errors.password && <p className="text-red-500 absolute top-43 right-12 text-xs">{errors.password}</p>}
+                            {errors.loginPassword && <p className="text-red-500 absolute top-55 right-12 text-xs">{errors.loginPassword}</p>}
                             <button type="submit" onClick={handleLogin} className="bg-yellow-300 cursor-pointer py-2 rounded font-semibold">
                                 Login
                             </button>

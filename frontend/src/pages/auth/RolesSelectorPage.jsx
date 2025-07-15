@@ -21,11 +21,6 @@ const RoleSelectorPage = () => {
             name: "Driver",
             icon: <FaUserTie size={30} />,
             loginPath: "/driver/register", // Create this route later
-        },
-        {
-            name: "Admin",
-            icon: <FaUserShield size={30} />,
-            loginPath: "/admin/login", // Add or adjust the route as needed
         }
     ];
 
@@ -43,7 +38,7 @@ const RoleSelectorPage = () => {
             </p>
 
             {/* Role Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 w-full max-w-6xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
                 {roles.map((role, index) => (
                     <div
                         key={index}

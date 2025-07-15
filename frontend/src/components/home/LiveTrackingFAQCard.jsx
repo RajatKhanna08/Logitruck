@@ -6,7 +6,7 @@ const LiveTrackingFAQCard = ({faq, index, openIndex, toggleAccordion}) => {
         <div className="relative">
             {/* Question Button */}
             <button
-                className="w-full flex items-center bg-yellow-300 text-[#192a67] cursor-pointer justify-between px-6 py-5 text-left text-lg font-bold hover:bg-yellow-400 transition-all duration-300"
+                className="w-full flex items-center bg-yellow-300 gap-5 text-[#192a67] cursor-pointer justify-between px-6 py-5 text-left text-lg font-bold hover:bg-yellow-400 transition-all duration-300"
                 onClick={() => toggleAccordion(index)}
             >
                 {faq.question}
@@ -23,7 +23,7 @@ const LiveTrackingFAQCard = ({faq, index, openIndex, toggleAccordion}) => {
             >
                 <div className="px-6 py-4">{faq.answer}</div>
             </div>
-    </div>
+        </div>
   )
 }
 

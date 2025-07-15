@@ -36,7 +36,7 @@ export const getCompanyProfile = async () => {
         return res.data;
     }
     catch(err){
-        console.log("Erorr in getAuthUser: " , err.message);l
+        console.log("Erorr in getCompanyProfile: " , err.message);l
     }
 }
 

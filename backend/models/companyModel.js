@@ -129,7 +129,7 @@ companySchema.methods.comparePassword = function(enteredPassword){
 }
 
 companySchema.methods.generateAuthToken = function(){
-    return jwt.sign({ _id: this._id }, process.env.JWT_SECRET_KEY, { expiresIn: "24h" });
+    return jwt.sign({ _id: this._id, role: this.role }, process.env.JWT_SECRET_KEY, { expiresIn: "24h" });
 }
 
 const companyModel = mongoose.model('company',companySchema);

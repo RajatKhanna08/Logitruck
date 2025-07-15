@@ -27,6 +27,9 @@ export const registerCompanyController = async (req, res) => {
             contactPerson
         } = req.body;
 
+        console.log(req.body.address);
+        console.log(req.body.contactPerson);
+
         const existingCompany = await companyModel.findOne({ companyEmail });
         if (existingCompany) {
             return res.status(409).json({ message: "Email already exists" }); // 409 Conflict
@@ -59,6 +62,7 @@ export const registerCompanyController = async (req, res) => {
         });
         await sendCompanyWelcomeEmail(companyEmail, companyName);
         await sendWhatsAppRegistration(newCompany.phone, newCompany.companyName, "company");
+
         const token = newCompany.generateAuthToken();
         res.cookie("jwt", token, {
             httpOnly: true,
@@ -70,7 +74,8 @@ export const registerCompanyController = async (req, res) => {
             company: {
                 _id: newCompany._id,
                 companyName: newCompany.companyName,
-                email: newCompany.companyEmail
+                email: newCompany.companyEmail,
+                role: newCompany.role
             }
         });
 
@@ -109,11 +114,10 @@ export const loginCompanyController = async (req, res) => {
         await sendWhatsAppLogin(existingCompany.phone, existingCompany.companyName, "Company");
         res.status(200).json({
             message: "Company logged in successfully",
-            company: {
-                email: existingCompany.companyEmail,
-                name: existingCompany.companyName
-            }
+            company: existingCompany
         });
+
+        req.user = existingCompany;
     } catch (err) {
         console.log("Error in loginCompanyController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });

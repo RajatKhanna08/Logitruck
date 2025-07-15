@@ -8,23 +8,23 @@ const ContactUsPage = () => {
         <div className='w-full h-full'>
             {/* BACKGROUND IMAGE */}
             <div className='relative flex justify-center items-center w-full h-100 bg-cover bg-bottom bg-no-repeat' style={{ backgroundImage: "url('/contactBackground.jpeg')" }}>
-                <p className='text-6xl mt-20 text-yellow-300 font-semibold tracking-wider'>CONTACT US</p>
+                <p className='text-6xl mt-20 text-yellow-300 font-bold text-shadow-black text-shadow-md tracking-wider'>CONTACT US</p>
             </div>
 
             {/* MAIN CONTENT */}
             <div className='mb-40 flex gap-20'>
                 {/* LEFT SECTION */}
-                <div className='p-20 flex flex-col gap-10'>
+                <div className='p-20 flex flex-col gap-15'>
                     {/* LEFT-UPPER SECTION */}
                     <div className='flex flex-col gap-5'>
                         <p className='text-5xl font-semibold'>Get In Touch</p>
-                        <p className='text-yellow-300 font-medium text-3xl max-w-150'>"LG Transports specializes in smart, reliable, and budget-friendly logistics solutions, connecting verified trucks and drivers across India for fast and secure deliveries."</p>
+                        <p className='text-yellow-300 font-medium text-2xl max-w-150'>"LG Transports specializes in smart, reliable, and budget-friendly logistics solutions, connecting verified trucks and drivers across India for fast and secure deliveries."</p>
                     </div>
 
                     {/* LEFT-LOWER SECTION */}
                     <div className='relative mt-10 flex flex-col gap-8'>
                         {/* BACKGROUND IMAGE */}
-                        <img src="/contactFooterImage.avif" className='absolute -top-20 right-10 z-1 w-130 opacity-35 rounded-lg' />
+                        <img src="/contactFooterImage.avif" className='absolute -top-17 right-10 z-1 w-130 opacity-35 rounded-lg' />
 
                         {/* INNER CONTENT */}
                         <div className='flex justify-center items-center gap-25 z-2'>
