@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { FaGlobe, FaPhone } from 'react-icons/fa6';
 import { IoMail } from 'react-icons/io5';
+import { FaClipboardList, FaEye, FaUser } from "react-icons/fa";
+import { FiLogOut } from "react-icons/fi";
+import { IoMdNotificationsOutline } from "react-icons/io";
+
 import { servicesData } from '../constants/ServicePageConstants';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { logoutCompany } from '../api/companyApi';
@@ -12,19 +16,23 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useUserStore } from '../store/userUserStore';
 
 const Navbar = () => {
+    //getting global user
     const { data:userProfile, isLoading } = useUserProfile();
     const role = userProfile?.role;
     console.log(userProfile);
     if (isLoading) return null;
     const isLoggedIn = !!userProfile && !!role;
 
+    //global state management
     const queryClient = useQueryClient();
     const setUser = useUserStore((state) => state.setUser);
 
+    //required packages
     const location = useLocation();
     const navigate = useNavigate();
     const { pathname } = location;
 
+    //show/hide navbar
     const [showNavbar, setShowNavbar] = useState(true);
     let lastScrollY = window.scrollY;
     useEffect(() => {
@@ -45,12 +53,14 @@ const Navbar = () => {
       return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
+    //logout button
     const logoutMutations = {
         company: useMutation({ mutationFn: logoutCompany }),
         transporter: useMutation({ mutationFn: logoutTransporter }),
         driver: useMutation({ mutationFn: logoutDriver }),
     };
 
+    //logout handler
     const handleLogout = async () => {
         try {
             if (role && logoutMutations[role]) {
@@ -64,6 +74,22 @@ const Navbar = () => {
             alert('Logout failed. Please try again.');
         }
     };
+
+    //profile dropdown
+    const [showDropdown, setShowDropdown] = useState(false);
+    const dropdownRef = useRef(null);
+    const toggleDropdown = () => {
+        setShowDropdown((prev) => !prev);
+    };
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     return (
         <nav className={`fixed px-8 pt-3 top-0 w-full h-35 z-[100] transition-transform duration-500 ${showNavbar ? 'translate-y-0' : '-translate-y-18'} bg-black/70 backdrop-blur-sm`}>
@@ -87,12 +113,51 @@ const Navbar = () => {
                             </li>
                         </>
                     ) : (
-                        <div className='flex justify-center gap-10'>
-                            <li onClick={handleLogout} className="cursor-pointer text-red-400">Logout</li>
-                            <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'><Link to={`/${role}/dashboard`}>Dashboard</Link></li>
-                            <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'><Link to={`/${role}/profile`}>Profile</Link></li>
-                            <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'>{userProfile?.fullName || userProfile?.company.companyName || "User"}</li>
-                        </div>
+                        <div className="flex items-center gap-8 relative">
+
+                              {/* Book Order */}
+                              <li className="flex items-center gap-2 cursor-pointer text-white hover:text-yellow-300 transition-all duration-200">
+                                <FaClipboardList />
+                                <Link to={`/${role}/book-order`}>Book Order</Link>
+                              </li>
+
+                              {/* View Orders */}
+                              <li className="flex items-center gap-2 cursor-pointer text-white hover:text-yellow-300 transition-all duration-200">
+                                <FaEye />
+                                <Link to={`/${role}/orders`}>View Orders</Link>
+                              </li>
+
+                              {/* Profile Icon */}
+                              <div className="relative" ref={dropdownRef}>
+                                <img
+                                  src="/default-profile.png" // or userProfile.profileImage if available
+                                  alt="Profile"
+                                  className="w-10 h-10 rounded-full border-2 border-yellow-300 cursor-pointer"
+                                  onClick={toggleDropdown}
+                                />
+
+                                {/* Dropdown (visible on click) */}
+                                {showDropdown && (
+                                  <ul className="absolute top-12 right-0 w-48 bg-white shadow-lg rounded-md text-black text-sm z-50">
+                                    <li className="px-4 py-2 hover:bg-gray-100 hover:rounded-md flex items-center gap-2">
+                                      <FaUser />
+                                      <Link to={`/${role}/profile`}>Profile</Link>
+                                    </li>
+                                    <li className="px-4 py-2 hover:bg-gray-100 hover:rounded-md flex items-center gap-2">
+                                      <IoMdNotificationsOutline />
+                                      <Link to={`/${role}/notifications`}>Notifications</Link>
+                                    </li>
+                                    <li
+                                      className="px-4 py-2 text-red-500 hover:bg-red-100 hover:rounded-md flex items-center gap-2 cursor-pointer"
+                                      onClick={handleLogout}
+                                    >
+                                      <FiLogOut />
+                                      Logout
+                                    </li>
+                                  </ul>
+                                )}
+                              </div>
+                            </div>
                     )}
                 </ul>
             </div>

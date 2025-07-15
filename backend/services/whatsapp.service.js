@@ -5,8 +5,9 @@ dotenv.config();
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const WHATSAPP_FROM = "whatsapp:+14155238886"; // Always same for sandbox
 const formatPhone = (phone) => {
-  if (!phone) return "";
-  return phone.startsWith("+91") ? `whatsapp:${phone}` : `whatsapp:+91${phone}`;
+  const phoneStr = String(phone).replace(/\D/g, ''); // ensure string and remove non-digits
+  if (phoneStr.startsWith('91')) return `whatsapp:+${phoneStr}`;
+  return `whatsapp:+91${phoneStr}`;
 };
 
 export const sendWhatsAppRegistration = async (phone, name, role) => {

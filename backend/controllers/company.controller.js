@@ -27,8 +27,6 @@ export const registerCompanyController = async (req, res) => {
             contactPerson
         } = req.body;
 
-        console.log(req.body.address);
-        console.log(req.body.contactPerson);
 
         const existingCompany = await companyModel.findOne({ companyEmail });
         if (existingCompany) {
@@ -61,7 +59,7 @@ export const registerCompanyController = async (req, res) => {
             }
         });
         await sendCompanyWelcomeEmail(companyEmail, companyName);
-        await sendWhatsAppRegistration(newCompany.phone, newCompany.companyName, "company");
+        await sendWhatsAppRegistration(newCompany.companyPhone, newCompany.companyName, "company");
 
         const token = newCompany.generateAuthToken();
         res.cookie("jwt", token, {
@@ -111,7 +109,7 @@ export const loginCompanyController = async (req, res) => {
             sameSite: "Strict"
         });
         await sendCompanyLoginEmail(existingCompany.companyEmail, existingCompany.companyName);
-        await sendWhatsAppLogin(existingCompany.phone, existingCompany.companyName, "Company");
+        await sendWhatsAppLogin(existingCompany.companyPhone, existingCompany.companyName, "Company");
         res.status(200).json({
             message: "Company logged in successfully",
             company: existingCompany
