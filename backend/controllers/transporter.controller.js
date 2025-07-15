@@ -27,6 +27,7 @@ export const registerTransporterController = async (req, res) => {
         transporterName,
         email,
         password: hashedPassword,
+        profileImg: "https://static.vecteezy.com/system/resources/previews/020/911/740/non_2x/user-profile-icon-profile-avatar-user-icon-male-icon-face-icon-profile-icon-free-png.png"
         });
         await newTransporter.save();
 

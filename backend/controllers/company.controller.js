@@ -48,6 +48,7 @@ export const registerCompanyController = async (req, res) => {
             companyEmail,
             companyPhone,
             password: hashedPassword,
+            profileImg: "https://static.vecteezy.com/system/resources/previews/020/911/740/non_2x/user-profile-icon-profile-avatar-user-icon-male-icon-face-icon-profile-icon-free-png.png",
             contactPerson: JSON.parse(contactPerson),
             address: JSON.parse(address),
             registrationNumber,

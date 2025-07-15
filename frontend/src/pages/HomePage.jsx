@@ -12,10 +12,13 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import useNewsData from '../hooks/useNewsData.js';
 import NewsCard from '../components/home/NewsCard.jsx';
 import { HiMicrophone } from 'react-icons/hi';
+import { useUserProfile } from '../hooks/useUserProfile.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const HomePage = () => {
+    const { data:userProfile } = useUserProfile();
+
     //first screen
     const [currentSlide, setCurrentSlide] = useState(0);
     useEffect(() => {
@@ -108,7 +111,7 @@ const HomePage = () => {
             <div className='relative w-screen h-screen'>
             
                 {/* PROGRESS BAR */}
-                <div className="absolute z-50 top-35 left-0 w-full h-1 bg-white/20 overflow-hidden">
+                <div className={`absolute z-50 ${userProfile ? "top-21" : "top-35"} left-0 w-full h-1 bg-white/20 overflow-hidden`}>
                     <div
                         key={currentSlide}
                         className="h-full bg-yellow-300 animate-progress"
