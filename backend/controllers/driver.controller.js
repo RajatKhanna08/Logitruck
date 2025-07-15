@@ -44,6 +44,7 @@ export const registerDriverController = async (req, res) => {
         const newDriver = await driverModel.create({
             transporterId: transporterId,
             fullName: fullName,
+            profileImg: "https://static.vecteezy.com/system/resources/previews/020/911/740/non_2x/user-profile-icon-profile-avatar-user-icon-male-icon-face-icon-profile-icon-free-png.png",
             email: email,
             phone: phone,
             password: hashedPassword,

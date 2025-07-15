@@ -12,10 +12,13 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import useNewsData from '../hooks/useNewsData.js';
 import NewsCard from '../components/home/NewsCard.jsx';
 import { HiMicrophone } from 'react-icons/hi';
+import { useUserProfile } from '../hooks/useUserProfile.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const HomePage = () => {
+    const { data:userProfile } = useUserProfile();
+
     //first screen
     const [currentSlide, setCurrentSlide] = useState(0);
     useEffect(() => {
@@ -98,7 +101,7 @@ const HomePage = () => {
     }, []);
 
     //COMMUNITY CENTRE
-    const { news, loading } = useNewsData(3);
+    const { news, loading } = useNewsData(4);
 
     return (
         <div className='relative overflow-x-hidden'>
@@ -108,7 +111,7 @@ const HomePage = () => {
             <div className='relative w-screen h-screen'>
             
                 {/* PROGRESS BAR */}
-                <div className="absolute z-50 top-35 left-0 w-full h-1 bg-white/20 overflow-hidden">
+                <div className={`absolute z-50 ${userProfile ? "top-24" : "top-35"} left-0 w-full h-1 bg-white/20 overflow-hidden`}>
                     <div
                         key={currentSlide}
                         className="h-full bg-yellow-300 animate-progress"
@@ -360,17 +363,25 @@ const HomePage = () => {
                 </div>
 
                 {/* LOWER SECTION */}
-                <div className='flex justify-center w-full'>
+                <div className='flex justify-center h-100 w-full'>
                     {
                         loading ? (
                             <p className="text-center text-gray-600">Loading news...</p>
                         ) : (
-                            <div className="z-50 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                            <div className="z-50 px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                                 {news.map((article, index) => (
                                     <NewsCard key={index} {...article} />
                                 ))}
                             </div>
                         )
+                    }
+                    {
+                        news.length === 0 ? (
+                        <div>
+                            <p className="text-center text-xl text-gray-600">No news at the moment</p>
+                            <p className="text-center text-xl text-gray-600">Check again later</p>
+                        </div>
+                        ) : ("")
                     }
                 </div>
             </div>

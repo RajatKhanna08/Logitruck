@@ -90,7 +90,7 @@ const companySchema = new  mongoose.Schema({
         }
     },
     
-    logo: {
+    profileImg: {
         type: String,
     },
     

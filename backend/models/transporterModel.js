@@ -19,6 +19,10 @@ const transporterSchema = new mongoose.Schema({
         type: String,
         required:true
     },
+
+    profileImg: {
+        type: String
+    },
     
     contactNo: {
         type: Number,

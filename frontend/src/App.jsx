@@ -27,6 +27,8 @@ import TransporterProfile from './pages/profile/TransporterProfile';
 import DriverProfile from './pages/profile/DriverProfile';
 import AdminProfile from './pages/profile/AdminProfile';
 import HelpCentrePage from './pages/HelpCentrePage';
+import CommunityCenterPage from './pages/CommunityCenterPage';
+import NotificationPage from './pages/NotificationPage';
 
 // // SHARED ORDER ROUTES
 // import BookOrderPage from './pages/orders/BookOrderPage';
@@ -69,16 +71,21 @@ const AppWrapper = () => {
                 {!["/company/register", "/transporter/register", "/driver/register", "/admin/login", "/role-select"].includes(location.pathname) && <Navbar />}
 
                 <Routes>
+                    {/* PAGE LOADER */}
+                    <Route path='/loading' element={<PageLoader />} />
+
                     {/* Public Routes */}
                     <Route path='/' element={<HomePage />} />
                     <Route path='/services/:id' element={<ServicePage />} />
                     <Route path='/contact' element={<ContactUsPage />} />
                     <Route path='/help-centre' element={<HelpCentrePage />} />
+                    <Route path='/community' element={<CommunityCenterPage />} />
                     <Route path='/role-select' element={<RoleSelectorPage />} />
                     <Route path='/admin/login' element={<AdminLogin />} />
                     <Route path='/company/register' element={<CompanyLoginSignup />} />
                     <Route path='/transporter/register' element={<TransporterLoginSignup />} />
                     <Route path='/driver/register' element={<DriverLoginSignup />} />
+                    <Route path='/notifications' element={<NotificationPage />} />
 
                     {/* Protected Dashboards */}
                     <Route path='/company/dashboard' element={
