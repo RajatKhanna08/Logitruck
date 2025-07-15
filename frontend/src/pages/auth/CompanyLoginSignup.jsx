@@ -7,6 +7,7 @@ import { HiOutlineIdentification } from 'react-icons/hi';
 import { TbMapPinCode } from "react-icons/tb";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLoginCompany, useRegisterCompany } from '../../hooks/roles/useCompany';
+import PageLoader from '../../components/PageLoader';
 
 const CompanyLoginSignup = () => {
     const { mutate:registerCompanyMutation, isPending:isRegisterLoading } = useRegisterCompany();
@@ -590,6 +591,8 @@ const CompanyLoginSignup = () => {
                     </div>
                 </div>
             </div>
+
+            {(isRegisterLoading || isLoginLoading) && <PageLoader />}
         </div>
     );
 };

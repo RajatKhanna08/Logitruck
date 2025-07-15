@@ -16,6 +16,7 @@ import { useUserStore } from '../store/userUserStore';
 
 const Navbar = () => {
     const { data: userProfile, isLoading } = useUserProfile();
+    console.log(userProfile);
     const role = userProfile?.role;
     const isLoggedIn = !!userProfile && !!role;
 
@@ -123,30 +124,34 @@ const Navbar = () => {
                         </>
                     ) : (
                         <div className="flex items-center gap-8 relative">
-                            <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-extrabold transition-all duration-200">
+                            <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
+                                <FaClipboardList />
+                                <Link to={`/${role}/book-order`}>AI PRICE ESTIMATOR</Link>
+                            </li>
+                            <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
                                 <FaClipboardList />
                                 <Link to={`/${role}/book-order`}>Book Order</Link>
                             </li>
                             <div className="relative" ref={dropdownRef}>
                                 <img
-                                    src="/default-profile.png"
+                                    src={userProfile.company.profileImg}
                                     alt="Profile"
-                                    className="w-10 h-10 rounded-full border-2 border-yellow-300 cursor-pointer"
+                                    className="w-10 h-10 rounded-full bg-white object-cover border-2 border-yellow-300 cursor-pointer"
                                     onClick={toggleDropdown}
                                 />
                                 {showDropdown && (
                                     <ul className="absolute top-12 right-0 w-48 bg-gray-200 shadow-lg rounded-md text-black text-sm z-50">
                                         <li className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <FaUser />
-                                            <Link to={`/${role}/profile`}>Profile</Link>
+                                            <Link to={`/profile`}>Profile</Link>
                                         </li>
                                         <li className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <FaEye />
-                                            <Link to={`/${role}/orders`}>View Orders</Link>
+                                            <Link to={`/orders`}>View Orders</Link>
                                         </li>
                                         <li className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <IoMdNotificationsOutline />
-                                            <Link to={`/${role}/notifications`}>Notifications</Link>
+                                            <Link to={`/notifications`}>Notifications</Link>
                                         </li>
                                         <li
                                             className="px-4 py-2 text-red-500 hover:bg-red-100 hover:rounded-md flex items-center gap-2 cursor-pointer"
@@ -234,7 +239,7 @@ const Navbar = () => {
                         {/* Side Panel */}
                         <div
                             ref={hamburgerRef}
-                            className={`fixed top-22 rounded-r z-100 left-0 h-20 w-270 bg-black/70 backdrop-blur-sm z-50 shadow-lg transform transition-transform duration-300 ease-in-out
+                            className={`fixed top-25 rounded-r z-100 left-0 h-20 w-270 bg-black/70 backdrop-blur-sm shadow-lg transform transition-transform duration-300 ease-in-out
                             ${isHamburgerOpen ? 'translate-x-0' : '-translate-x-full'}`}
                         >
                             <ul className="flex justify-center items-center h-full w-full px-12 text-white text-lg font-medium">
