@@ -352,7 +352,7 @@ const HomePage = () => {
             {/* COMMUNITY CENTRE */}
             <div className='mb-25 flex flex-col items-center w-full gap-15'>
                 {/* UPPER SECTION */}
-                <div className='flex justify-center gap-100'>
+                <div className='flex w-full justify-around gap-120'>
                     <div className='flex flex-col gap-4'>
                         <p className='text-5xl font-bold text-[#192a67]'>News & Updates</p>
                         <p className='text-3xl'>Stay Updated With Our Community Centre</p>

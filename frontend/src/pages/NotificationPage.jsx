@@ -72,8 +72,8 @@ const NotificationPage = () => {
             <div className="mt-30 max-w-4xl mx-auto">
                 <div className="relative flex items-center justify-between mb-1">
                     <div className="z-10">
-                        <h1 className="text-4xl font-bold text-black">Notifications</h1>
-                        <p className="text-white font-semibold mt-1 text-sm">
+                        <h1 className="text-4xl font-bold text-[#192a67]">Notifications</h1>
+                        <p className="text-black font-semibold mt-1 text-sm">
                             Stay up-to-date with all your logistics activity
                         </p>
                     </div>

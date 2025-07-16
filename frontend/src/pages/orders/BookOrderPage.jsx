@@ -1,181 +1,190 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import {
+    FaMapMarkerAlt,
+    FaPhoneAlt,
+    FaUser,
+    FaWeightHanging,
+    FaRulerCombined,
+    FaBoxes,
+    FaCalendarAlt,
+    FaMoneyCheckAlt,
+    FaFileAlt,
+} from "react-icons/fa";
 
 const BookOrderPage = () => {
-  const [formData, setFormData] = useState({
-    pickupAddress: '',
-    pickupCoordinates: '',
-    dropAddress: '',
-    dropCoordinates: '',
-    stopIndex: 1,
-    contactName: '',
-    contactPhone: '',
-    instructions: '',
-    scheduleAt: '',
-    weightInKg: '',
-    volumeInCubicMeters: '',
-    type: 'general',
-    quantity: '',
-    description: '',
-    paymentMode: 'UPI'
-  });
+    const [formData, setFormData] = useState({
+        pickupAddress: '',
+        pickupCoordinates: '',
+        dropAddress: '',
+        dropCoordinates: '',
+        contactName: '',
+        contactPhone: '',
+        instructions: '',
+        scheduleAt: '',
+        weightInKg: '',
+        volumeInCubicMeters: '',
+        type: 'general',
+        quantity: '',
+        description: '',
+        paymentMode: 'UPI'
+    });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Format data for backend
-    const orderPayload = {
-      pickupLocation: {
-        address: formData.pickupAddress,
-        coordinates: {
-          type: "Point",
-          coordinates: formData.pickupCoordinates.split(',').map(Number),
-        }
-      },
-      dropLocations: [{
-        stopIndex: formData.stopIndex,
-        address: formData.dropAddress,
-        coordinates: {
-          type: "Point",
-          coordinates: formData.dropCoordinates.split(',').map(Number),
-        },
-        contactName: formData.contactName,
-        contactPhone: formData.contactPhone,
-        instructions: formData.instructions
-      }],
-      scheduleAt: new Date(formData.scheduleAt),
-      loadDetails: {
-        weightInKg: parseFloat(formData.weightInKg),
-        volumeInCubicMeters: parseFloat(formData.volumeInCubicMeters),
-        type: formData.type,
-        quantity: parseInt(formData.quantity),
-        description: formData.description
-      },
-      paymentMode: formData.paymentMode
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    console.log("Payload:", orderPayload);
-    alert("Preview Only. Backend integration required.");
-  };
+    const handleSubmit = (e) => {
+        e.preventDefault();
 
-  return (
-    <div className="min-h-screen py-10 px-20s bg-gray-100">
-      <div className="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-xl">
-        <h2 className="text-3xl font-bold text-blue-800 mb-6 text-center">📦 Book Your Freight Order</h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        const orderPayload = {
+            pickupLocation: {
+                address: formData.pickupAddress,
+                coordinates: {
+                    type: "Point",
+                    coordinates: formData.pickupCoordinates.split(',').map(Number),
+                }
+            },
+            dropLocations: [{
+                address: formData.dropAddress,
+                coordinates: {
+                    type: "Point",
+                    coordinates: formData.dropCoordinates.split(',').map(Number),
+                },
+                contactName: formData.contactName,
+                contactPhone: formData.contactPhone,
+                instructions: formData.instructions
+            }],
+            scheduleAt: new Date(formData.scheduleAt),
+            loadDetails: {
+                weightInKg: parseFloat(formData.weightInKg),
+                volumeInCubicMeters: parseFloat(formData.volumeInCubicMeters),
+                type: formData.type,
+                quantity: parseInt(formData.quantity),
+                description: formData.description
+            },
+            paymentMode: formData.paymentMode
+        };
 
-          {/* Pickup */}
-          <div>
-            <label className="block font-semibold">Pickup Address</label>
-            <input type="text" name="pickupAddress" required onChange={handleChange}
-              className="w-full p-3 border rounded-md" placeholder="e.g., Bhiwadi, Rajasthan" />
-          </div>
-          <div>
-            <label className="block font-semibold">Pickup Coordinates (lng, lat)</label>
-            <input type="text" name="pickupCoordinates" required onChange={handleChange}
-              className="w-full p-3 border rounded-md" placeholder="e.g., 76.8606, 28.2104" />
-          </div>
+        console.log("Order Payload:", orderPayload);
+        alert("Order submitted (preview only)");
+    };
 
-          {/* Drop */}
-          <div>
-            <label className="block font-semibold">Drop Address</label>
-            <input type="text" name="dropAddress" required onChange={handleChange}
-              className="w-full p-3 border rounded-md" />
-          </div>
-          <div>
-            <label className="block font-semibold">Drop Coordinates (lng, lat)</label>
-            <input type="text" name="dropCoordinates" required onChange={handleChange}
-              className="w-full p-3 border rounded-md" />
-          </div>
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block font-semibold">Contact Name</label>
-              <input type="text" name="contactName" required onChange={handleChange}
-                className="w-full p-3 border rounded-md" />
-            </div>
-            <div>
-              <label className="block font-semibold">Contact Phone</label>
-              <input type="text" name="contactPhone" required onChange={handleChange}
-                className="w-full p-3 border rounded-md" />
-            </div>
-          </div>
-          <div>
-            <label className="block font-semibold">Drop Instructions</label>
-            <textarea name="instructions" onChange={handleChange}
-              className="w-full p-3 border rounded-md resize-none" />
-          </div>
+    return (
+        <div className="min-h-screen py-10 px-6 bg-gradient-to-br from-blue-50 via-yellow-50 to-blue-100">
+            <div className="max-w-5xl mx-auto bg-white p-10 rounded-xl shadow-2xl">
+                <h2 className="text-3xl font-bold text-blue-800 text-center mb-8">Book a Freight Order</h2>
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-8">
 
-          {/* Load Details */}
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block font-semibold">Weight (kg)</label>
-              <input type="number" name="weightInKg" required onChange={handleChange}
-                className="w-full p-3 border rounded-md" />
-            </div>
-            <div>
-              <label className="block font-semibold">Volume (m³)</label>
-              <input type="number" name="volumeInCubicMeters" required onChange={handleChange}
-                className="w-full p-3 border rounded-md" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block font-semibold">Load Type</label>
-              <select name="type" value={formData.type} onChange={handleChange}
-                className="w-full p-3 border rounded-md">
-                <option value="general">General</option>
-                <option value="fragile">Fragile</option>
-                <option value="perishable">Perishable</option>
-                <option value="bulk">Bulk</option>
-                <option value="electronics">Electronics</option>
-                <option value="furniture">Furniture</option>
-                <option value="others">Others</option>
-              </select>
-            </div>
-            <div>
-              <label className="block font-semibold">Quantity</label>
-              <input type="number" name="quantity" required onChange={handleChange}
-                className="w-full p-3 border rounded-md" />
-            </div>
-          </div>
-          <div>
-            <label className="block font-semibold">Load Description</label>
-            <input type="text" name="description" required onChange={handleChange}
-              className="w-full p-3 border rounded-md" />
-          </div>
+                    {/* Pickup Section */}
+                    <div className="col-span-full">
+                        <h3 className="text-xl font-semibold text-yellow-500 mb-3">Pickup Details</h3>
+                    </div>
+                    <Input label="Pickup Address" name="pickupAddress" icon={<FaMapMarkerAlt />} onChange={handleChange} />
+                    <Input label="Pickup Coordinates (lng, lat)" name="pickupCoordinates" icon={<FaMapMarkerAlt />} onChange={handleChange} />
 
-          {/* Schedule & Payment */}
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block font-semibold">Schedule Date</label>
-              <input type="date" name="scheduleAt" onChange={handleChange}
-                className="w-full p-3 border rounded-md" />
-            </div>
-            <div>
-              <label className="block font-semibold">Payment Mode</label>
-              <select name="paymentMode" value={formData.paymentMode} onChange={handleChange}
-                className="w-full p-3 border rounded-md">
-                <option value="UPI">UPI</option>
-                <option value="Credit Card">Credit Card</option>
-                <option value="Net-Banking">Net-Banking</option>
-              </select>
-            </div>
-          </div>
+                    {/* Drop Section */}
+                    <div className="col-span-full">
+                        <h3 className="text-xl font-semibold text-yellow-500 mt-2 mb-3">Drop Details</h3>
+                    </div>
+                    <Input label="Drop Address" name="dropAddress" icon={<FaMapMarkerAlt />} onChange={handleChange} />
+                    <Input label="Drop Coordinates (lng, lat)" name="dropCoordinates" icon={<FaMapMarkerAlt />} onChange={handleChange} />
+                    <Input label="Contact Name" name="contactName" icon={<FaUser />} onChange={handleChange} />
+                    <Input label="Contact Phone" name="contactPhone" icon={<FaPhoneAlt />} onChange={handleChange} />
 
-          {/* Submit */}
-          <div className="text-center pt-4">
-            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-full">
-              Submit Order
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+                    {/* Drop Instructions */}
+                    <div className="col-span-full">
+                        <label className="block font-semibold mb-1 flex items-center gap-2">
+                            <FaFileAlt /> Drop Instructions
+                        </label>
+                        <textarea
+                            name="instructions"
+                            onChange={handleChange}
+                            className="w-full p-3 border border-gray-300 rounded-md resize-none"
+                        />
+                    </div>
+
+                    {/* Load Details */}
+                    <div className="col-span-full">
+                        <h3 className="text-xl font-semibold text-yellow-500 mt-2 mb-3">Load Details</h3>
+                    </div>
+                    <Input type="number" label="Weight (Kg)" name="weightInKg" icon={<FaWeightHanging />} onChange={handleChange} />
+                    <Input type="number" label="Volume (m³)" name="volumeInCubicMeters" icon={<FaRulerCombined />} onChange={handleChange} />
+                    <Select
+                        label="Load Type"
+                        name="type"
+                        icon={<FaBoxes />}
+                        value={formData.type}
+                        onChange={handleChange}
+                        options={["general", "fragile", "perishable", "bulk", "electronics", "furniture", "others"]}
+                    />
+                    <Input type="number" label="Quantity" name="quantity" icon={<FaBoxes />} onChange={handleChange} />
+                    <Input label="Load Description" name="description" icon={<FaFileAlt />} onChange={handleChange} />
+
+                    {/* Schedule & Payment */}
+                    <div className="col-span-full">
+                        <h3 className="text-xl font-semibold text-yellow-500 mt-2 mb-3">Schedule & Payment</h3>
+                    </div>
+                    <Input type="date" label="Schedule Date" name="scheduleAt" icon={<FaCalendarAlt />} onChange={handleChange} />
+                    <Select
+                        label="Payment Mode"
+                        name="paymentMode"
+                        icon={<FaMoneyCheckAlt />}
+                        value={formData.paymentMode}
+                        onChange={handleChange}
+                        options={["UPI", "Credit Card", "Net-Banking"]}
+                    />
+
+                    {/* Submit Button */}
+                    <div className="col-span-full text-center pt-6">
+                        <button
+                            type="submit"
+                            className="bg-blue-700 hover:bg-blue-800 text-white px-8 py-3 font-semibold rounded-full transition duration-300 cursor-pointer"
+                        >
+                            Submit Order 🚀
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
 };
+
+// Input Component
+const Input = ({ label, icon, name, type = "text", onChange }) => (
+    <div>
+        <label className="block font-semibold mb-1 flex items-center gap-2">
+            {icon} {label}
+        </label>
+        <input
+            type={type}
+            name={name}
+            required
+            onChange={onChange}
+            className="w-full p-3 border border-gray-300 rounded-md"
+        />
+    </div>
+);
+
+// Select Component
+const Select = ({ label, icon, name, value, onChange, options }) => (
+    <div>
+        <label className="flex font-semibold mb-1 items-center gap-2">
+            {icon} {label}
+        </label>
+        <select
+            name={name}
+            value={value}
+            onChange={onChange}
+            className="w-full p-3 border border-gray-300 rounded-md"
+        >
+            {options.map((opt) => (
+                <option key={opt} value={opt}>
+                    {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                </option>
+            ))}
+        </select>
+    </div>
+);
 
 export default BookOrderPage;

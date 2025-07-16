@@ -126,11 +126,11 @@ const Navbar = () => {
                         <div className="flex items-center gap-8 relative">
                             <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
                                 <FaClipboardList />
-                                <Link to={`/${role}/book-order`}>AI PRICE ESTIMATOR</Link>
+                                <Link to={`/price-estimator`}>AI PRICE ESTIMATOR</Link>
                             </li>
                             <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
                                 <FaClipboardList />
-                                <Link to={`/${role}/book-order`}>Book Order</Link>
+                                <Link to={`/orders/book`}>Book Order</Link>
                             </li>
                             <div className="relative" ref={dropdownRef}>
                                 <img

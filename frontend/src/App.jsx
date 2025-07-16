@@ -30,6 +30,7 @@ import HelpCentrePage from './pages/HelpCentrePage';
 import CommunityCenterPage from './pages/CommunityCenterPage';
 import NotificationPage from './pages/NotificationPage';
 import PriceEstimator from './pages/PriceEstimator';
+import BookOrderPage from './pages/orders/BookOrderPage';
 
 // // SHARED ORDER ROUTES
 // import BookOrderPage from './pages/orders/BookOrderPage';
@@ -87,7 +88,7 @@ const AppWrapper = () => {
                     <Route path='/transporter/register' element={<TransporterLoginSignup />} />
                     <Route path='/driver/register' element={<DriverLoginSignup />} />
                     <Route path='/notifications' element={<NotificationPage />} />
-                    {/* <Route path='/price-estimator' element={<PriceEstimator />} /> */}
+                    <Route path='/price-estimator' element={<PriceEstimator />} />
 
 
                     {/* Protected Dashboards */}
@@ -135,12 +136,12 @@ const AppWrapper = () => {
                     } />
 
                     {/* Shared Order Routes */}
-                    {/* <Route path='/orders/book' element={
+                    <Route path='/orders/book' element={
                         <ProtectedRoute role={role} allowedRoles={['company', 'admin']}>
                             <BookOrderPage />
                         </ProtectedRoute>
                     } />
-                    <Route path='/orders/track' element={
+                    {/* <Route path='/orders/track' element={
                         <ProtectedRoute role={role} allowedRoles={['company', 'transporter', 'driver', 'admin']}>
                             <TrackOrderPage />
                         </ProtectedRoute>

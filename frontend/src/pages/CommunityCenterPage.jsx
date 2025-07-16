@@ -18,7 +18,7 @@ const CommunityPage = () => {
         <div>
             <div className="min-h-screen py-12 px-4 sm:px-10 mb-20">
                 <div className="mt-30 text-center mb-10">
-                    <h1 className="text-4xl font-bold text-shadow-black text-shadow-xs text-yellow-300 mb-3">Community Centre</h1>
+                    <h1 className="text-4xl font-bold text-[#192a67] mb-3">Community Centre</h1>
                     <p className="text-black text-lg max-w-xl mx-auto">
                       Stay updated with the latest logistics and transport-related news from around the world.
                     </p>
