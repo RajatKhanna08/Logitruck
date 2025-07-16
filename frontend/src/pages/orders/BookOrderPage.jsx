@@ -94,7 +94,7 @@ const BookOrderPage = () => {
 
                     {/* Drop Instructions */}
                     <div className="col-span-full">
-                        <label className="block font-semibold mb-1 flex items-center gap-2">
+                        <label className="font-semibold mb-1 flex items-center gap-2">
                             <FaFileAlt /> Drop Instructions
                         </label>
                         <textarea
@@ -153,7 +153,7 @@ const BookOrderPage = () => {
 // Input Component
 const Input = ({ label, icon, name, type = "text", onChange }) => (
     <div>
-        <label className="block font-semibold mb-1 flex items-center gap-2">
+        <label className="block font-semibold mb-1 items-center gap-2">
             {icon} {label}
         </label>
         <input
