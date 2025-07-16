@@ -29,6 +29,7 @@ import AdminProfile from './pages/profile/AdminProfile';
 import HelpCentrePage from './pages/HelpCentrePage';
 import CommunityCenterPage from './pages/CommunityCenterPage';
 import NotificationPage from './pages/NotificationPage';
+import PriceEstimator from './pages/PriceEstimator';
 
 // // SHARED ORDER ROUTES
 // import BookOrderPage from './pages/orders/BookOrderPage';
@@ -86,6 +87,8 @@ const AppWrapper = () => {
                     <Route path='/transporter/register' element={<TransporterLoginSignup />} />
                     <Route path='/driver/register' element={<DriverLoginSignup />} />
                     <Route path='/notifications' element={<NotificationPage />} />
+                    {/* <Route path='/price-estimator' element={<PriceEstimator />} /> */}
+
 
                     {/* Protected Dashboards */}
                     <Route path='/dashboard' element={
