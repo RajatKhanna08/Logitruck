@@ -6,8 +6,12 @@ import { FaCity } from 'react-icons/fa6';
 import { HiOutlineIdentification } from 'react-icons/hi';
 import { TbMapPinCode } from "react-icons/tb";
 import { useNavigate } from 'react-router-dom';
+import { useLoginTransporter, useRegisterTransporter } from '../../hooks/roles/useTransporter';
 
 const TransporterLoginSignup = () => {
+    const { mutate:registerTransporterMutation, isPending:isRegisterLoading } = useRegisterTransporter();
+    const { mutate:loginTransporterMutation, isPending:isLoginLoading } = useLoginTransporter();
+
     const navigate = useNavigate();
     const [isSignUp, setIsSignUp] = useState(false);
     const [step, setStep] = useState(1);
@@ -29,12 +33,10 @@ const TransporterLoginSignup = () => {
             landmark: ''
         },
         registrationNumber: '',
-        industry: '',
-        fleetSize: '',
         documents: {
-            idProof: '',
-            businessLicense: '',
-            gstCertificate: ''
+            idProof: null,
+            businessLicense: null,
+            gstCertificate: null
         }
     });
     
@@ -46,39 +48,51 @@ const TransporterLoginSignup = () => {
     const handleChange = (e) => {
         const { name, value, files } = e.target;
 
-        if (!isSignUp) {
-            setLoginData(prev => ({
-                ...prev,
-                [name]: value
-            }));
-            return;
-        }
-
-        if (files && files.length > 0) {
-            const fieldPath = name.split(".");
-            if (fieldPath[0] === "documents") {
+        if (isSignUp) {
+            if (name.startsWith("contactPerson.")) {
+                const field = name.split(".")[1];
+                setSignupData((prev) => ({
+                    ...prev,
+                    contactPerson: {
+                        ...prev.contactPerson,
+                        [field]: value
+                    }
+                }));
+            } else if (name.startsWith("address.")) {
+                const field = name.split(".")[1];
+                setSignupData((prev) => ({
+                    ...prev,
+                    address: {
+                        ...prev.address,
+                        [field]: value
+                    }
+                }));
+            } else if (["idProof", "businessLicense", "gstCertificate"].includes(name)) {
+                const file = files[0];
                 setSignupData((prev) => ({
                     ...prev,
                     documents: {
                         ...prev.documents,
-                        [fieldPath[1]]: files[0]
+                        [name]: file
                     }
                 }));
+            } else {
+                setSignupData((prev) => ({
+                    ...prev,
+                    [name]: value
+                }));
             }
-            return;
-        }
 
-        if (name.startsWith("address.")) {
-            const field = name.split(".")[1];
-            setSignupData(prev => ({
-                ...prev,
-                address: {
-                    ...prev.address,
-                    [field]: value
-                }
-            }));
+            if (errors[name] || errors[`documents.${name}`]) {
+                setErrors((prev) => {
+                    const updated = { ...prev };
+                    delete updated[name];
+                    delete updated[`documents.${name}`];
+                    return updated;
+                });
+            }
         } else {
-            setSignupData(prev => ({
+            setLoginData((prev) => ({
                 ...prev,
                 [name]: value
             }));
@@ -98,71 +112,31 @@ const TransporterLoginSignup = () => {
         if (step > 1) setStep(step - 1);
     };
 
-    const handleSubmit = async () => {
-        try {
-            const formData = new FormData();
-            for (let key in signupData) {
-                if (key === "address" || key === "documents") {
-                    for (let subKey in signupData[key]) {
-                        formData.append(`${key}.${subKey}`, signupData[key][subKey]);
-                    }
-                }
-                else{
-                  formData.append(key, signupData[key]);
-                }
-            }
-          
-            // Make API call to your backend (adjust the URL as needed)
-            const res = await fetch("/api/transporter/register", {
-                method: "POST",
-                body: formData
-            });
-          
-            const data = await res.json();
-          
-            if (res.ok) {
-                console.log("Signup successful:", data);
-                setStep(1);
-                setSignupData({
-                    transporterName: '',
-                    ownerName: '',
-                    contactNo: '',
-                    email: '',
-                    password: '',
-                    address: {
-                        street: '',
-                        city: '',
-                        state: '',
-                        pincode: '',
-                        country: '',
-                        landmark: ''
-                    },
-                    registrationNumber: '',
-                    documents: {
-                        idProof: null,
-                        businessLicense: null,
-                        gstCertificate: null
-                    },
-                    fleetSize: ''
-                });
-            }
-            else{
-                alert(data.message || "Signup failed");
+    const handleSubmit = () => {
+        if (!validateStep()) return;
+        
+        const formData = new FormData();
+        
+        for (const key in signupData) {
+            if (key === 'address') {
+                formData.append(key, JSON.stringify(signupData[key]));
+            } else if (key === 'documents') {
+                formData.append("idProof", signupData.documents.idProof);
+                formData.append("businessLicense", signupData.documents.businessLicense);
+                formData.append("gstCertificate", signupData.documents.gstCertificate);
+            } else {
+                formData.append(key, signupData[key]);
             }
         }
-        catch (err) {
-            console.error("Signup error:", err);
-        }
+    
+        registerTransporterMutation(formData);
     };
 
     const handleLogin = (e) => {
         e.preventDefault();
-        const isValid = validateLogin();
-        if (!isValid) return;
-        
-        // Submit login logic
-        console.log("Login Data Submitted:", loginData);
-        setLoginData({ email: '', password: '' });
+        if(!validateLogin) return;
+
+        loginTransporterMutation(loginData);
     };
 
     const validateLogin = () => {
@@ -216,9 +190,9 @@ const TransporterLoginSignup = () => {
 
         // Step 4: File Uploads
         if (step === 4) {
-            if (!signupData.documents?.idProof) newErrors["documents.idProof"] = "required";
-            if (!signupData.documents?.businessLicense) newErrors["documents.businessLicense"] = "required";
-            if (!signupData.documents?.gstCertificate) newErrors["documents.gstCertificate"] = "required";
+            if (!signupData.documents.idProof) newErrors["documents.idProof"] = "required";
+            if (!signupData.documents.businessLicense) newErrors["documents.businessLicense"] = "required";
+            if (!signupData.documents.gstCertificate) newErrors["documents.gstCertificate"] = "required";
         }
 
         setErrors(newErrors);
@@ -400,7 +374,7 @@ const TransporterLoginSignup = () => {
                     <label className="w-full text-gray-500 font-medium">ID Proof (PDF/Image):
                       <input
                         type="file"
-                        name="documents.idProof"
+                        name="idProof"
                         onChange={handleChange}
                         className="w-full mt-1 cursor-pointer"
                       />
@@ -411,7 +385,7 @@ const TransporterLoginSignup = () => {
                     <label className="w-full text-gray-500 font-medium">Business License:
                       <input
                         type="file"
-                        name="documents.businessLicense"
+                        name="businessLicense"
                         onChange={handleChange}
                         className="w-full mt-1 cursor-pointer"
                       />
@@ -422,7 +396,7 @@ const TransporterLoginSignup = () => {
                     <label className="w-full text-gray-500 font-medium">GST Certificate:
                       <input
                         type="file"
-                        name="documents.gstCertificate"
+                        name="gstCertificate"
                         onChange={handleChange}
                         className="w-full mt-1 cursor-pointer"
                       />

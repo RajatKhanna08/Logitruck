@@ -1,7 +1,9 @@
 import express from 'express';
 import { body } from 'express-validator';
+
 import { correctRole } from '../middlewares/authorizeRoles.js';
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
+import { transporterFields } from '../middlewares/upload.js';
 
 import {
   registerTransporterController,
@@ -31,21 +33,23 @@ import {
 
 // === Validation chains ===
 
-const registerTransporterValidation = [
-  body('transporterName').notEmpty().withMessage('Transporter name is required'),
-  body('ownerName').notEmpty().withMessage('Owner name is required'),
-  body('contactNo').isMobilePhone().withMessage('Valid contact number is required'),
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('address.street').notEmpty().withMessage('Street is required'),
-  body('address.city').notEmpty().withMessage('City is required'),
-  body('address.state').notEmpty().withMessage('State is required'),
-  body('address.pincode').isNumeric().withMessage('Pincode must be a number'),
-  body('address.country').notEmpty().withMessage('Country is required'),
-  body('address.landmark').notEmpty().withMessage('Landmark is required'),
-  body('registrationNumber').notEmpty().withMessage('Registration number is required'),
-  body('fleetSize').isNumeric().withMessage('Fleet size must be a number')
+export const registerTransporterValidation = [
+    // Basic Fields
+    body("transporterName").notEmpty().withMessage("Transporter name is required"),
+    body("ownerName").notEmpty().withMessage("Owner name is required"),
+    body("email").isEmail().withMessage("Please enter a valid email address"),
+    body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters long"),
+    body("contactNo").isLength({ min: 10, max: 15 }).withMessage("Contact number must be between 10 to 15 digits"),
+    body("registrationNumber").notEmpty().withMessage("Registration number is required"),
+    // Address (Nested)
+    body('address.street').optional().notEmpty().withMessage('Street is required'),
+    body('address.city').optional().notEmpty().withMessage('City is required'),
+    body('address.state').optional().notEmpty().withMessage('State is required'),
+    body('address.pincode').optional().isNumeric().withMessage('Pincode must be a number'),
+    body('address.country').optional().notEmpty().withMessage('Country is required'),
+    body('address.landmark').optional().notEmpty().withMessage('Landmark is required')
 ];
+
 
 const loginTransporterValidation = [
   body('email').isEmail().withMessage('Valid email is required'),
@@ -90,7 +94,7 @@ const router = express.Router();
 
 // === Auth & Profile ===
 
-router.post('/register', registerTransporterValidation, registerTransporterController);
+router.post('/register', transporterFields, registerTransporterValidation, registerTransporterController);
 router.post('/login', loginTransporterValidation, loginTransporterController);
 router.delete('/logout', isLoggedIn, correctRole("transporter"), logoutTransporterController);
 

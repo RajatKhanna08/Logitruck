@@ -35,3 +35,9 @@ export const companyFields = upload.fields([
     { name: "businessLicense", maxCount: 1 },
     { name: "gstCertificate", maxCount: 1 }
 ])
+
+export const transporterFields = upload.fields([
+  { name: "idProof", maxCount: 1 },
+  { name: "businessLicense", maxCount: 1 },
+  { name: "gstCertificate", maxCount: 1 }
+]);

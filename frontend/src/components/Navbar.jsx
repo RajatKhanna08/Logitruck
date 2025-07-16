@@ -134,7 +134,7 @@ const Navbar = () => {
                             </li>
                             <div className="relative" ref={dropdownRef}>
                                 <img
-                                    src={userProfile.company.profileImg}
+                                    src={userProfile.role === "company" ? userProfile.company.profileImg : userProfile.transporter.profileImg}
                                     alt="Profile"
                                     className="w-10 h-10 rounded-full bg-white object-cover border-2 border-yellow-300 cursor-pointer"
                                     onClick={toggleDropdown}

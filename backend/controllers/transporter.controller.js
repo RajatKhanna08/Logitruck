@@ -12,39 +12,70 @@ export const registerTransporterController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+            return res.status(400).json({ errors: errors.array() });
         }
 
-        const { transporterName, email, password } = req.body;
+        const {
+            transporterName,
+            ownerName,
+            email,
+            password,
+            contactNo,
+            address,
+            registrationNumber
+        } = req.body;
 
         const existingTransporter = await transporterModel.findOne({ email });
         if (existingTransporter) {
-        return res.status(400).json({ message: "User already exists" });
+            return res.status(400).json({ message: "User already exists" });
+        }
+
+        const files = req.files;
+        if (
+            !files?.idProof?.[0] ||
+            !files?.businessLicense?.[0] ||
+            !files?.gstCertificate?.[0]
+        ) {
+            return res.status(400).json({
+                message: "All documents are required: ID Proof, Business License and GST Certificate"
+            });
         }
 
         const hashedPassword = await transporterModel.hashPassword(password);
+
         const newTransporter = await transporterModel.create({
-        transporterName,
-        email,
-        password: hashedPassword,
-        profileImg: "https://static.vecteezy.com/system/resources/previews/020/911/740/non_2x/user-profile-icon-profile-avatar-user-icon-male-icon-face-icon-profile-icon-free-png.png"
+            transporterName,
+            ownerName,
+            contactNo,
+            email,
+            password: hashedPassword,
+            address: JSON.parse(address),
+            registrationNumber,
+            documents: {
+                idProof: files.idProof[0].path,
+                businessLicense: files.businessLicense[0].path,
+                gstCertificate: files.gstCertificate[0].path
+            },
+            profileImg: "https://static.vecteezy.com/system/resources/previews/020/911/740/non_2x/user-profile-icon-profile-avatar-user-icon-male-icon-face-icon-profile-icon-free-png.png"
         });
-        await newTransporter.save();
 
         const token = newTransporter.generateAuthToken();
         res.cookie("jwt", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "Strict",
         });
+
         await sendTransporterWelcomeEmail(email, transporterName);
-        await sendWhatsAppRegistration(newTransporter.phone, newTransporter.transporterName, "transporter");
+        await sendWhatsAppRegistration(newTransporter.contactNo, newTransporter.transporterName, "transporter");
+
         res.status(201).json({
-        message: "Transporter registered successfully",
-        newTransporter,
+            message: "Transporter registered successfully",
+            newTransporter,
         });
+
     } catch (err) {
-        console.log("Error in registerTransporterController:", err.message);
+        console.error("Error in registerTransporterController:", err);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };

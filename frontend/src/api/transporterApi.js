@@ -6,7 +6,7 @@ export const registerTransporter = async (transporterRegisterData) => {
         return res.data;
     }
     catch(err){
-        console.log("Erorr in registerTransporter: ", err.message);
+        console.log("Erorr in registerTransporter: ", err);
     }
 }
 
