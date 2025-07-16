@@ -12,7 +12,7 @@ import { logoutCompany } from '../api/companyApi';
 import { logoutTransporter } from '../api/transporterApi';
 import { logoutDriver } from '../api/driverApi';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useUserStore } from '../store/userUserStore';
+import { useUserStore } from '../store/useUserStore';
 
 const Navbar = () => {
     const { data: userProfile, isLoading } = useUserProfile();
@@ -143,7 +143,7 @@ const Navbar = () => {
                                     <ul className="absolute top-12 right-0 w-48 bg-gray-200 shadow-lg rounded-md text-black text-sm z-50">
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <FaUser />
-                                            <Link to={`/profile`}>Profile</Link>
+                                            <Link to={`/${role}/profile`}>Profile</Link>
                                         </li>
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <RiDashboardFill />

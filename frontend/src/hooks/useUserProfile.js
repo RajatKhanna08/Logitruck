@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { axiosInstance } from '../lib/axios.js';
-import { useUserStore } from '../store/userUserStore.js';
+import { useUserStore } from '../store/useUserStore.js';
 
 const fetchUserProfile = async () => {
     const endpoints = [

@@ -90,6 +90,11 @@ const AppWrapper = () => {
                     <Route path='/notifications' element={<NotificationPage />} />
                     <Route path='/price-estimator' element={<PriceEstimator />} />
 
+                    {/* TEMPORARY ROUTES FOR TESTING */}
+                    <Route path='/trans-prof' element={<TransporterProfile />} />
+                    <Route path='/driver-prof' element={<DriverProfile />} />
+                    <Route path='/driver-dash' element={<DriverDashboard />} />
+
 
                     {/* Protected Dashboards */}
                     <Route path='/dashboard' element={

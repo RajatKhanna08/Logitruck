@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useUserStore } from "../../store/userUserStore"
+import { useUserStore } from "../../store/useUserStore.js"
 import { useNavigate } from "react-router-dom";
 import { getCompanyProfile, loginCompany, registerCompany } from "../../api/companyApi.js";
 

@@ -7,7 +7,7 @@ import { HiIdentification } from 'react-icons/hi';
 import { MdUploadFile } from 'react-icons/md';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getDriverProfile, loginDriver, registerDriver } from '../../api/driverApi';
-import { useUserStore } from '../../store/userUserStore';
+import { useUserStore } from '../../store/useUserStore';
 
 const DriverLoginSignup = () => {
     const queryClient = useQueryClient();
