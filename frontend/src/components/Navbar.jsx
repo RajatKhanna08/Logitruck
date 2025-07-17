@@ -155,7 +155,7 @@ const Navbar = () => {
                                         </li>
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <FiPackage />
-                                            <Link to={`/orders`}>View Orders</Link>
+                                            <Link to={`/orders/all`}>View Orders</Link>
                                         </li>
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <IoNotifications />

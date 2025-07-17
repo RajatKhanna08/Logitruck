@@ -33,6 +33,8 @@ import PriceEstimator from './pages/PriceEstimator';
 import BookOrderPage from './pages/orders/BookOrderPage';
 import ViewTrucks from './pages/ViewTrucks';
 import BiddingPage from './pages/BiddingPage';
+import AllOrdersPage from './pages/orders/AllOrdersPage';
+import OrderDetailsPage from './pages/orders/OrderDetailsPage';
 
 // // SHARED ORDER ROUTES
 // import BookOrderPage from './pages/orders/BookOrderPage';
@@ -96,6 +98,7 @@ const AppWrapper = () => {
                     <Route path='/price-estimator' element={<PriceEstimator />} />
 
                     {/* TEMPORARY ROUTES FOR TESTING */}
+                    <Route path='/comp-dash' element={<CompanyDashboard />} />
                     <Route path='/trans-prof' element={<TransporterProfile />} />
                     <Route path='/driver-prof' element={<DriverProfile />} />
                     <Route path='/driver-dash' element={<DriverDashboard />} />
@@ -103,7 +106,7 @@ const AppWrapper = () => {
                     <Route path='/bids' element={<BiddingPage />} />
 
                     {/* Protected Dashboards */}
-                    <Route path='/dashboard' element={
+                    <Route path='/company/dashboard' element={
                         <ProtectedRoute role={role} allowedRoles={['company']}>
                             <CompanyDashboard />
                         </ProtectedRoute>
@@ -156,7 +159,7 @@ const AppWrapper = () => {
                         <ProtectedRoute role={role} allowedRoles={['company', 'transporter', 'driver', 'admin']}>
                             <TrackOrderPage />
                         </ProtectedRoute>
-                    } />
+                    } /> */}
                     <Route path='/orders/all' element={
                         <ProtectedRoute role={role} allowedRoles={['company', 'admin', 'transporter']}>
                             <AllOrdersPage />
@@ -166,7 +169,7 @@ const AppWrapper = () => {
                         <ProtectedRoute role={role} allowedRoles={['company', 'admin', 'transporter', 'driver']}>
                             <OrderDetailsPage />
                         </ProtectedRoute>
-                    } /> */}
+                    } />
                 </Routes>
             </div>
 
