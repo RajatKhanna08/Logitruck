@@ -101,8 +101,10 @@ export const loginTransporterController = async (req, res) => {
 
         const token = existingTransporter.generateAuthToken();
         res.cookie("jwt", token);
+
         await sendTransporterLoginEmail(email, existingTransporter.transporterName);
-        await sendWhatsAppLogin(existingTransporter.phone, existingTransporter.transporterName, "transporter");
+        await sendWhatsAppLogin(existingTransporter.contactNo, existingTransporter.transporterName, "transporter");
+        
         res.status(200).json({ message: "Logged in Successfully" });
     } catch (err) {
         console.log("Error in loginTransporterController: ", err.message);
