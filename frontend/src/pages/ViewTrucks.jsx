@@ -42,7 +42,7 @@ const ViewTrucks = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-yellow-50 to-blue-200 p-6">
-      <h1 className="text-3xl font-bold text-center text-blue-800 mb-6">🚛 View Available Trucks</h1>
+      <h1 className="text-3xl mt-28 font-bold text-center text-blue-800 mb-6">View Available Trucks</h1>
 
       {/* Search & Filter */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
@@ -99,7 +99,7 @@ const ViewTrucks = () => {
 
       {/* Modal */}
       {selectedTruck && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-40 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
             <h2 className="text-xl font-bold text-blue-700 mb-2">{selectedTruck.name}</h2>
             <p className="text-sm text-gray-700 mb-1"><strong>Size:</strong> {selectedTruck.size}</p>

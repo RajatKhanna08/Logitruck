@@ -31,6 +31,8 @@ import CommunityCenterPage from './pages/CommunityCenterPage';
 import NotificationPage from './pages/NotificationPage';
 import PriceEstimator from './pages/PriceEstimator';
 import BookOrderPage from './pages/orders/BookOrderPage';
+import ViewTrucks from './pages/ViewTrucks';
+import BiddingPage from './pages/BiddingPage';
 
 // // SHARED ORDER ROUTES
 // import BookOrderPage from './pages/orders/BookOrderPage';
@@ -97,7 +99,8 @@ const AppWrapper = () => {
                     <Route path='/trans-prof' element={<TransporterProfile />} />
                     <Route path='/driver-prof' element={<DriverProfile />} />
                     <Route path='/driver-dash' element={<DriverDashboard />} />
-
+                    <Route path='/view-trucks' element={<ViewTrucks />} />
+                    <Route path='/bids' element={<BiddingPage />} />
 
                     {/* Protected Dashboards */}
                     <Route path='/dashboard' element={

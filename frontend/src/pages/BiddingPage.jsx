@@ -44,8 +44,8 @@ const BiddingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-yellow-100 to-blue-200 p-6">
-      <h1 className="text-3xl font-bold text-center text-blue-800 mb-6">
-        🚚 Live Transport Bidding
+      <h1 className="text-3xl mt-30 font-bold text-center text-blue-800 mb-6">
+        Live Transport Bidding
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -75,7 +75,7 @@ const BiddingPage = () => {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-30 flex justify-center items-center z-50">
           <div className="bg-white w-full max-w-md rounded-xl p-6 shadow-lg relative">
             <h2 className="text-xl font-bold text-blue-700 mb-2">
               Edit Bid – {selectedBid.company}
