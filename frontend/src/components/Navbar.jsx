@@ -113,7 +113,9 @@ const Navbar = () => {
 
                 {/* Right - Auth or User Options */}
                 <ul className={`list-none text-white flex gap-5 text-lg font-medium select-none text-right ${isLoggedIn ? "h-11 items-center" : "ml-173"}`}>
-                    {!isLoggedIn ? (
+
+                    {/* UPPER SECTION WHEN NO ONE IS LOGGED IN */}
+                    {!isLoggedIn &&
                         <>
                             <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'><FaPhone /> +91 1234567890</li>
                             <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'><IoMail /> logitruck@gmail.com</li>
@@ -122,7 +124,9 @@ const Navbar = () => {
                                 <Link to="/role-select">Join Us</Link>
                             </li>
                         </>
-                    ) : (
+                    }
+                    {/* UPPER SECTION FOR COMPANY WHEN LOGGED IN */}
+                    { isLoggedIn && role === "company" &&
                         <div className="flex items-center gap-8 relative">
                             <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
                                 <FaClipboardList />
@@ -168,7 +172,105 @@ const Navbar = () => {
                                 )}
                             </div>
                         </div>
-                    )}
+                    }
+
+                    {/* UPPER SECTION WHEN TRANSPORTER IS LOGGED IN */}
+                    { isLoggedIn && role === "transporter" &&
+                        <div className="flex items-center gap-8 relative">
+                            <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
+                                <FaClipboardList />
+                                <Link to={`/price-estimator`}>AI PRICE ESTIMATOR</Link>
+                            </li>
+                            <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
+                                <FaClipboardList />
+                                <Link to={`/orders/book`}>Book Order</Link>
+                            </li>
+                            <div className="relative" ref={dropdownRef}>
+                                <img
+                                    src={userProfile.role === "company" ? userProfile.company.profileImg : userProfile.transporter.profileImg}
+                                    alt="Profile"
+                                    className="w-10 h-10 rounded-full bg-white object-cover border-2 border-yellow-300 cursor-pointer"
+                                    onClick={toggleDropdown}
+                                />
+                                {showDropdown && (
+                                    <ul className="absolute top-12 right-0 w-48 bg-gray-200 shadow-lg rounded-md text-black text-sm z-50">
+                                        <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
+                                            <FaUser />
+                                            <Link to={`/${role}/profile`}>Profile</Link>
+                                        </li>
+                                        <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
+                                            <RiDashboardFill />
+                                            <Link to={`/dashboard`}>Dashboard</Link>
+                                        </li>
+                                        <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
+                                            <FiPackage />
+                                            <Link to={`/orders`}>View Orders</Link>
+                                        </li>
+                                        <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
+                                            <IoNotifications />
+                                            <Link to={`/notifications`}>Notifications</Link>
+                                        </li>
+                                        <li
+                                            className="px-4 py-2 text-red-500 hover:bg-red-100 hover:rounded-md flex items-center gap-2 cursor-pointer"
+                                            onClick={handleLogout}
+                                        >
+                                            <FiLogOut />
+                                            Logout
+                                        </li>
+                                    </ul>
+                                )}
+                            </div>
+                        </div>
+                    }
+
+                    {/* UPPER SECTION WHEN DRIVER IS LOGGED IN */}
+                    { isLoggedIn && role === "driver" &&
+                        <div className="flex items-center gap-8 relative">
+                            <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
+                                <FaClipboardList />
+                                <Link to={`/price-estimator`}>AI PRICE ESTIMATOR</Link>
+                            </li>
+                            <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
+                                <FaClipboardList />
+                                <Link to={`/orders/book`}>Book Order</Link>
+                            </li>
+                            <div className="relative" ref={dropdownRef}>
+                                <img
+                                    src={userProfile.role === "company" ? userProfile.company.profileImg : userProfile.transporter.profileImg}
+                                    alt="Profile"
+                                    className="w-10 h-10 rounded-full bg-white object-cover border-2 border-yellow-300 cursor-pointer"
+                                    onClick={toggleDropdown}
+                                />
+                                {showDropdown && (
+                                    <ul className="absolute top-12 right-0 w-48 bg-gray-200 shadow-lg rounded-md text-black text-sm z-50">
+                                        <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
+                                            <FaUser />
+                                            <Link to={`/${role}/profile`}>Profile</Link>
+                                        </li>
+                                        <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
+                                            <RiDashboardFill />
+                                            <Link to={`/dashboard`}>Dashboard</Link>
+                                        </li>
+                                        <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
+                                            <FiPackage />
+                                            <Link to={`/orders`}>View Orders</Link>
+                                        </li>
+                                        <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
+                                            <IoNotifications />
+                                            <Link to={`/notifications`}>Notifications</Link>
+                                        </li>
+                                        <li
+                                            className="px-4 py-2 text-red-500 hover:bg-red-100 hover:rounded-md flex items-center gap-2 cursor-pointer"
+                                            onClick={handleLogout}
+                                        >
+                                            <FiLogOut />
+                                            Logout
+                                        </li>
+                                    </ul>
+                                )}
+                            </div>
+                        </div>
+                    }
                 </ul>
                 </div>
 
