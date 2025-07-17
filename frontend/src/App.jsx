@@ -34,6 +34,7 @@ import BookOrderPage from './pages/orders/BookOrderPage';
 import ViewTrucks from './pages/ViewTrucks';
 import BiddingPage from './pages/BiddingPage';
 import AllOrdersPage from './pages/orders/AllOrdersPage';
+import OrderDetailsPage from './pages/orders/OrderDetailsPage';
 
 // // SHARED ORDER ROUTES
 // import BookOrderPage from './pages/orders/BookOrderPage';
@@ -164,11 +165,11 @@ const AppWrapper = () => {
                             <AllOrdersPage />
                         </ProtectedRoute>
                     } />
-                    {/* <Route path='/orders/:orderId' element={
+                    <Route path='/orders/:orderId' element={
                         <ProtectedRoute role={role} allowedRoles={['company', 'admin', 'transporter', 'driver']}>
                             <OrderDetailsPage />
                         </ProtectedRoute>
-                    } /> */}
+                    } />
                 </Routes>
             </div>
 

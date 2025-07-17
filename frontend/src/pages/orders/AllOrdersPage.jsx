@@ -1,7 +1,8 @@
 import { FaTruck, FaMoneyBillWave, FaClock, FaBoxOpen, FaMapMarkedAlt } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const AllOrdersPage = () => {
-    
+    const navigate = useNavigate();
 
     const companyOrdersData = [
         {
@@ -105,7 +106,7 @@ const AllOrdersPage = () => {
         {companyOrdersData.map((order) => (
           <div
             key={order._id}
-            onClick={() => navigate}
+            onClick={() => navigate(`/orders/${order._id}`)}
             className="bg-white cursor-pointer rounded-lg shadow-md border border-gray-200 hover:shadow-xl transition-all duration-300"
           >
             <div className="p-5 flex flex-col gap-2">
