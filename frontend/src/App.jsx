@@ -45,11 +45,12 @@ const ProtectedRoute = ({ children, allowedRoles, role }) => {
     return <Navigate to="/" />;
 };
 
+
 const AppWrapper = () => {
     const location = useLocation();
     const isHome = location.pathname === "/";
     const [showIntro, setShowIntro] = useState(false);
-
+    
     //global states
     const { data: userProfile, isLoading } = useUserProfile();
     const role = userProfile?.role;
@@ -63,13 +64,15 @@ const AppWrapper = () => {
         sessionStorage.setItem("homeIntroSeen", "true");
         setShowIntro(false);
     };
-
-    //pageloader
-    if (isLoading) return <PageLoader />;
+    
+    // PAGE LOADER
+    if(isLoading) return <PageLoader />
 
     return (
         <div className={`relative w-full h-full ${showIntro ? 'overflow-hidden' : ''}`}>
+
             <div className="relative z-0">
+                {/* NAVBAR VALIDATIONS */}
                 {!["/company/register", "/transporter/register", "/driver/register", "/admin/login", "/role-select"].includes(location.pathname) && <Navbar />}
 
                 <Routes>

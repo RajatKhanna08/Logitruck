@@ -7,6 +7,7 @@ import { HiOutlineIdentification } from 'react-icons/hi';
 import { TbMapPinCode } from "react-icons/tb";
 import { useNavigate } from 'react-router-dom';
 import { useLoginTransporter, useRegisterTransporter } from '../../hooks/roles/useTransporter';
+import PageLoader from '../../components/PageLoader';
 
 const TransporterLoginSignup = () => {
     const { mutate:registerTransporterMutation, isPending:isRegisterLoading } = useRegisterTransporter();
@@ -529,6 +530,8 @@ const TransporterLoginSignup = () => {
                     </div>
                 </div>
             </div>
+
+            {(isRegisterLoading || isLoginLoading) && <PageLoader />}
         </div>
     );
 };

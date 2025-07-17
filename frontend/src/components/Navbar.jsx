@@ -179,15 +179,15 @@ const Navbar = () => {
                         <div className="flex items-center gap-8 relative">
                             <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
                                 <FaClipboardList />
-                                <Link to={`/price-estimator`}>AI PRICE ESTIMATOR</Link>
+                                <Link to={`/bids`}>View Bids</Link>
                             </li>
                             <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
                                 <FaClipboardList />
-                                <Link to={`/orders/book`}>Book Order</Link>
+                                <Link to={`/transporter/dashboard`}>Dashboard</Link>
                             </li>
                             <div className="relative" ref={dropdownRef}>
                                 <img
-                                    src={userProfile.role === "company" ? userProfile.company.profileImg : userProfile.transporter.profileImg}
+                                    src={userProfile.transporter.profileImg}
                                     alt="Profile"
                                     className="w-10 h-10 rounded-full bg-white object-cover border-2 border-yellow-300 cursor-pointer"
                                     onClick={toggleDropdown}
@@ -200,11 +200,11 @@ const Navbar = () => {
                                         </li>
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <RiDashboardFill />
-                                            <Link to={`/dashboard`}>Dashboard</Link>
+                                            <Link to={`/${role}/dashboard`}>Dashboard</Link>
                                         </li>
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <FiPackage />
-                                            <Link to={`/orders`}>View Orders</Link>
+                                            <Link to={`/transporter/trucks`}>My Trucks</Link>
                                         </li>
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <IoNotifications />
@@ -228,15 +228,15 @@ const Navbar = () => {
                         <div className="flex items-center gap-8 relative">
                             <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
                                 <FaClipboardList />
-                                <Link to={`/price-estimator`}>AI PRICE ESTIMATOR</Link>
+                                <Link to={`/driver/bookings`}>View Bookings</Link>
                             </li>
                             <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
                                 <FaClipboardList />
-                                <Link to={`/orders/book`}>Book Order</Link>
+                                <Link to={`/${role}/dashboard`}>Dashboard</Link>
                             </li>
                             <div className="relative" ref={dropdownRef}>
                                 <img
-                                    src={userProfile.role === "company" ? userProfile.company.profileImg : userProfile.transporter.profileImg}
+                                    src={userProfile.driver.profileImg}
                                     alt="Profile"
                                     className="w-10 h-10 rounded-full bg-white object-cover border-2 border-yellow-300 cursor-pointer"
                                     onClick={toggleDropdown}
@@ -249,11 +249,11 @@ const Navbar = () => {
                                         </li>
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <RiDashboardFill />
-                                            <Link to={`/dashboard`}>Dashboard</Link>
+                                            <Link to={`/${role}/dashboard`}>Dashboard</Link>
                                         </li>
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <FiPackage />
-                                            <Link to={`/orders`}>View Orders</Link>
+                                            <Link to={`/driver/bookings`}>View Bookings</Link>
                                         </li>
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <IoNotifications />
