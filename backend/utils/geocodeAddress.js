@@ -6,7 +6,11 @@ export const geocodeAddress = async (address) => {
   }
 
   const apiKey = process.env.ORS_API_KEY;
-  const url = `https://api.openrouteservice.org/geocode/search`;
+  if (!apiKey) {
+    throw new Error("OpenRouteService API key is missing in environment variables");
+  }
+
+  const url = "https://api.openrouteservice.org/geocode/search";
 
   try {
     const response = await axios.get(url, {
@@ -17,18 +21,23 @@ export const geocodeAddress = async (address) => {
       },
     });
 
-    const features = response.data.features;
+    const features = response.data?.features || [];
+
     if (!features.length) {
-      throw new Error("Location not found");
+      throw new Error(`No results found for address: "${address}"`);
     }
 
+    const location = features[0];
+
     return {
-      coordinates: features[0].geometry.coordinates,
-      label: features[0].properties.label,
-      country: features[0].properties.country,
+      coordinates: location.geometry.coordinates,  
+      label: location.properties.label,
+      country: location.properties.country,
+      city: location.properties.locality || null,
+      region: location.properties.region || null,
     };
   } catch (error) {
-    console.error("Geocoding error:", error.message);
-    throw new Error("Failed to geocode address");
+    console.error("Geocoding error:", error.message || error);
+    throw new Error("Failed to geocode address. Please check the address format or try again.");
   }
 };

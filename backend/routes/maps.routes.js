@@ -10,6 +10,9 @@ import {
   updateDriverStatus,
   getDriverTripSummary,
   getOrderRouteHistory,
+  updateTripStatus,  
+  markStopAsReached,
+  getORSFullRoute
 } from '../controllers/maps.controller.js';
 
 const router = express.Router();
@@ -23,6 +26,10 @@ router.get('/history/:orderId',isLoggedIn,correctRole(['driver', 'company', 'tra
 router.get('/nearby-drivers/:lat/:lng',isLoggedIn,correctRole(['company', 'transporter', 'admin']),getNearbyDrivers);
 router.get('/eta/:fromLat/:fromLng/:toLat/:toLng',isLoggedIn,correctRole(['driver', 'company', 'transporter', 'admin']), calculateETA);
 router.put('/driver-status/:driverId',isLoggedIn,correctRole(['driver', 'admin']), updateDriverStatus);
-router.get('/summary/:driverId',isLoggedIn,correctRole(['driver', 'admin']), getDriverTripSummary);
+router.get('/summary/:driverId', isLoggedIn, correctRole(['driver', 'admin']), getDriverTripSummary);
+router.put('/trip-status/:orderId', isLoggedIn, correctRole(['driver', 'admin']), updateTripStatus);
+router.put('/reach-stop/:orderId', isLoggedIn, correctRole(['driver', 'admin']), markStopAsReached);
+router.post('/full-route', getORSFullRoute);
+// isLoggedIn, correctRole(['driver', 'company', 'transporter', 'admin'])
 
 export default router;

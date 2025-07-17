@@ -19,7 +19,11 @@ export const createOrderController = async (req, res) => {
       biddingExpiresAt,
       loadDetails,
       completedStops,
-      paymentMode
+      paymentMode,
+      urgency,
+      bodyTypeMultiplier,
+      sizeCategoryMultiplier,
+      isMultiStop
     } = req.body;
 
     if (!Array.isArray(dropLocations) || dropLocations.length === 0) {
@@ -31,31 +35,33 @@ export const createOrderController = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized access" });
     }
 
-    // STEP 1: Build coordinates list for full route
     const coordinates = [
       [parseFloat(pickupLocation.longitude), parseFloat(pickupLocation.latitude)],
       ...dropLocations.map(loc => [parseFloat(loc.longitude), parseFloat(loc.latitude)])
     ];
 
-    // STEP 2: Get full route using ORS
     const routeData = await getORSRoute(coordinates);
 
-    // STEP 3: Create the order with route info
     const newOrder = await orderModel.create({
       customerId: companyId,
       pickupLocation,
       dropLocations,
       scheduleAt: scheduledAt || null,
-      isBiddingEnabled: isBiddingEnabled ? true : false,
+      isBiddingEnabled: isBiddingEnabled ?? true,
       biddingExpiresAt: biddingExpiresAt || null,
       loadDetails,
       completedStops,
+      paymentMode,
+      urgency: urgency || "low",
+      bodyTypeMultiplier: bodyTypeMultiplier || 1,
+      sizeCategoryMultiplier: sizeCategoryMultiplier || 1,
+      isMultiStop: isMultiStop ?? dropLocations.length > 1,
       distance: parseFloat(routeData.distanceInKm),
       duration: parseFloat(routeData.durationInMin),
       fare: 0,
-      paymentMode,
       currentStatus: "pending",
       status: "pending",
+      tripStatus: "Heading to Pickup",
       routeInfo: {
         polyline: routeData.polyline,
         estimatedDistance: routeData.distanceInKm,
@@ -68,7 +74,7 @@ export const createOrderController = async (req, res) => {
     console.error("Error in createOrderController:", err.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
-};
+};  
 
 export const uploadEwayBillController = async (req, res) => {
     try {
@@ -386,72 +392,79 @@ export const getDriverHistoryController = async (req, res) => {
 };
 
 export const updateOrderStatusController = async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const driverId = req.user?._id;
-        const { orderId } = req.params;
-        const { status } = req.body;
-
-        if (!driverId) {
-            return res.status(401).json({ message: "Unauthorized access" });
-        }
-
-        const order = await orderModel.findOne({ _id: orderId, acceptedDriverId: driverId });
-        if (!order) {
-            return res.status(404).json({ message: "No order found" });
-        }
-
-        let newStatus = order.status;
-        let currentStatus = order.currentStatus;
-        let deliveryTimeline = { ...order.deliveryTimeline };
-
-        const now = new Date();
-
-        switch (status) {
-            case "arrived":
-                newStatus = "pending";
-                currentStatus = "in-progress";
-                deliveryTimeline.startedAt = deliveryTimeline.startedAt || now;
-                deliveryTimeline.lastknownProgress = "in-progress";
-                break;
-
-            case "loaded":
-                newStatus = "in_transit";
-                currentStatus = "in-progress";
-                deliveryTimeline.lastknownProgress = "in-progress";
-                break;
-
-            case "reached":
-                newStatus = "in_transit";
-                currentStatus = "in-progress";
-                break;
-
-            case "unloaded":
-                newStatus = "delivered";
-                currentStatus = "delivered";
-                deliveryTimeline.completedAt = now;
-                deliveryTimeline.lastknownProgress = "delivered";
-                break;
-
-            default:
-                return res.status(400).json({ message: "Invalid status update" });
-        }
-
-        order.status = newStatus;
-        order.currentStatus = currentStatus;
-        order.deliveryTimeline = deliveryTimeline;
-
-        await order.save();
-        res.status(200).json({ message: "Order status updated successfully", updatedOrder: order });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
-    catch (err) {
-        console.log("Error in updateOrderStatusController: ", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+
+    const driverId = req.user?._id;
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    if (!driverId) {
+      return res.status(401).json({ message: "Unauthorized access" });
     }
+
+    const order = await orderModel.findOne({ _id: orderId, acceptedDriverId: driverId });
+    if (!order) {
+      return res.status(404).json({ message: "No order found" });
+    }
+
+    let newStatus = order.status;
+    let currentStatus = order.currentStatus;
+    let tripStatus = order.tripStatus;
+    let deliveryTimeline = { ...order.deliveryTimeline };
+    const now = new Date();
+
+    switch (status) {
+      case "arrived":
+        if (order.status !== "pending") {
+          return res.status(400).json({ message: "Invalid status transition" });
+        }
+        tripStatus = "Arrived at Pickup";
+        currentStatus = "in-progress";
+        deliveryTimeline.startedAt = deliveryTimeline.startedAt || now;
+        deliveryTimeline.lastknownProgress = "in-progress";
+        break;
+
+      case "loaded":
+        if (order.tripStatus !== "Arrived at Pickup") {
+          return res.status(400).json({ message: "Cannot load before arriving at pickup" });
+        }
+        newStatus = "in_transit";
+        tripStatus = "In Transit";
+        currentStatus = "in-progress";
+        deliveryTimeline.lastknownProgress = "in-progress";
+        break;
+
+      case "reached":
+        tripStatus = "At Stop";
+        break;
+
+      case "unloaded":
+        newStatus = "delivered";
+        currentStatus = "delivered";
+        tripStatus = "Delivered";
+        deliveryTimeline.completedAt = now;
+        deliveryTimeline.lastknownProgress = "delivered";
+        break;
+
+      default:
+        return res.status(400).json({ message: "Invalid status update" });
+    }
+
+    order.status = newStatus;
+    order.currentStatus = currentStatus;
+    order.tripStatus = tripStatus;
+    order.deliveryTimeline = deliveryTimeline;
+
+    await order.save();
+    res.status(200).json({ message: "Order status updated successfully", updatedOrder: order });
+  } catch (err) {
+    console.log("Error in updateOrderStatusController: ", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const cancelOrderController = async (req, res) => {
