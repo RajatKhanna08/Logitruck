@@ -1,190 +1,286 @@
-import React, { useState } from 'react';
-import {
-    FaTruck, FaUserTie, FaPhoneAlt, FaRegEdit, FaClipboardList,
-    FaStar, FaIdCard, FaFileInvoice, FaMapMarkerAlt
-} from 'react-icons/fa';
-import { MdEmail } from 'react-icons/md';
-import { IoIosCloseCircle } from 'react-icons/io';
+import React, { useState } from "react";
+import { IoClose } from "react-icons/io5";
+import { FaTruck, FaUserTie, FaEnvelope, FaPhone, FaIdBadge } from "react-icons/fa";
+import { MdLocationOn } from "react-icons/md";
+import { useUserProfile } from "../../hooks/useUserProfile";
 
-// 🔸 Mock Transporter Data
 const mockTransporter = {
-    transporterName: "Sanjeev Logistics Pvt. Ltd.",
-    ownerName: "Sanjeev Yadav",
-    profileImg: "https://i.pravatar.cc/150?img=12",
-    contactNo: 9876543210,
-    email: "sanjeevlogistics@example.com",
-    registrationNumber: "REG-T12345678",
-    rating: 4.3,
-    fleetSize: 6,
-    address: {
-        street: "Plot 18, Transport Nagar",
-        city: "Gurugram",
-        state: "Haryana",
-        pincode: 122001,
-        country: "India",
-        landmark: "Near Highway Toll"
-    },
-    documents: {
-        idProof: "AadharCard123.pdf",
-        businessLicense: "License456.pdf",
-        gstCertificate: "GST789.pdf"
-    },
-    assignedBookings: [
-        { orderId: "ORD001", pickup: "Bhiwadi", drop: "Indore", date: "2025-07-10", status: "Assigned" },
-        { orderId: "ORD002", pickup: "Noida", drop: "Mumbai", date: "2025-07-12", status: "Delivered" }
-    ],
-    assignedDrivers: [
-        { name: "Rakesh Sharma", truck: "Mahindra Blazo 28", phone: "9876543201" },
-        { name: "Sunil Kumar", truck: "Tata Prima LX", phone: "9876543202" }
-    ],
-    bids: [
-        { orderId: "ORD101", amount: 23000, status: "Won" },
-        { orderId: "ORD102", amount: 21500, status: "Lost" },
-        { orderId: "ORD103", amount: 24900, status: "Won" }
-    ]
+  transporterName: "Speedy Movers Pvt. Ltd.",
+  ownerName: "Rajeev Mehra",
+  email: "speedy.movers@example.com",
+  contactNo: "+91 9876543210",
+  registrationNumber: "GJ12AB1234",
+  address: {
+    street: "NH-48 Industrial Zone",
+    city: "Ahmedabad",
+    state: "Gujarat",
+    pincode: "382445",
+    country: "India",
+    landmark: "Near Toll Plaza",
+  },
 };
+
+const mockTrucks = [
+  {
+    truckNumber: "GJ01X1234",
+    driver: {
+      name: "Ajay Sharma",
+      phone: "+91 9001234567",
+      email: "ajay.driver@example.com",
+    },
+  },
+  {
+    truckNumber: "GJ02Y5678",
+    driver: {
+      name: "Suresh Kumar",
+      phone: "+91 9812345678",
+      email: "suresh.driver@example.com",
+    },
+  },
+];
+
+const mockBids = [
+  { orderId: "ORD-1001", amount: "₹ 12,500", status: "Won" },
+  { orderId: "ORD-1012", amount: "₹ 9,800", status: "Won" },
+];
 
 const TransporterProfile = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const transporter = mockTransporter;
+    const { data: userProfile, isLoading } = useUserProfile();
+    const transporter = userProfile.transporter;
+    
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [formData, setFormData] = useState({ ...mockTransporter });
 
-    return (
-        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-yellow-50 px-6 py-10">
-            {/* Profile Header */}
-            <div className="bg-white mt-25 shadow-lg rounded-2xl p-8 mb-10 grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-                <div className="flex flex-col items-center">
-                    <img
-                        src={transporter.profileImg}
-                        alt="Profile"
-                        className="w-36 h-36 rounded-full border-4 border-yellow-500 object-cover"
-                    />
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="mt-4 flex items-center gap-2 text-sm font-semibold text-blue-600 hover:underline"
-                    >
-                        <FaRegEdit /> Update Profile
-                    </button>
-                </div>
-                <div className="md:col-span-2 grid grid-cols-2 gap-4 text-gray-800">
-                    <div><strong>Name:</strong> {transporter.transporterName}</div>
-                    <div><strong>Owner:</strong> {transporter.ownerName}</div>
-                    <div className="flex items-center gap-2"><MdEmail /> {transporter.email}</div>
-                    <div className="flex items-center gap-2"><FaPhoneAlt /> {transporter.contactNo}</div>
-                    <div className="flex items-center gap-2"><FaMapMarkerAlt /> {`${transporter.address.city}, ${transporter.address.state}, ${transporter.address.country}`}</div>
-                    <div><strong>Fleet Size:</strong> {transporter.fleetSize}</div>
-                    <div className="flex items-center gap-2"><FaStar className="text-yellow-500" /> {transporter.rating}</div>
-                    <div><strong>Reg. Number:</strong> {transporter.registrationNumber}</div>
-                </div>
-            </div>
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name.startsWith("address.")) {
+      const addressField = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        address: {
+          ...prev.address,
+          [addressField]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
 
-            {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-                <StatCard title="Fleet Size" value={transporter.fleetSize} color="yellow" />
-                <StatCard title="Bids Placed" value={transporter.bids.length} color="blue" />
-                <StatCard title="Bids Won" value={transporter.bids.filter(b => b.status === "Won").length} color="green" />
-            </div>
-
-            {/* Assigned Drivers */}
-            <SectionCard title="Assigned Drivers & Trucks" icon={<FaTruck />}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {transporter.assignedDrivers.map((driver, i) => (
-                        <div key={i} className="bg-gray-100 p-4 rounded-xl shadow-sm">
-                            <div className="font-semibold text-lg">{driver.name}</div>
-                            <div className="text-sm text-gray-700">Truck: {driver.truck}</div>
-                            <div className="text-sm text-gray-700">Phone: {driver.phone}</div>
-                        </div>
-                    ))}
-                </div>
-            </SectionCard>
-
-            {/* Orders */}
-            <SectionCard title="Assigned Orders" icon={<FaClipboardList />}>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm text-left">
-                        <thead className="bg-blue-100 text-gray-800">
-                            <tr>
-                                <th className="px-4 py-2">Order ID</th>
-                                <th className="px-4 py-2">Pickup</th>
-                                <th className="px-4 py-2">Drop</th>
-                                <th className="px-4 py-2">Date</th>
-                                <th className="px-4 py-2">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {transporter.assignedBookings.map((order, i) => (
-                                <tr key={i} className="border-b hover:bg-gray-50">
-                                    <td className="px-4 py-2">{order.orderId}</td>
-                                    <td className="px-4 py-2">{order.pickup}</td>
-                                    <td className="px-4 py-2">{order.drop}</td>
-                                    <td className="px-4 py-2">{order.date}</td>
-                                    <td className="px-4 py-2 text-green-600">{order.status}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </SectionCard>
-
-            {/* Bidding Activity */}
-            <SectionCard title="Bidding Activity" icon={<FaClipboardList />}>
-                <ul className="space-y-3">
-                    {transporter.bids.map((bid, i) => (
-                        <li key={i} className="bg-gray-50 p-4 rounded-md shadow-sm flex justify-between items-center">
-                            <div><strong>{bid.orderId}</strong> — ₹{bid.amount}</div>
-                            <span className={`px-3 py-1 text-sm rounded-full ${bid.status === "Won" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                                {bid.status}
-                            </span>
-                        </li>
-                    ))}
-                </ul>
-            </SectionCard>
-
-            {/* Update Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-                    <div className="bg-white w-full max-w-xl p-6 rounded-xl relative">
-                        <button onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4 text-red-500 text-2xl">
-                            <IoIosCloseCircle />
-                        </button>
-                        <h2 className="text-xl font-bold mb-4 text-blue-800">Update Transporter Profile</h2>
-                        <form className="space-y-4">
-                            <input type="text" placeholder="Transporter Name" className="w-full p-2 border rounded" />
-                            <input type="text" placeholder="Owner Name" className="w-full p-2 border rounded" />
-                            <input type="email" placeholder="Email" className="w-full p-2 border rounded" />
-                            <input type="text" placeholder="Contact Number" className="w-full p-2 border rounded" />
-                            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">
-                                Save Changes
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
+  return (
+    <div className="p-6 bg-gray-100 min-h-screen">
+      {/* Profile Header */}
+      <div className="grid grid-cols-3 gap-6 mt-20 bg-white p-6 rounded-xl shadow-lg mb-6">
+        {/* Left: Basic Info */}
+        <div className="col-span-2 flex flex-col gap-4">
+          <h2 className="text-2xl font-bold text-blue-800">Transporter Profile</h2>
+          <div className="flex items-center gap-3">
+            <FaUserTie className="text-gray-500" />
+            <span className="font-semibold">{transporter.transporterName}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <FaIdBadge className="text-gray-500" />
+            <span>{transporter.ownerName}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <FaPhone className="text-gray-500" />
+            <span>{transporter.contactNo}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <FaEnvelope className="text-gray-500" />
+            <span>{transporter.email}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <MdLocationOn className="text-gray-500" />
+            <span>
+              {transporter.address.street}, {transporter.address.city}, {transporter.address.state} -{" "}
+              {transporter.address.pincode}
+            </span>
+          </div>
         </div>
-    );
-};
 
-// 🔹 Reusable Stat Card
-const StatCard = ({ title, value, color }) => {
-    const colorMap = {
-        yellow: 'bg-yellow-100 border-yellow-500 text-yellow-700',
-        blue: 'bg-blue-100 border-blue-500 text-blue-700',
-        green: 'bg-green-100 border-green-500 text-green-700',
-    };
-
-    return (
-        <div className={`p-6 rounded-xl border-l-4 shadow-sm ${colorMap[color]}`}>
-            <div className="text-xl font-semibold">{title}</div>
-            <div className="text-3xl font-bold mt-2">{value}</div>
+        {/* Right: Profile Meta */}
+        <div className="flex flex-col justify-between">
+          <div className="self-end">
+            <button
+              onClick={() => setShowUpdateModal(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            >
+              Edit Profile
+            </button>
+          </div>
+          <div className="mt-10 text-sm text-gray-700">
+            <p><strong>Registration No:</strong> {transporter.registrationNumber}</p>
+            <p><strong>Country:</strong> {transporter.address.country}</p>
+            <p><strong>Landmark:</strong> {transporter.address.landmark}</p>
+          </div>
         </div>
-    );
-};
+      </div>
 
-// 🔹 Section Wrapper
-const SectionCard = ({ title, icon, children }) => (
-    <div className="bg-white rounded-2xl shadow-lg p-6 mb-10">
-        <h3 className="text-xl font-bold mb-4 text-blue-800 flex items-center gap-2">{icon} {title}</h3>
-        {children}
+      {/* Trucks + Drivers */}
+      <div className="bg-white p-6 rounded-xl shadow-lg mb-6">
+        <h3 className="text-xl font-semibold mb-4 text-blue-800">Assigned Trucks & Drivers</h3>
+        <div className="grid md:grid-cols-2 gap-6">
+          {mockTrucks.map((truck, index) => (
+            <div
+              key={index}
+              className="border p-4 rounded-lg bg-gray-50 shadow-sm flex flex-col gap-2"
+            >
+              <div className="flex items-center gap-2 text-blue-700 font-semibold">
+                <FaTruck />
+                <span>Truck No: {truck.truckNumber}</span>
+              </div>
+              <div className="text-sm pl-6 text-gray-700">
+                <p><strong>Driver:</strong> {truck.driver.name}</p>
+                <p><strong>Phone:</strong> {truck.driver.phone}</p>
+                <p><strong>Email:</strong> {truck.driver.email}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bids Section */}
+      <div className="bg-white p-6 rounded-xl shadow-lg">
+        <h3 className="text-xl font-semibold mb-4 text-blue-800">Bids Won</h3>
+        <table className="w-full text-left border border-gray-300 rounded-lg overflow-hidden">
+          <thead className="bg-blue-100 text-gray-700">
+            <tr>
+              <th className="px-4 py-2">Order ID</th>
+              <th className="px-4 py-2">Bid Amount</th>
+              <th className="px-4 py-2">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {mockBids.map((bid, index) => (
+              <tr key={index} className="border-t">
+                <td className="px-4 py-2">{bid.orderId}</td>
+                <td className="px-4 py-2">{bid.amount}</td>
+                <td className="px-4 py-2 text-green-600 font-medium">{bid.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Update Modal */}
+      {showUpdateModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-3xl relative">
+            <button
+              onClick={() => setShowUpdateModal(false)}
+              className="absolute top-3 right-3 text-red-500 text-xl"
+            >
+              <IoClose />
+            </button>
+            <h3 className="text-xl font-bold mb-4 text-blue-800">Edit Transporter Profile</h3>
+            <form className="grid grid-cols-2 gap-4">
+              <input
+                type="text"
+                name="transporterName"
+                value={transporter.transporterName}
+                onChange={handleChange}
+                className="border p-2 rounded"
+                placeholder="Transporter Name"
+              />
+              <input
+                type="text"
+                name="ownerName"
+                value={transporter.ownerName}
+                onChange={handleChange}
+                className="border p-2 rounded"
+                placeholder="Owner Name"
+              />
+              <input
+                type="email"
+                name="email"
+                value={transporter.email}
+                onChange={handleChange}
+                className="border p-2 rounded"
+                placeholder="Email"
+              />
+              <input
+                type="text"
+                name="contactNo"
+                value={transporter.contactNo}
+                onChange={handleChange}
+                className="border p-2 rounded"
+                placeholder="Phone"
+              />
+              <input
+                type="text"
+                name="registrationNumber"
+                value={transporter.registrationNumber}
+                onChange={handleChange}
+                className="border p-2 rounded"
+                placeholder="Registration No."
+              />
+              <input
+                type="text"
+                name="address.street"
+                value={transporter.address.street}
+                onChange={handleChange}
+                className="border p-2 rounded"
+                placeholder="Street"
+              />
+              <input
+                type="text"
+                name="address.city"
+                value={transporter.address.city}
+                onChange={handleChange}
+                className="border p-2 rounded"
+                placeholder="City"
+              />
+              <input
+                type="text"
+                name="address.state"
+                value={transporter.address.state}
+                onChange={handleChange}
+                className="border p-2 rounded"
+                placeholder="State"
+              />
+              <input
+                type="text"
+                name="address.pincode"
+                value={transporter.address.pincode}
+                onChange={handleChange}
+                className="border p-2 rounded"
+                placeholder="Pincode"
+              />
+              <input
+                type="text"
+                name="address.country"
+                value={transporter.address.country}
+                onChange={handleChange}
+                className="border p-2 rounded"
+                placeholder="Country"
+              />
+              <input
+                type="text"
+                name="address.landmark"
+                value={transporter.address.landmark}
+                onChange={handleChange}
+                className="border p-2 rounded"
+                placeholder="Landmark"
+              />
+              <div className="col-span-2 text-right">
+                <button
+                  type="button"
+                  onClick={() => setShowUpdateModal(false)}
+                  className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
-);
+  );
+};
 
 export default TransporterProfile;

@@ -6,6 +6,7 @@ import IntroLoader from './components/IntroLoader';
 import HomePage from './pages/HomePage';
 import ServicePage from './pages/ServicePage';
 import ContactUsPage from './pages/ContactUsPage';
+import AboutUsPage from './pages/AboutUsPage';
 
 import CompanyLoginSignup from './pages/auth/CompanyLoginSignup';
 import TransporterLoginSignup from './pages/auth/TransporterLoginSignup';
@@ -89,6 +90,7 @@ const AppWrapper = () => {
                     <Route path='/contact' element={<ContactUsPage />} />
                     <Route path='/help-centre' element={<HelpCentrePage />} />
                     <Route path='/community' element={<CommunityCenterPage />} />
+                    <Route path='/about' element={<AboutUsPage />} />
                     <Route path='/role-select' element={<RoleSelectorPage />} />
                     <Route path='/admin/login' element={<AdminLogin />} />
                     <Route path='/company/register' element={<CompanyLoginSignup />} />

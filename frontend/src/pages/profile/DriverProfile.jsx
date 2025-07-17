@@ -1,122 +1,152 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-    FaPhone, FaEnvelope, FaMapMarkerAlt, FaTruckMoving, FaRoad, FaClock, FaCalendarAlt, FaFileAlt, FaInfoCircle
+    FaPhone, FaEnvelope, FaMapMarkerAlt, FaTruckMoving, FaRoad, FaClock,
+    FaCalendarAlt, FaFileAlt, FaUserTie
 } from 'react-icons/fa';
-import { GiSteeringWheel } from 'react-icons/gi';
-import { MdModeOfTravel, MdWorkHistory, MdOutlineLocationOn } from 'react-icons/md';
+import {
+    GiSteeringWheel
+} from 'react-icons/gi';
+import {
+    MdModeOfTravel, MdWorkHistory, MdOutlineLocationOn
+} from 'react-icons/md';
+import { useUserProfile } from '../../hooks/useUserProfile';
 
 const DriverProfile = () => {
-    const driver = {
-        profileImg: '/driver-profile.jpg',
-        fullName: 'Rajeev Singh',
-        email: 'rajeev.driver@example.com',
-        phone: 9876543210,
-        vehicleType: 'Tanker',
-        experience: 6,
-        availabilityStatus: true,
-        currentMode: 'work_mode',
-        totalDistanceTravelledInKm: 58234,
-        totalHoursDriven: 2080,
-        totalDaysWorked: 320,
-        lastKnownLocation: {
-            latitude: "28.6139",
-            longitude: "77.2090"
-        },
-        documents: {
-            idProof: '/docs/idProof.pdf',
-            license: '/docs/license.pdf',
-            kataParchiAfter: '/docs/kata.pdf'
-        },
-        assignedTruckId: 'HR38D1234',
-        activeBookingId: 'ORD238913',
-        locationHistory: [
-            { latitude: '28.705', longitude: '77.104', timestamp: '2025-07-10T09:00' },
-            { latitude: '28.614', longitude: '77.209', timestamp: '2025-07-12T15:30' }
-        ],
-        statusLogs: [
-            { status: 'started', timestamp: '2025-07-10T09:00', note: 'Started journey from Bhiwadi' },
-            { status: 'paused', timestamp: '2025-07-10T12:00', note: 'Break for lunch' }
-        ]
-    };
+    const { data: userProfile, isLoading } = useUserProfile();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    if (isLoading) return <div className="text-center py-20 text-blue-600 text-xl font-semibold">Loading driver profile...</div>;
+    if (!userProfile || !userProfile.driver) return <div className="text-center py-20 text-red-500 text-xl">No profile data found.</div>;
+
+    const driver = userProfile.driver;
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-blue-100 py-10 px-8">
-            {/* Top Section */}
-            <div className="bg-white mt-25 shadow-xl rounded-xl p-6 mb-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Top Profile Section */}
+            <div className="bg-white mt-20 shadow-xl rounded-xl p-6 mb-10 grid grid-cols-1 md:grid-cols-3 gap-6 relative">
                 <div className="flex flex-col items-center md:items-start gap-4">
-                    <img src={driver.profileImg} alt="Driver" className="w-36 h-36 rounded-full object-cover border-4 border-yellow-300" />
-                    <h2 className="text-2xl font-bold text-blue-700">{driver.fullName}</h2>
-                    <div className="text-gray-700 flex items-center gap-2"><FaEnvelope /> {driver.email}</div>
-                    <div className="text-gray-700 flex items-center gap-2"><FaPhone /> {driver.phone}</div>
+                    <img src={driver.profileImg || '/placeholder.png'} alt="Driver" className="w-36 h-36 rounded-full object-cover border-4 border-yellow-300" />
+                    <h2 className="text-2xl font-bold text-blue-700">{driver.fullName || 'Not Available'}</h2>
+                    <div className="text-gray-700 flex items-center gap-2"><FaEnvelope /> {driver.email || 'Not Provided'}</div>
+                    <div className="text-gray-700 flex items-center gap-2"><FaPhone /> {driver.phone || 'Not Provided'}</div>
                 </div>
+
+                {/* Middle Info Section */}
                 <div className="flex flex-col justify-center gap-4 text-sm text-gray-700">
-                    <div className="flex items-center gap-2"><GiSteeringWheel className="text-blue-500" /> Vehicle Type: <span className="font-semibold">{driver.vehicleType}</span></div>
-                    <div className="flex items-center gap-2"><FaTruckMoving className="text-blue-500" /> Assigned Truck: <span className="font-semibold">{driver.assignedTruckId}</span></div>
-                    <div className="flex items-center gap-2"><MdOutlineLocationOn className="text-blue-500" /> Current Mode: <span className="font-semibold">{driver.currentMode}</span></div>
-                    <div className="flex items-center gap-2"><MdModeOfTravel className="text-blue-500" /> Availability: <span className={`font-semibold ${driver.availabilityStatus ? 'text-green-600' : 'text-red-500'}`}>{driver.availabilityStatus ? 'Available' : 'Unavailable'}</span></div>
-                    <div className="flex items-center gap-2"><MdWorkHistory className="text-blue-500" /> Experience: <span className="font-semibold">{driver.experience} yrs</span></div>
+                    <InfoRow icon={<GiSteeringWheel />} label="Vehicle Type" value={driver.vehicleType} />
+                    <InfoRow icon={<FaTruckMoving />} label="Assigned Truck" value={driver.assignedTruckId} />
+                    <InfoRow icon={<MdOutlineLocationOn />} label="Current Mode" value={driver.currentMode} />
+                    <InfoRow icon={<MdModeOfTravel />} label="Availability" value={driver.availabilityStatus ? 'Available' : 'Unavailable'} color={driver.availabilityStatus ? 'text-green-600' : 'text-red-500'} />
+                    <InfoRow icon={<MdWorkHistory />} label="Experience" value={`${driver.experience || 0} yrs`} />
+                </div>
+
+                {/* Right: Assigned Transporter Info */}
+                <div className="flex flex-col justify-between gap-4">
+                    <div className="flex items-start justify-between">
+                        <h3 className="text-lg font-semibold text-blue-600 flex items-center gap-2">
+                            <FaUserTie /> Assigned Transporter
+                        </h3>
+                    </div>
+                    <div className="text-gray-700 text-sm">
+                        <p><strong>Name:</strong> {driver.transporterId?.transporterName || 'Not Assigned'}</p>
+                        <p><strong>Email:</strong> {driver.transporterId?.email || 'N/A'}</p>
+                        <p><strong>Contact:</strong> {driver.transporterId?.contactNo || 'N/A'}</p>
+                    </div>
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="self-end mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
+                    >
+                        Update Profile
+                    </button>
                 </div>
             </div>
 
-            {/* Statistics */}
+            {/* Statistics Section */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center mb-10">
-                <StatCard icon={<FaRoad />} label="Distance Travelled" value={`${driver.totalDistanceTravelledInKm} km`} />
-                <StatCard icon={<FaClock />} label="Hours Driven" value={`${driver.totalHoursDriven} hrs`} />
-                <StatCard icon={<FaCalendarAlt />} label="Days Worked" value={`${driver.totalDaysWorked} days`} />
+                <StatCard icon={<FaRoad />} label="Distance Travelled" value={`${driver.totalDistanceTravelledInKm || 0} km`} />
+                <StatCard icon={<FaClock />} label="Hours Driven" value={`${driver.totalHoursDriven || 0} hrs`} />
+                <StatCard icon={<FaCalendarAlt />} label="Days Worked" value={`${driver.totalDaysWorked || 0} days`} />
             </div>
 
-            {/* Live Location + Booking */}
+            {/* Location and Booking */}
             <div className="grid md:grid-cols-2 gap-8 mb-10">
-                <div className="bg-white p-6 shadow-md rounded-lg">
-                    <h3 className="text-xl font-bold text-blue-700 mb-4 flex items-center gap-2"><FaMapMarkerAlt /> Last Known Location</h3>
-                    <p className="text-gray-700"><strong>Latitude:</strong> {driver.lastKnownLocation.latitude}</p>
-                    <p className="text-gray-700"><strong>Longitude:</strong> {driver.lastKnownLocation.longitude}</p>
-                </div>
-                <div className="bg-white p-6 shadow-md rounded-lg">
-                    <h3 className="text-xl font-bold text-blue-700 mb-4 flex items-center gap-2"><FaTruckMoving /> Active Booking</h3>
-                    <p className="text-gray-700">Booking ID: <span className="font-semibold">{driver.activeBookingId || "No active booking"}</span></p>
-                </div>
+                <Card title="Last Known Location" icon={<FaMapMarkerAlt />}>
+                    <p className="text-gray-700"><strong>Latitude:</strong> {driver.location?.coordinates?.[1] || 'Not Available'}</p>
+                    <p className="text-gray-700"><strong>Longitude:</strong> {driver.location?.coordinates?.[0] || 'Not Available'}</p>
+                </Card>
+                <Card title="Active Booking" icon={<FaTruckMoving />}>
+                    <p className="text-gray-700">Booking ID: <span className="font-semibold">{driver.activeBookingId || 'No active booking'}</span></p>
+                </Card>
             </div>
 
-            {/* Location History & Status Logs */}
+            {/* Logs */}
             <div className="grid md:grid-cols-2 gap-8 mb-10">
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h3 className="text-lg font-bold text-blue-700 mb-3">📍 Location History</h3>
-                    <ul className="space-y-2 text-sm text-gray-700">
-                        {driver.locationHistory.map((loc, index) => (
-                            <li key={index} className="flex justify-between border-b pb-1">
-                                <span>{loc.latitude}, {loc.longitude}</span>
-                                <span>{new Date(loc.timestamp).toLocaleString()}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h3 className="text-lg font-bold text-blue-700 mb-3">🕒 Status Logs</h3>
-                    <ul className="space-y-2 text-sm text-gray-700">
-                        {driver.statusLogs.map((log, idx) => (
-                            <li key={idx} className="flex justify-between border-b pb-1">
-                                <span className="capitalize">{log.status}</span>
-                                <span className="text-right">{new Date(log.timestamp).toLocaleString()}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                <Card title="📍 Location History">
+                    {driver.locationHistory?.length > 0 ? (
+                        <ul className="space-y-2 text-sm text-gray-700 max-h-60 overflow-auto pr-2">
+                            {driver.locationHistory.map((loc, index) => (
+                                <li key={index} className="flex justify-between border-b pb-1">
+                                    <span>{loc.latitude}, {loc.longitude}</span>
+                                    <span>{new Date(loc.timestamp).toLocaleString()}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : <p className="text-sm text-gray-500">No location history available.</p>}
+                </Card>
+
+                <Card title="🕒 Status Logs">
+                    {driver.statusLogs?.length > 0 ? (
+                        <ul className="space-y-2 text-sm text-gray-700 max-h-60 overflow-auto pr-2">
+                            {driver.statusLogs.map((log, idx) => (
+                                <li key={idx} className="flex justify-between border-b pb-1">
+                                    <span className="capitalize">{log.status}</span>
+                                    <span>{new Date(log.timestamp).toLocaleString()}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : <p className="text-sm text-gray-500">No status logs found.</p>}
+                </Card>
             </div>
 
             {/* Documents */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-bold text-blue-700 mb-3">📂 Documents</h3>
+            <Card title="📂 Documents">
                 <div className="grid md:grid-cols-3 gap-4 text-sm text-blue-700">
-                    <a href={driver.documents.idProof} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-2"><FaFileAlt /> ID Proof</a>
-                    <a href={driver.documents.license} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-2"><FaFileAlt /> License</a>
-                    <a href={driver.documents.kataParchiAfter} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-2"><FaFileAlt /> Kata Parchi After</a>
+                    {driver.documents?.idProof ? (
+                        <a href={driver.documents.idProof} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-2">
+                            <FaFileAlt /> ID Proof
+                        </a>
+                    ) : <span className="text-gray-400">ID Proof not uploaded</span>}
+
+                    {driver.documents?.license ? (
+                        <a href={driver.documents.license} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-2">
+                            <FaFileAlt /> License
+                        </a>
+                    ) : <span className="text-gray-400">License not uploaded</span>}
+
+                    {driver.documents?.kataParchiAfter ? (
+                        <a href={driver.documents.kataParchiAfter} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-2">
+                            <FaFileAlt /> Kata Parchi After
+                        </a>
+                    ) : <span className="text-gray-400">Kata Parchi not uploaded</span>}
                 </div>
-            </div>
+            </Card>
+
+            {/* Update Modal */}
+            {isModalOpen && <UpdateDriverModal onClose={() => setIsModalOpen(false)} driver={driver} />}
         </div>
     );
 };
 
+// Info Row Component
+const InfoRow = ({ icon, label, value, color = "text-blue-800" }) => (
+    <div className="flex items-center gap-2">
+        <span className="text-blue-500">{icon}</span>
+        {label}:
+        <span className={`font-semibold ${color}`}>{value || "Not Available"}</span>
+    </div>
+);
+
+// StatCard Component
 const StatCard = ({ icon, label, value }) => (
     <div className="bg-white p-6 rounded-xl shadow-md">
         <div className="text-3xl text-yellow-500 mb-2 flex justify-center">{icon}</div>
@@ -124,5 +154,32 @@ const StatCard = ({ icon, label, value }) => (
         <div className="text-lg font-semibold text-blue-800">{value}</div>
     </div>
 );
+
+// Card Wrapper Component
+const Card = ({ title, icon, children }) => (
+    <div className="bg-white p-6 shadow-md rounded-lg">
+        <h3 className="text-xl font-bold text-blue-700 mb-4 flex items-center gap-2">
+            {icon} {title}
+        </h3>
+        {children}
+    </div>
+);
+
+// Modal Component (Skeleton, you can customize it more)
+const UpdateDriverModal = ({ onClose, driver }) => {
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
+                <h2 className="text-xl font-bold text-blue-700 mb-6">Update Driver Profile</h2>
+                {/* You can put form fields here for updating driver */}
+                <p className="text-gray-600 mb-4">[Form to update fields like name, phone, truck ID, etc. will go here]</p>
+                <div className="flex justify-end gap-3">
+                    <button onClick={onClose} className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export default DriverProfile;

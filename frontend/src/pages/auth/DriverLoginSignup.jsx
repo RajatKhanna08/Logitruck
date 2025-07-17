@@ -201,7 +201,8 @@ const DriverLoginSignup = () => {
     };
 
     //function to change the data in a formData as it contains files and calling the above mutation function with that data
-    const handleSignup = () => {
+    const handleSignup = (e) => {
+        e.preventDefault();
         if (!validateStep()) return;
         
         const formData = new FormData();
