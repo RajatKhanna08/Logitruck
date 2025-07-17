@@ -20,7 +20,6 @@ export const registerDriverController = async (req, res) => {
             email,
             password,
             vehicleType,
-            currentLocation,
             experience
         } = req.body;
 
@@ -49,10 +48,6 @@ export const registerDriverController = async (req, res) => {
             phone: phone,
             password: hashedPassword,
             vehicleType: vehicleType,
-            currentLocation: {
-                latitude: currentLocation?.latitude ?? 0,
-                longitude: currentLocation?.longitude ?? 0
-            },
             experience: experience,
             documents: {
                 idProof: files.idProof[0].path,
@@ -66,8 +61,10 @@ export const registerDriverController = async (req, res) => {
             secure: process.env.NODE_ENV === "production",
             sameSite: "Strict"
         });
+
         await sendWelcomeEmail(newDriver);
         await sendWhatsAppRegistration(newDriver.phone, newDriver.fullName, "driver");
+        
         res.status(201).json({
             message: "Driver registered successfully",
             driver: {

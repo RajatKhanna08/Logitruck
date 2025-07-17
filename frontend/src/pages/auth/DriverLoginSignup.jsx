@@ -1,17 +1,16 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 // Icons
-import { FaUser, FaPhoneAlt, FaEnvelope, FaLock, FaTruck, FaClock, FaMapMarkedAlt, FaIdCard, FaCarSide } from 'react-icons/fa';
+import { FaUser, FaPhoneAlt, FaEnvelope, FaLock, FaClock, FaCarSide } from 'react-icons/fa';
 import { HiIdentification } from 'react-icons/hi';
 import { MdUploadFile } from 'react-icons/md';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { getDriverProfile, loginDriver, registerDriver } from '../../api/driverApi';
-import { useUserStore } from '../../store/useUserStore';
+
+import { useLoginDriver, useRegisterDriver } from '../../hooks/roles/useDriver';
 
 const DriverLoginSignup = () => {
-    const queryClient = useQueryClient();
-    const setUser = useUserStore((state) => state.setUser);
+    const { mutate:registerDriverMutation, isPending:isRegisterLoading } = useRegisterDriver();
+    const { mutate:loginDriverMutation, isPending:isLoginLoading } = useLoginDriver();
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -24,14 +23,17 @@ const DriverLoginSignup = () => {
 
     //signup usestate
     const [signupData, setSignupData] = useState({
+        transporterId: "",
         fullName: "",
         phone: "",
         email: "",
         password: "",
+        documents: {
+            idProof: null,
+            license: null,
+        },
         vehicleType: "",
         experience: "",
-        idProof: null,
-        license: null
     });
 
     //login usestate
@@ -42,8 +44,15 @@ const DriverLoginSignup = () => {
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
+
         if (files) {
-            setSignupData(prev => ({ ...prev, [name]: files[0] }));
+            setSignupData(prev => ({
+                ...prev,
+                documents: {
+                    ...prev.documents,
+                    [name]: files[0],
+                }
+            }));
         } else {
             setSignupData(prev => ({ ...prev, [name]: value }));
         }
@@ -76,6 +85,7 @@ const DriverLoginSignup = () => {
         const newErrors = {};
 
         if (step === 1) {
+            if (!signupData.transporterId) newErrors.transporterId = "Transporter ID is required";
             if (!signupData.fullName.trim()) newErrors.fullName = "Full Name is required";
             if (!signupData.phone.trim()) newErrors.phone = "Phone Number is required";
             else if (!/^\d{10}$/.test(signupData.phone)) newErrors.phone = "Invalid phone number";
@@ -86,8 +96,8 @@ const DriverLoginSignup = () => {
         }
 
         if (step === 2) {
-            if (!signupData.idProof) newErrors.idProof = "ID Proof is required";
-            if (!signupData.license) newErrors.license = "License is required";
+            if (!signupData.documents.idProof) newErrors.idProof = "ID Proof is required";
+            if (!signupData.documents.license) newErrors.license = "License is required";
         }
 
         if (step === 3) {
@@ -107,6 +117,18 @@ const DriverLoginSignup = () => {
             case 1:
                 return (
                     <div className='flex flex-col gap-6 min-h-80'>
+                        <div className={inputStyle}>
+                            <FaUser className='text-gray-500' />
+                            <input
+                                type="text"
+                                name="transporterId"
+                                placeholder="Transporter ID"
+                                value={signupData.transporterId}
+                                onChange={handleChange}
+                                className="w-full outline-none"
+                            />
+                        </div>
+                        {errors.transporterId && <p className="text-red-500 absolute top-110 right-12 text-sm">{errors.transporterId}</p>}
                         <div className={inputStyle}>
                             <FaUser className='text-gray-500' />
                             <input type="text" name="fullName" placeholder="Full Name" value={signupData.fullName} onChange={handleChange} className="w-full outline-none" />
@@ -178,62 +200,28 @@ const DriverLoginSignup = () => {
         }
     };
 
-    //function that sends the api call
-    const signupMutation = useMutation({
-        mutationFn: registerDriver,
-        onSuccess: async () => {
-            const profile = await getDriverProfile();
-            setUser(profile);
-            navigate("/");
-        },
-        onError: (err) => {
-            console.log("Login Failed: ", err.message);
-            alert("Login failed. Please check your credentials");
-        }
-    })
-
     //function to change the data in a formData as it contains files and calling the above mutation function with that data
     const handleSignup = () => {
+        if (!validateStep()) return;
+        
         const formData = new FormData();
-
-        Object.entries(signupData).forEach(([key, value]) => {
-            formData.append(key, value); 
-        });
-
-        signupMutation.mutate(formData, {
-            onSuccess: () => {
-                setSignupData({
-                fullName: "",
-                phone: "",
-                email: "",
-                password: "",
-                vehicleType: "",
-                experience: "",
-                idProof: null,
-                license: null
-            });
-            setStep(1);
+        
+        for (const key in signupData) {
+            if (key === 'documents') {
+                formData.append("idProof", signupData.documents.idProof);
+                formData.append("license", signupData.documents.license);
+            } else {
+                formData.append(key, signupData[key]);
             }
-        })
-    };
-
-    const loginMutation = useMutation({
-        mutationFn: loginDriver,
-        onSuccess: async () => {
-            const profile = await queryClient.fetchQuery(['userProfile']);
-            setUser(profile);
-            navigate("/");
-        },
-        onError: (err) => {
-            console.log("Login Failed: ", err.message);
-            alert("Login failed. Please check your credentials");
         }
-    })
+    
+        registerDriverMutation(formData);
+    };
 
     const handleLogin = (e) => {
         e.preventDefault();
         if (!validateLogin()) return;
-        loginMutation.mutate(loginData);
+        loginDriverMutation(loginData);
     };
 
     return (
@@ -265,8 +253,8 @@ const DriverLoginSignup = () => {
                             className="p-2 border-2 border-gray-300 rounded outline-none"
                         />
                         {errors.loginPassword && <p className="text-red-500 absolute top-55 right-12 text-xs">{errors.loginPassword}</p>}
-                        <button type="submit" onClick={handleLogin} className="bg-yellow-300 py-2 cursor-pointer rounded font-semibold">
-                            Login
+                        <button type="submit" disabled={isLoginLoading} onClick={handleLogin} className="bg-yellow-300 py-2 cursor-pointer rounded font-semibold">
+                            {isLoginLoading ? "Logging in..." : "Login"}
                         </button>
                     </form>
 

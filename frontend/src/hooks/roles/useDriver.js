@@ -1,16 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useUserStore } from "../../store/useUserStore.js"
+import { useUserStore } from "../../store/useUserStore"
 import { useNavigate } from "react-router-dom";
-import { loginCompany, registerCompany } from "../../api/companyApi.js";
+import { loginDriver, registerDriver } from "../../api/driverApi";
 
-export const useRegisterCompany = () => {
+export const useRegisterDriver = () => {
     const setUser = useUserStore((state) => state.setUser);
     const queryClient = useQueryClient();
     const navigate = useNavigate();
 
     return (useMutation({
-        mutationFn: registerCompany,
-        
+        mutationFn: registerDriver,
+
         onSuccess: async () => {
             try{
                 const profile = await queryClient.invalidateQueries(['userProfile']);
@@ -18,7 +18,7 @@ export const useRegisterCompany = () => {
                 navigate('/');
             }
             catch(err){
-                console.log("Failed to fetch profile after signup", err.data.message);
+                console.log("Failed to fetch profile after signup: ", err);
             }
         },
 
@@ -27,30 +27,30 @@ export const useRegisterCompany = () => {
             alert("Signup failed. Please try again");
         }
     }));
-};
+}
 
-export const useLoginCompany = () => {
+export const useLoginDriver = async () => {
     const setUser = useUserStore((state) => state.setUser);
     const queryClient = useQueryClient();
     const navigate = useNavigate();
 
-    return useMutation({
-        mutationFn: loginCompany,
+    return (useMutation({
+        mutationFn: loginDriver,
 
         onSuccess: async () => {
             try{
-                const profile = await queryClient.invalidateQueries(['userProfile']);
+                const profile = queryClient.invalidateQueries(['userProfile']);
                 setUser(profile);
                 navigate('/');
             }
             catch(err){
-                console.log("Failed to fetch company profile after login: ", err.message);
+                console.log("Failed to fetch profile after login", err);
             }
         },
 
         onError: (err) => {
             console.log("Login failed: ", err.message);
-            alert("Login failed. Please check your credentials");
-        } 
-    });
-};
+            alert("Login failed. Please try again");
+        }
+    }));
+}

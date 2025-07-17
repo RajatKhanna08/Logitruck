@@ -16,7 +16,7 @@ const driverSchema = new mongoose.Schema({
 
     transporterId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'transporters',
+        ref: 'transporter',
         required: true
     },
 
