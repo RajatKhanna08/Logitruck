@@ -24,19 +24,14 @@ import {
 
 import { correctRole } from '../middlewares/authorizeRoles.js';
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
+import { driverFields } from '../middlewares/upload.js';
 
 const registerDriverValidation = [
-  body('profileImg').notEmpty().withMessage('Profile image is required'),
-  body('transporterId').notEmpty().withMessage('Transporter ID is required'),
   body('fullName').notEmpty().withMessage('Full name is required'),
   body('phone').isMobilePhone().withMessage('Valid phone number is required'),
   body('email').isEmail().withMessage('Valid email is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('documents.idProof').notEmpty().withMessage('ID Proof is required'),
-  body('documents.license').notEmpty().withMessage('License is required'),
   body('vehicleType').notEmpty().withMessage('Vehicle type is required'),
-  body('currentLocation.latitude').notEmpty().withMessage('Current latitude is required'),
-  body('currentLocation.longitude').notEmpty().withMessage('Current longitude is required'),
   body('experience').isNumeric().withMessage('Experience is required'),
 ];
 
@@ -63,7 +58,7 @@ const uploadDriverDocumentsValidation = [
 const router = express.Router();
 
 // ==================== Driver Authentication Routes ====================
-router.post('/register', registerDriverValidation, registerDriverController);
+router.post('/register', driverFields, registerDriverValidation, registerDriverController);
 router.post('/login', loginDriverValidation, loginDriverController);
 router.delete('/logout', isLoggedIn, correctRole("driver"), logoutDriverController);
 router.get('/profile', isLoggedIn, correctRole("driver"), getDriverProfileController);

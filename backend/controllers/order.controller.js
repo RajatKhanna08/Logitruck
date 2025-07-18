@@ -232,7 +232,7 @@ export const getOrdersController = async (req, res) => {
             .populate("acceptedTransporterId", "fullName phone");
 
         if (!allOrders.length) {
-            return res.status(200).json({ message: "No orders found", orders: [] });
+            return res.status(200).json({ message: "No orders found", allOrders: [] });
         }
 
         res.status(200).json({ allOrders });

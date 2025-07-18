@@ -1,107 +1,116 @@
 import { FaTruck, FaMoneyBillWave, FaClock, FaBoxOpen, FaMapMarkedAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useOrders } from '../../hooks/useOrder';
 
 const AllOrdersPage = () => {
     const navigate = useNavigate();
 
-    const companyOrdersData = [
-        {
-            _id: "order001",
-            pickupLocation: {
-              address: "Plot 42, Sector 18, Gurgaon, Haryana",
-            },
-            dropLocations: [
-              {
-                stopIndex: 1,
-                address: "Warehouse A, Sector 20, Noida",
-                contactName: "Rohit Mehra",
-                contactPhone: 9876543210,
-                instructions: "Handle with care, fragile items.",
-              },
-              {
-                stopIndex: 2,
-                address: "Retail Store B, Connaught Place, Delhi",
-                contactName: "Neha Sharma",
-                contactPhone: 9823478123,
-                instructions: "Deliver before 5 PM.",
-              },
-            ],
-            scheduleAt: "2025-07-15T10:00:00Z",
-            startTime: "2025-07-15T10:30:00Z",
-            endTime: "2025-07-15T13:15:00Z",
-            biddingStatus: "accepted",
-            finalBidAmount: 4500,
-            acceptedTransporter: {
-              name: "QuickTrans Logistics",
-            },
-            acceptedDriver: {
-              name: "Vikas Singh",
-            },
-            acceptedTruck: {
-              registrationNumber: "HR55AB1234",
-            },
-            status: "delivered",
-            paymentMode: "UPI",
-            paymentStatus: "paid",
-            loadDetails: {
-              weightInKg: 1200,
-              volumeInCubicMeters: 6.5,
-              type: "electronics",
-              quantity: 100,
-              description: "Television Sets - 32 inch",
-            },
-            fare: 4500,
-            createdAt: "2025-07-14T08:00:00Z",
-          },
-          {
-            _id: "order002",
-            pickupLocation: {
-              address: "Industrial Area, Ludhiana, Punjab",
-            },
-            dropLocations: [
-              {
-                stopIndex: 1,
-                address: "Warehouse C, Chandigarh",
-                contactName: "Amit Kumar",
-                contactPhone: 9854763210,
-                instructions: "Forklift available on site.",
-              },
-            ],
-            scheduleAt: "2025-07-10T11:00:00Z",
-            startTime: "2025-07-10T11:45:00Z",
-            endTime: "2025-07-10T14:00:00Z",
-            biddingStatus: "closed",
-            finalBidAmount: 2700,
-            acceptedTransporter: {
-              name: "SafeHaul Transport",
-            },
-            acceptedDriver: {
-              name: "Manoj Yadav",
-            },
-            acceptedTruck: {
-              registrationNumber: "PB10XY4567",
-            },
-            status: "in_transit",
-            paymentMode: "Net-Banking",
-            paymentStatus: "unpaid",
-            loadDetails: {
-              weightInKg: 800,
-              volumeInCubicMeters: 3.2,
-              type: "furniture",
-              quantity: 40,
-              description: "Office chairs and desks",
-            },
-            fare: 2700,
-            createdAt: "2025-07-09T15:20:00Z",
-        },
-    ];
+    const { data:companyOrdersData = [], isLoading } = useOrders();
+    console.log(companyOrdersData);
+
+    // const companyOrdersData = [
+    //     {
+    //         _id: "order001",
+    //         pickupLocation: {
+    //           address: "Plot 42, Sector 18, Gurgaon, Haryana",
+    //         },
+    //         dropLocations: [
+    //           {
+    //             stopIndex: 1,
+    //             address: "Warehouse A, Sector 20, Noida",
+    //             contactName: "Rohit Mehra",
+    //             contactPhone: 9876543210,
+    //             instructions: "Handle with care, fragile items.",
+    //           },
+    //           {
+    //             stopIndex: 2,
+    //             address: "Retail Store B, Connaught Place, Delhi",
+    //             contactName: "Neha Sharma",
+    //             contactPhone: 9823478123,
+    //             instructions: "Deliver before 5 PM.",
+    //           },
+    //         ],
+    //         scheduleAt: "2025-07-15T10:00:00Z",
+    //         startTime: "2025-07-15T10:30:00Z",
+    //         endTime: "2025-07-15T13:15:00Z",
+    //         biddingStatus: "accepted",
+    //         finalBidAmount: 4500,
+    //         acceptedTransporter: {
+    //           name: "QuickTrans Logistics",
+    //         },
+    //         acceptedDriver: {
+    //           name: "Vikas Singh",
+    //         },
+    //         acceptedTruck: {
+    //           registrationNumber: "HR55AB1234",
+    //         },
+    //         status: "delivered",
+    //         paymentMode: "UPI",
+    //         paymentStatus: "paid",
+    //         loadDetails: {
+    //           weightInKg: 1200,
+    //           volumeInCubicMeters: 6.5,
+    //           type: "electronics",
+    //           quantity: 100,
+    //           description: "Television Sets - 32 inch",
+    //         },
+    //         fare: 4500,
+    //         createdAt: "2025-07-14T08:00:00Z",
+    //       },
+    //       {
+    //         _id: "order002",
+    //         pickupLocation: {
+    //           address: "Industrial Area, Ludhiana, Punjab",
+    //         },
+    //         dropLocations: [
+    //           {
+    //             stopIndex: 1,
+    //             address: "Warehouse C, Chandigarh",
+    //             contactName: "Amit Kumar",
+    //             contactPhone: 9854763210,
+    //             instructions: "Forklift available on site.",
+    //           },
+    //         ],
+    //         scheduleAt: "2025-07-10T11:00:00Z",
+    //         startTime: "2025-07-10T11:45:00Z",
+    //         endTime: "2025-07-10T14:00:00Z",
+    //         biddingStatus: "closed",
+    //         finalBidAmount: 2700,
+    //         acceptedTransporter: {
+    //           name: "SafeHaul Transport",
+    //         },
+    //         acceptedDriver: {
+    //           name: "Manoj Yadav",
+    //         },
+    //         acceptedTruck: {
+    //           registrationNumber: "PB10XY4567",
+    //         },
+    //         status: "in_transit",
+    //         paymentMode: "Net-Banking",
+    //         paymentStatus: "unpaid",
+    //         loadDetails: {
+    //           weightInKg: 800,
+    //           volumeInCubicMeters: 3.2,
+    //           type: "furniture",
+    //           quantity: 40,
+    //           description: "Office chairs and desks",
+    //         },
+    //         fare: 2700,
+    //         createdAt: "2025-07-09T15:20:00Z",
+    //     },
+    // ];
 
   return (
     <div className="p-6 min-h-screen bg-[#fdfdfd]">
       <h2 className="text-3xl mt-20 font-semibold text-blue-900 mb-6 border-b-2 border-yellow-300 pb-2">
         All Orders
       </h2>
-
+      {companyOrdersData.length === 0 ? (
+        <div className="text-center mt-20 text-gray-500">
+          <p className="text-lg">No orders found.</p>
+          <p className="text-sm">Once orders are placed, they will appear here.</p>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {companyOrdersData.map((order) => (
           <div
@@ -176,6 +185,7 @@ const AllOrdersPage = () => {
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 };

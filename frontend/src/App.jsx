@@ -6,6 +6,7 @@ import IntroLoader from './components/IntroLoader';
 import HomePage from './pages/HomePage';
 import ServicePage from './pages/ServicePage';
 import ContactUsPage from './pages/ContactUsPage';
+import AboutUsPage from './pages/AboutUsPage';
 
 import CompanyLoginSignup from './pages/auth/CompanyLoginSignup';
 import TransporterLoginSignup from './pages/auth/TransporterLoginSignup';
@@ -36,17 +37,11 @@ import BiddingPage from './pages/BiddingPage';
 import AllOrdersPage from './pages/orders/AllOrdersPage';
 import OrderDetailsPage from './pages/orders/OrderDetailsPage';
 
-// // SHARED ORDER ROUTES
-// import BookOrderPage from './pages/orders/BookOrderPage';
-// import TrackOrderPage from './pages/orders/TrackOrderPage';
-// import AllOrdersPage from './pages/orders/AllOrdersPage';
-// import OrderDetailsPage from './pages/orders/OrderDetailsPage';
-
 // Utility Components
 const ProtectedRoute = ({ children, allowedRoles, role }) => {
-    if (!role) return <Navigate to="/" />;
+    if (!role) return <Navigate to="/role-select" />;
     if (allowedRoles.includes(role)) return children;
-    return <Navigate to="/" />;
+    return <Navigate to="/role-select" />;
 };
 
 
@@ -89,6 +84,7 @@ const AppWrapper = () => {
                     <Route path='/contact' element={<ContactUsPage />} />
                     <Route path='/help-centre' element={<HelpCentrePage />} />
                     <Route path='/community' element={<CommunityCenterPage />} />
+                    <Route path='/about' element={<AboutUsPage />} />
                     <Route path='/role-select' element={<RoleSelectorPage />} />
                     <Route path='/admin/login' element={<AdminLogin />} />
                     <Route path='/company/register' element={<CompanyLoginSignup />} />
