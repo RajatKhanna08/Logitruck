@@ -231,7 +231,7 @@ const orderSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-orderSchema.index({ currentLocation: "2dsphere" }); // ✅ Geospatial index
+orderSchema.index({ currentLocation: "2dsphere" }); 
 
 const orderModel = mongoose.model("orders", orderSchema);
 export default orderModel;

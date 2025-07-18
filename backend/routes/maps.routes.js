@@ -30,6 +30,6 @@ router.get('/summary/:driverId', isLoggedIn, correctRole(['driver', 'admin']), g
 router.put('/trip-status/:orderId', isLoggedIn, correctRole(['driver', 'admin']), updateTripStatus);
 router.put('/reach-stop/:orderId', isLoggedIn, correctRole(['driver', 'admin']), markStopAsReached);
 router.post('/full-route', getORSFullRoute);
-// isLoggedIn, correctRole(['driver', 'company', 'transporter', 'admin'])
+//isLoggedIn, correctRole(['driver', 'company', 'transporter', 'admin'])
 
 export default router;
