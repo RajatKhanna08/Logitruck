@@ -37,17 +37,11 @@ import BiddingPage from './pages/BiddingPage';
 import AllOrdersPage from './pages/orders/AllOrdersPage';
 import OrderDetailsPage from './pages/orders/OrderDetailsPage';
 
-// // SHARED ORDER ROUTES
-// import BookOrderPage from './pages/orders/BookOrderPage';
-// import TrackOrderPage from './pages/orders/TrackOrderPage';
-// import AllOrdersPage from './pages/orders/AllOrdersPage';
-// import OrderDetailsPage from './pages/orders/OrderDetailsPage';
-
 // Utility Components
 const ProtectedRoute = ({ children, allowedRoles, role }) => {
-    if (!role) return <Navigate to="/" />;
+    if (!role) return <Navigate to="/role-select" />;
     if (allowedRoles.includes(role)) return children;
-    return <Navigate to="/" />;
+    return <Navigate to="/role-select" />;
 };
 
 

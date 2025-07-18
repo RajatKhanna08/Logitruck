@@ -4,22 +4,6 @@ import { FaTruck, FaUserTie, FaEnvelope, FaPhone, FaIdBadge } from "react-icons/
 import { MdLocationOn } from "react-icons/md";
 import { useUserProfile } from "../../hooks/useUserProfile";
 
-const mockTransporter = {
-  transporterName: "Speedy Movers Pvt. Ltd.",
-  ownerName: "Rajeev Mehra",
-  email: "speedy.movers@example.com",
-  contactNo: "+91 9876543210",
-  registrationNumber: "GJ12AB1234",
-  address: {
-    street: "NH-48 Industrial Zone",
-    city: "Ahmedabad",
-    state: "Gujarat",
-    pincode: "382445",
-    country: "India",
-    landmark: "Near Toll Plaza",
-  },
-};
-
 const mockTrucks = [
   {
     truckNumber: "GJ01X1234",
@@ -172,7 +156,7 @@ const TransporterProfile = () => {
           <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-3xl relative">
             <button
               onClick={() => setShowUpdateModal(false)}
-              className="absolute top-3 right-3 text-red-500 text-xl"
+              className="absolute cursor-pointer top-3 right-3 text-red-500 text-xl"
             >
               <IoClose />
             </button>
@@ -270,7 +254,7 @@ const TransporterProfile = () => {
                 <button
                   type="button"
                   onClick={() => setShowUpdateModal(false)}
-                  className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                  className="bg-blue-600 cursor-pointer text-white px-6 py-2 rounded hover:bg-blue-700"
                 >
                   Save Changes
                 </button>

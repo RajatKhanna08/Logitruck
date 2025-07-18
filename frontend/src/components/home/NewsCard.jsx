@@ -10,7 +10,7 @@ const NewsCard = ({ title, description, image_url, link, pubDate }) => {
                 <img
                     src={image_url}
                     alt={title}
-                    className="w-full min-h-48 object-cover"
+                    className="w-full min-h-48 max-h-48 object-cover"
                 />
             )}
           <div className="p-4">

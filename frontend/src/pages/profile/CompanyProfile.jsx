@@ -13,6 +13,7 @@ import { MdOutlineDomainVerification } from "react-icons/md";
 import { IoClose } from "react-icons/io5";
 import { useUserProfile } from "../../hooks/useUserProfile";
 import { useNavigate } from "react-router-dom";
+import { useOrders } from "../../hooks/useOrder";
 
 const dummyOrders = [
   {
@@ -36,14 +37,15 @@ const dummyOrders = [
 ];
 
 const CompanyProfile = () => {
-  const { data: userProfile, isLoading } = useUserProfile();
+  const { data: userProfile, isLoading:isProfileLoading } = useUserProfile();
+  const { data: allOrders, isLoading:isOrderLoading } = useOrders();
 
   const navigate = useNavigate();
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showContactInfo, setShowContactInfo] = useState(false);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isProfileLoading || isOrderLoading) return <div>Loading...</div>;
   if (!userProfile || !userProfile.company) return <div>No profile data found</div>;
 
   const company = userProfile.company;
@@ -106,7 +108,7 @@ const CompanyProfile = () => {
       <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
         <h3 onClick={() => navigate('/orders/all')} className="text-2xl cursor-pointer font-bold text-blue-900 mb-6">📦 Your Orders</h3>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {dummyOrders.map((order) => (
+          {allOrders.map((order) => (
             <div
               key={order.id}
               className="border rounded-xl p-4 shadow-md bg-blue-50 hover:shadow-lg transition cursor-pointer"
