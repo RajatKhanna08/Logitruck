@@ -36,6 +36,8 @@ import ViewTrucks from './pages/ViewTrucks';
 import BiddingPage from './pages/BiddingPage';
 import AllOrdersPage from './pages/orders/AllOrdersPage';
 import OrderDetailsPage from './pages/orders/OrderDetailsPage';
+import TrackOrderPage from './pages/orders/TrackOrderPage';
+// import OrderBookingPage from './pages/orders/OrderBookingPage';
 
 // Utility Components
 const ProtectedRoute = ({ children, allowedRoles, role }) => {
@@ -72,7 +74,7 @@ const AppWrapper = () => {
 
             <div className="relative z-0">
                 {/* NAVBAR VALIDATIONS */}
-                {!["/company/register", "/transporter/register", "/driver/register", "/admin/login", "/role-select"].includes(location.pathname) && <Navbar />}
+                {!["/company/register", "/transporter/register", "/order-book", "/driver/register", "/admin/login", "/role-select"].includes(location.pathname) && <Navbar />}
 
                 <Routes>
                     {/* PAGE LOADER */}
@@ -100,6 +102,9 @@ const AppWrapper = () => {
                     <Route path='/driver-dash' element={<DriverDashboard />} />
                     <Route path='/view-trucks' element={<ViewTrucks />} />
                     <Route path='/bids' element={<BiddingPage />} />
+                    {/* <Route path='/order-booking' element={<OrderBookingPage />} /> */}
+                    <Route path='/order-book' element={<BookOrderPage />} />
+                    <Route path='/order-track' element={<TrackOrderPage />} />
 
                     {/* Protected Dashboards */}
                     <Route path='/company/dashboard' element={

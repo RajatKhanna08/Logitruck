@@ -454,7 +454,6 @@ export const getORSFullRoute = async (req, res) => {
 
     // Step 2: Get route from ORS
     const routeData = await getORSRoute(pickupCoords, dropCoords, stopCoords);
-    console.log("Route data from ORS:", routeData);
 
     res.status(200).json(routeData);
   } catch (error) {

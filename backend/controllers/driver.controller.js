@@ -655,3 +655,52 @@ export const uploadKataParchiAfterController = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
+export const updateDriverLocationController = async (req, res) => {
+    try {
+        const driverId = req.user?._id;
+
+        if (!driverId) {
+            return res.status(401).json({ message: "Unauthorized access." });
+        }
+
+        const { latitude, longitude } = req.body;
+
+        if (!latitude || !longitude) {
+            return res.status(400).json({ message: "Latitude and longitude are required." });
+        }
+
+        const driver = await driverModel.findById(driverId);
+        if (!driver) {
+            return res.status(404).json({ message: "Driver not found." });
+        }
+
+        driver.location = {
+            type: "Point",
+            coordinates: [parseFloat(longitude), parseFloat(latitude)]
+        };
+
+        driver.lastKnownLocation = {
+            latitude: latitude.toString(),
+            longitude: longitude.toString()
+        };
+
+        driver.locationHistory.push({
+            latitude: latitude.toString(),
+            longitude: longitude.toString(),
+            timestamp: new Date()
+        });
+
+        await driver.save();
+
+        res.status(200).json({
+            message: "Driver location updated successfully.",
+            location: driver.location,
+            lastKnownLocation: driver.lastKnownLocation
+        });
+    }
+    catch(err){
+        console.error("Error updating driver location:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+};

@@ -81,7 +81,7 @@ router.get('/order-history', isLoggedIn, correctRole("driver"), getOrdersHistory
 router.post('/order/e-way-extension/:orderId', isLoggedIn, correctRole("driver"), requestEWayExtensionController);
 
 // ==================== Driver Location Routes ====================
-router.post('/location', isLoggedIn, correctRole("driver"), getDriverCurrentLocationController);
+router.get('/location', isLoggedIn, correctRole("driver"), getDriverCurrentLocationController);
 
 // ==================== Driver Dashboard Route ====================
 router.get('/dashboard', isLoggedIn, correctRole("driver"), getDriverDashboardController);

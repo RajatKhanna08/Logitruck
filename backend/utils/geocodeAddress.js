@@ -5,7 +5,7 @@ export const geocodeAddress = async (address) => {
     throw new Error("Invalid address input");
   }
 
-  const apiKey = process.env.OPENROUTESERVICE_API_KEY;
+  const apiKey = process.env.ORS_API_KEY;
   if (!apiKey) {
     throw new Error("OpenRouteService API key is missing in environment variables");
   }

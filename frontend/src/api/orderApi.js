@@ -10,3 +10,17 @@ export const getAllOrders = async () => {
         throw err;
     }
 }
+
+export const getLiveLocation = async (orderId) => {
+    const res  = await axiosInstance.get(`/order/company/track/${orderId}`);
+    return res.data;
+}
+
+export const updateLiveLocation = async ({ orderId, lat, lng }) => {
+    const res = await axiosInstance.post(`/order/company/track/${orderId}`, {
+        latitude: lat,
+        longitude: lng
+    });
+
+    return res.data;
+}

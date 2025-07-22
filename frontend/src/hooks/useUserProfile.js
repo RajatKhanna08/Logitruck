@@ -20,10 +20,8 @@ const fetchUserProfile = async () => {
           }
         catch(err){
             if (err.response?.status === 401) {
-              // Do NOT retry if unauthorized — skip to next
                 continue;
             } else {
-              // Other errors should stop the query
                 throw err;
             }
         }

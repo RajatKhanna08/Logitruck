@@ -1,7 +1,6 @@
 import orderModel from "../models/orderModel.js";
 import { validationResult } from 'express-validator';
 import reviewModel from "../models/reviewModel.js";
-import { geocodeAddress } from "../utils/geocodeAddress.js";
 import { getORSRoute } from "../utils/getORSRoute.js";
 
 export const createOrderController = async (req, res) => {
@@ -494,5 +493,40 @@ export const cancelOrderController = async (req, res) => {
     catch (err) {
         console.log("Error in cancelOrderController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+export const updateOrderLocationController = async (req, res) => {
+    try {
+        const { orderId, lat, lng } = req.body;
+        
+        if (!orderId || lat == null || lng == null) {
+            return res.status(400).json({ message: "orderId, lat, and lng are required" });
+        }
+      
+        const order = await orderModel.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+      
+        order.currentLocation = {
+            type: "Point",
+            coordinates: [parseFloat(lng), parseFloat(lat)],
+            updatedAt: new Date(),
+        };
+      
+        order.trackingHistory.push({
+            latitude: parseFloat(lat),
+            longitude: parseFloat(lng),
+            timeStamp: new Date(),
+        });
+      
+        await order.save();
+      
+        res.status(200).json({ message: "Order location updated successfully" });
+    }
+    catch(err){
+        console.error("Error updating order location:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 };

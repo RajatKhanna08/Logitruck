@@ -39,3 +39,12 @@ export const getDriverProfile = async () => {
         console.log("Error in getDriverProfile: ", err.message);
     }
 }
+
+export const updateDriverLocation = async ({ lat, lng }) => {
+    const res = await axiosInstance.post('/driver/location', {
+        latitude: lat,
+        longitude: lng
+    })
+
+    return res.data;
+}

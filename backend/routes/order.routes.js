@@ -14,7 +14,8 @@ import {
   getCurrentOrdersController,
   getTransporterOrderStatusController,
   getTransporterAllOrdersController,
-  getTransporterActiveOrdersController
+  getTransporterActiveOrdersController,
+  updateOrderLocationController
 } from '../controllers/order.controller.js';
 
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
@@ -60,6 +61,7 @@ const updateOrderStatusValidation = [
 router.post('/create', isLoggedIn, correctRole("company"), createOrderValidation, createOrderController);
 router.post('/company/upload-eway-bill', isLoggedIn, correctRole("company"), uploadEwayBillValidation, uploadEwayBillController);
 router.get('/company/track/:orderId', isLoggedIn, correctRole("company"), param('orderId').isMongoId(), trackOrderController);
+router.post('/company/track/:orderId', isLoggedIn, correctRole("company"), updateOrderLocationController);
 router.post('/company/rate/:orderId', isLoggedIn, correctRole("company"), rateOrderValidation, rateOrderController);
 router.get('/company/active/:orderId', isLoggedIn, correctRole("company"), param('orderId').isMongoId(), getCurrentOrdersController);
 router.get('/company/all-orders', isLoggedIn, correctRole("company"), getOrdersController);
