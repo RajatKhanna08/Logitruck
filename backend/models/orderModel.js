@@ -96,27 +96,30 @@ const orderSchema = new mongoose.Schema({
     description: { type: String, required: true }
   },
 
-  completedStops: { type: Number, required: true },
-  distance: { type: Number, required: true },
-  duration: { type: Number, required: true },
-  fare: { type: Number, required: true },
+  completedStops: { type: Number },
+  distance: { type: Number },
+  duration: { type: Number },
+  fare: { type: Number },
 
   paymentMode: {
     type: String,
     enum: ["UPI", "Credit Card", "Net-Banking"],
     default: "UPI"
   },
+
   paymentStatus: {
     type: String,
     enum: ["paid", "unpaid", "failed"],
     default: "unpaid"
   },
+  
   advancePaid: { type: Number, default: 0 },
   advanceDiscount: { type: Number, default: 0 },
 
   isRefundRequested: { type: Boolean, default: false },
   refundRequestedAt: Date,
   refundReason: String,
+
   refundStatus: {
     type: String,
     enum: ["pending", "approved", "rejected", "not_applicable"],
@@ -140,8 +143,8 @@ const orderSchema = new mongoose.Schema({
 
   trackingHistory: [
     {
-      latitude: { type: Number, required: true },
-      longitude: { type: Number, required: true },
+      latitude: { type: Number },
+      longitude: { type: Number },
       timeStamp: Date
     }
   ],
@@ -170,7 +173,6 @@ const orderSchema = new mongoose.Schema({
     lastknownProgress: {
       type: String,
       enum: ["pending", "delivered", "in-progress"],
-      required: true
     },
     completedAt: Date
   },
