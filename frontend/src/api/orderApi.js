@@ -11,6 +11,16 @@ export const getAllOrders = async () => {
     }
 }
 
+export const bookOrder = async (orderData) => {
+    try{
+        const res = await axiosInstance.post('/order/create', orderData);
+        return res.data;
+    }
+    catch(err){
+        console.log("Error in bookOrder: ", err.message);
+    }
+}
+
 export const getLiveLocation = async (orderId) => {
     const res  = await axiosInstance.get(`/order/company/track/${orderId}`);
     return res.data;

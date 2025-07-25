@@ -171,6 +171,7 @@ const orderSchema = new mongoose.Schema({
     enum: ["UPI", "Credit Card", "Net-Banking"],
     default: "UPI"
   },
+
   paymentStatus: {
     type: String,
     enum: ["paid", "unpaid", "failed"],
@@ -191,6 +192,7 @@ const orderSchema = new mongoose.Schema({
   },
   refundRequestedAt: Date,
   refundReason: String,
+
   refundStatus: {
     type: String,
     enum: ["pending", "approved", "rejected", "not_applicable"],
@@ -268,7 +270,6 @@ const orderSchema = new mongoose.Schema({
     lastknownProgress: {
       type: String,
       enum: ["pending", "delivered", "in-progress"],
-      required: true
     },
     completedAt: Date
   },

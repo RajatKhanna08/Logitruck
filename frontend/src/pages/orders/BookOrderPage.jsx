@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { 
   FaMapMarkerAlt, 
   FaCalendarAlt, 
@@ -13,6 +14,8 @@ import {
   FaPlus,
   FaTrash
 } from 'react-icons/fa';
+import { useUserProfile } from '../../hooks/useUserProfile';
+import { bookOrder } from '../../api/orderApi';
 
 // Leaflet CSS and JS imports
 const LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
@@ -88,18 +91,18 @@ const MapComponent = ({ onLocationSelect, selectedLocation, locations = [] }) =>
             {
               icon: window.L.divIcon({
                 html: `<div style="background: ${location.name === 'Pickup' ? '#10b981' : '#f59e0b'}; 
-                              color: white; 
-                              border-radius: 50%; 
-                              width: 30px; 
-                              height: 30px; 
-                              display: flex; 
-                              align-items: center; 
-                              justify-content: center; 
-                              font-weight: bold; 
-                              border: 2px solid white; 
-                              box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                        ${location.name === 'Pickup' ? 'P' : index}
-                      </div>`,
+                                  color: white; 
+                                  border-radius: 50%; 
+                                  width: 30px; 
+                                  height: 30px; 
+                                  display: flex; 
+                                  align-items: center; 
+                                  justify-content: center; 
+                                  font-weight: bold; 
+                                  border: 2px solid white; 
+                                  box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                ${location.name === 'Pickup' ? 'P' : index + 1}
+                              </div>`, // Changed index to index + 1 for drop locations
                 className: 'custom-marker',
                 iconSize: [30, 30],
                 iconAnchor: [15, 15]
@@ -202,6 +205,9 @@ const MapComponent = ({ onLocationSelect, selectedLocation, locations = [] }) =>
 };
 
 export default function BookOrderPage() {
+  const { data:userProfile } = useUserProfile();
+  const customerId = userProfile?.role === "company" ? userProfile._id : "";
+
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     pickupLocation: { address: '', latitude: '', longitude: '' },
@@ -209,10 +215,17 @@ export default function BookOrderPage() {
     scheduledAt: '',
     isBiddingEnabled: false,
     biddingExpiresAt: '',
-    loadDetails: '',
-    completedStops: [],
-    paymentMode: '',
-    urgency: 'normal',
+    loadDetails: { // Updated structure for loadDetails
+      weightInKg: '',
+      volumeInCubicMeters: '',
+      type: 'general', // Default value from schema
+      quantity: '',
+      description: ''
+    },
+    // Adding required fields from schema with default values
+    completedStops: 0,
+    paymentMode: '', // Will be updated to match schema enum
+    urgency: 'low', // Default value from schema
     bodyTypeMultiplier: 1,
     sizeCategoryMultiplier: 1,
     isMultiStop: false
@@ -245,6 +258,7 @@ export default function BookOrderPage() {
         ...prev,
         dropLocations: prev.dropLocations.map((drop, idx) => 
           idx === index ? {
+            ...drop, // Preserve existing contactName, contactPhone, instructions if they were there
             address: location.address,
             latitude: location.latitude.toString(),
             longitude: location.longitude.toString()
@@ -254,14 +268,14 @@ export default function BookOrderPage() {
     }
     
     // Keep the active input selected until user chooses another input
-    // setActiveLocationInput(null); // Remove this line
+    // setActiveLocationInput(null); // Removed as per original comment
     setMapKey(prev => prev + 1);
   };
-
+  
   const addDropLocation = () => {
     setFormData(prev => ({
       ...prev,
-      dropLocations: [...prev.dropLocations, { address: '', latitude: '', longitude: '' }]
+      dropLocations: [...prev.dropLocations, { address: '', latitude: '', longitude: '', contactName: '', contactPhone: '', instructions: '' }] // Initialize new drop location with all fields
     }));
   };
 
@@ -274,18 +288,30 @@ export default function BookOrderPage() {
     }
   };
 
+  // Modified handleInputChange to handle nested loadDetails and dropLocations
   const handleInputChange = (field, value, index = null) => {
-    if (field === 'dropLocation' && index !== null) {
-      setFormData(prev => ({
-        ...prev,
-        dropLocations: prev.dropLocations.map((drop, idx) => 
-          idx === index ? { ...drop, address: value } : drop
-        )
-      }));
-    } else if (field === 'pickupLocation') {
+    if (field === 'pickupLocation') {
       setFormData(prev => ({
         ...prev,
         pickupLocation: { ...prev.pickupLocation, address: value }
+      }));
+    } else if (field.startsWith('dropLocation-')) {
+        const [_, dropField, idxStr] = field.split('-');
+        const index = parseInt(idxStr);
+        setFormData(prev => ({
+            ...prev,
+            dropLocations: prev.dropLocations.map((drop, idx) => 
+                idx === index ? { ...drop, [dropField]: value } : drop
+            )
+        }));
+    } else if (field.startsWith('loadDetails.')) {
+      const loadDetailField = field.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        loadDetails: {
+          ...prev.loadDetails,
+          [loadDetailField]: value
+        }
       }));
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
@@ -304,9 +330,147 @@ export default function BookOrderPage() {
     }
   };
 
-  const handleSubmit = () => {
-    console.log('Order submitted:', formData);
-    alert('Order submitted successfully!');
+  const bookOrderMutation = useMutation({
+    mutationFn: bookOrder,
+    onSuccess: (data) => {
+      console.log("Order booked successfully:", data);
+      alert('Order booked successfully!');
+      setFormData({
+        pickupLocation: { address: '', latitude: '', longitude: '' },
+        dropLocations: [{ address: '', latitude: '', longitude: '' }],
+        scheduledAt: '',
+        isBiddingEnabled: false,
+        biddingExpiresAt: '',
+        loadDetails: {
+          weightInKg: '',
+          volumeInCubicMeters: '',
+          type: 'general',
+          quantity: '',
+          description: ''
+        },
+        completedStops: 0, 
+        distance: 0, 
+        duration: 0, 
+        fare: 0,
+        paymentMode: '',
+        urgency: 'low',
+        bodyTypeMultiplier: 1,
+        sizeCategoryMultiplier: 1,
+        isMultiStop: false
+      });
+      setCurrentStep(1);
+      setActiveLocationInput(null);
+      setMapKey(0);
+    },
+    onError: (error) => {
+      console.error("Booking failed:", error);
+      alert("Order booking failed: " + error.message); // Using alert for simplicity, replace with custom UI
+    }
+  });
+
+  const handleSubmit = async () => {
+    try {
+      const orderData = {
+        customerId: customerId,
+        isMultiStop: formData.isMultiStop,
+        pickupLocation: {
+          address: formData.pickupLocation.address,
+          coordinates: {
+            type: "Point",
+            coordinates: [
+              parseFloat(formData.pickupLocation.longitude),
+              parseFloat(formData.pickupLocation.latitude)
+            ]
+          }
+        },
+        dropLocations: formData.dropLocations.map((drop, index) => ({
+          stopIndex: index + 1,
+          address: drop.address,
+          coordinates: {
+            type: "Point",
+            coordinates: [
+              parseFloat(drop.longitude),
+              parseFloat(drop.latitude)
+            ]
+          },
+          // Ensure these fields are collected from the form or have sensible defaults
+          contactName: drop.contactName || "N/A", // Use value from form, or default
+          contactPhone: drop.contactPhone ? parseInt(drop.contactPhone) : 0, // Use value from form, or default
+          instructions: drop.instructions || "No specific instructions" // Use value from form, or default
+        })),
+        scheduleAt: formData.scheduledAt ? new Date(formData.scheduledAt) : null,
+        urgency: formData.urgency,
+        bidding: {
+          isEnabled: formData.isBiddingEnabled,
+          expiresAt: formData.biddingExpiresAt ? new Date(formData.biddingExpiresAt) : null
+        },
+        loadDetails: { // Correctly map the new loadDetails structure
+          weightInKg: parseFloat(formData.loadDetails.weightInKg) || 0,
+          volumeInCubicMeters: parseFloat(formData.loadDetails.volumeInCubicMeters) || 0,
+          type: formData.loadDetails.type,
+          quantity: parseInt(formData.loadDetails.quantity) || 0,
+          description: formData.loadDetails.description
+        },
+        // Add other required fields from schema with default values if not user input
+        completedStops: formData.completedStops,
+        paymentMode: formData.paymentMode,
+        // These fields are not user inputs in this form but are required by schema
+        // You might want to add inputs for these or handle them on the backend
+        routeInfo: {
+            estimatedDistance: "N/A",
+            estimatedDuration: "N/A",
+            polyline: []
+        },
+        startTime: null,
+        endTime: null,
+        biddingStatus: "open",
+        status: "pending",
+        currentStatus: "pending",
+        paymentStatus: "unpaid",
+        advancePaid: 0,
+        advanceDiscount: 0,
+        isRefundRequested: false,
+        refundStatus: "not_applicable",
+        refundAmount: 0,
+        isRefunded: false,
+        currentLocation: {
+            type: "Point",
+            coordinates: []
+        },
+        trackingHistory: [],
+        deliveryRemarks: [],
+        deliveryTimeline: {
+            lastknownProgress: "pending"
+        },
+        tripStatus: "Heading to Pickup",
+        currentStopIndex: 0,
+        isStalledAt: false,
+        isDelayed: false,
+        documents: {} // Assuming documents are handled separately or not required at booking
+      };
+
+      // Basic validation before mutation
+      if (!orderData.pickupLocation.address || !orderData.pickupLocation.coordinates.coordinates[0] || !orderData.pickupLocation.coordinates.coordinates[1]) {
+        throw new Error("Please select a pickup location on the map.");
+      }
+      if (orderData.dropLocations.some(d => !d.address || !d.coordinates.coordinates[0] || !d.coordinates.coordinates[1])) {
+        throw new Error("Please select all drop locations on the map.");
+      }
+      if (!orderData.scheduledAt) {
+        throw new Error("Please select a schedule time.");
+      }
+      if (!orderData.loadDetails.weightInKg || !orderData.loadDetails.volumeInCubicMeters || !orderData.loadDetails.quantity || !orderData.loadDetails.description) {
+        throw new Error("Please fill in all load details.");
+      }
+      if (!orderData.paymentMode) {
+        throw new Error("Please select a payment mode.");
+      }
+
+      bookOrderMutation.mutate(orderData);
+    } catch (err) {
+      console.error("Error submitting order:", err);
+      alert("Failed to submit order: " + err.message); // Using alert for simplicity, replace with custom UI
+    }
   };
 
   const getAllLocations = () => {
@@ -374,35 +538,57 @@ export default function BookOrderPage() {
                   </h3>
                   <div className="space-y-3">
                     {formData.dropLocations.map((drop, index) => (
-                      <div key={index} className="flex gap-2">
-                        <div className="flex-1">
-                          <input
-                            type="text"
-                            placeholder={`Drop location ${index + 1}`}
-                            value={drop.address}
-                            onChange={(e) => handleInputChange('dropLocation', e.target.value, index)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                          <button
-                            onClick={() => setActiveLocationInput(`drop-${index}`)}
-                            className={`w-full mt-2 px-4 py-2 border rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                              activeLocationInput === `drop-${index}` 
-                                ? 'bg-blue-500 text-white border-blue-500' 
-                                : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100'
-                            }`}
-                          >
-                            <FaMapMarkerAlt />
-                            {activeLocationInput === `drop-${index}` ? 'Click on map now' : 'Select on Map'}
-                          </button>
+                      <div key={index} className="flex flex-col gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                        <h4 className="font-medium text-gray-700">Drop Stop {index + 1}</h4>
+                        <input
+                          type="text"
+                          placeholder={`Address for Drop ${index + 1}`}
+                          value={drop.address}
+                          onChange={(e) => handleInputChange(`dropLocation-address-${index}`, e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <input
+                          type="text"
+                          placeholder={`Contact Name for Drop ${index + 1}`}
+                          value={drop.contactName}
+                          onChange={(e) => handleInputChange(`dropLocation-contactName-${index}`, e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <input
+                          type="number"
+                          placeholder={`Contact Phone for Drop ${index + 1}`}
+                          value={drop.contactPhone}
+                          onChange={(e) => handleInputChange(`dropLocation-contactPhone-${index}`, e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <textarea
+                          placeholder={`Instructions for Drop ${index + 1}`}
+                          value={drop.instructions}
+                          onChange={(e) => handleInputChange(`dropLocation-instructions-${index}`, e.target.value)}
+                          rows={2}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        />
+                        <div className="flex items-center gap-2 mt-2">
+                            <button
+                                onClick={() => setActiveLocationInput(`drop-${index}`)}
+                                className={`flex-1 px-4 py-2 border rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                                    activeLocationInput === `drop-${index}` 
+                                    ? 'bg-blue-500 text-white border-blue-500' 
+                                    : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100'
+                                }`}
+                            >
+                                <FaMapMarkerAlt />
+                                {activeLocationInput === `drop-${index}` ? 'Click on map now' : 'Select on Map'}
+                            </button>
+                            {formData.dropLocations.length > 1 && (
+                                <button
+                                    onClick={() => removeDropLocation(index)}
+                                    className="px-3 py-3 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                >
+                                    <FaTrash />
+                                </button>
+                            )}
                         </div>
-                        {formData.dropLocations.length > 1 && (
-                          <button
-                            onClick={() => removeDropLocation(index)}
-                            className="px-3 py-3 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          >
-                            <FaTrash />
-                          </button>
-                        )}
                       </div>
                     ))}
                     <button
@@ -508,13 +694,73 @@ export default function BookOrderPage() {
                 <FaBoxOpen className="text-yellow-500" />
                 Load Information
               </h3>
-              <textarea
-                placeholder="Describe your load (type of goods, weight, dimensions, special requirements)"
-                value={formData.loadDetails}
-                onChange={(e) => handleInputChange('loadDetails', e.target.value)}
-                rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              />
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="weightInKg" className="block text-sm font-medium text-gray-700 mb-2">Weight in Kg</label>
+                  <input
+                    id="weightInKg"
+                    type="number"
+                    placeholder="e.g., 1000"
+                    value={formData.loadDetails.weightInKg}
+                    onChange={(e) => handleInputChange('loadDetails.weightInKg', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="volumeInCubicMeters" className="block text-sm font-medium text-gray-700 mb-2">Volume in Cubic Meters</label>
+                  <input
+                    id="volumeInCubicMeters"
+                    type="number"
+                    placeholder="e.g., 10.5"
+                    step="0.1"
+                    value={formData.loadDetails.volumeInCubicMeters}
+                    onChange={(e) => handleInputChange('loadDetails.volumeInCubicMeters', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="loadType" className="block text-sm font-medium text-gray-700 mb-2">Type of Load</label>
+                  <select
+                    id="loadType"
+                    value={formData.loadDetails.type}
+                    onChange={(e) => handleInputChange('loadDetails.type', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="general">General</option>
+                    <option value="fragile">Fragile</option>
+                    <option value="perishable">Perishable</option>
+                    <option value="bulk">Bulk</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="furniture">Furniture</option>
+                    <option value="others">Others</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                  <input
+                    id="quantity"
+                    type="number"
+                    placeholder="e.g., 50"
+                    value={formData.loadDetails.quantity}
+                    onChange={(e) => handleInputChange('loadDetails.quantity', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    id="description"
+                    placeholder="Detailed description of your load"
+                    value={formData.loadDetails.description}
+                    onChange={(e) => handleInputChange('loadDetails.description', e.target.value)}
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -572,8 +818,9 @@ export default function BookOrderPage() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select Payment Mode</option>
-                  <option value="prepaid">Prepaid</option>
-                  <option value="postpaid">Postpaid</option>
+                  <option value="UPI">UPI</option>
+                  <option value="Credit Card">Credit Card</option>
+                  <option value="Net-Banking">Net-Banking</option>
                 </select>
               </div>
 
@@ -588,9 +835,8 @@ export default function BookOrderPage() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="low">Low Priority</option>
-                  <option value="normal">Normal</option>
+                  <option value="medium">Normal</option>
                   <option value="high">High Priority</option>
-                  <option value="urgent">Urgent</option>
                 </select>
               </div>
             </div>
@@ -616,22 +862,28 @@ export default function BookOrderPage() {
                   <div className="border-b pb-3">
                     <h4 className="font-medium text-gray-700 mb-2">Drop Locations</h4>
                     {formData.dropLocations.map((drop, index) => (
-                      <p key={index} className="text-gray-600 mb-1">
-                        {index + 1}. {drop.address || 'Not selected'}
-                      </p>
+                      <div key={index} className="mb-2 p-2 border border-gray-100 rounded-md bg-gray-50">
+                        <p className="text-gray-600 font-semibold">Stop {index + 1}: {drop.address || 'Not selected'}</p>
+                        <p className="text-gray-500 text-sm">Contact: {drop.contactName || 'N/A'} ({drop.contactPhone || 'N/A'})</p>
+                        <p className="text-gray-500 text-sm">Instructions: {drop.instructions || 'N/A'}</p>
+                      </div>
                     ))}
                   </div>
                   
                   <div className="border-b pb-3">
                     <h4 className="font-medium text-gray-700 mb-2">Scheduled At</h4>
-                    <p className="text-gray-600">{formData.scheduledAt || 'Not scheduled'}</p>
+                    <p className="text-gray-600">{formData.scheduledAt ? new Date(formData.scheduledAt).toLocaleString() : 'Not scheduled'}</p>
                   </div>
                 </div>
                 
                 <div className="space-y-4">
                   <div className="border-b pb-3">
                     <h4 className="font-medium text-gray-700 mb-2">Load Details</h4>
-                    <p className="text-gray-600">{formData.loadDetails || 'Not provided'}</p>
+                    <p className="text-gray-600">Weight: {formData.loadDetails.weightInKg || 'N/A'} Kg</p>
+                    <p className="text-gray-600">Volume: {formData.loadDetails.volumeInCubicMeters || 'N/A'} m³</p>
+                    <p className="text-gray-600">Type: {formData.loadDetails.type}</p>
+                    <p className="text-gray-600">Quantity: {formData.loadDetails.quantity || 'N/A'}</p>
+                    <p className="text-gray-600">Description: {formData.loadDetails.description || 'Not provided'}</p>
                   </div>
                   
                   <div className="border-b pb-3">
@@ -661,7 +913,7 @@ export default function BookOrderPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 font-inter"> {/* Added font-inter class */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -744,9 +996,14 @@ export default function BookOrderPage() {
             <button
               onClick={handleSubmit}
               className="flex items-center gap-2 px-8 py-3 bg-yellow-400 text-blue-900 rounded-lg font-medium hover:bg-yellow-500 transition-colors"
+              disabled={bookOrderMutation.isPending} // Disable button while submitting
             >
-              <FaCheck />
-              Submit Order
+              {bookOrderMutation.isPending ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-900"></div>
+              ) : (
+                <FaCheck />
+              )}
+              {bookOrderMutation.isPending ? 'Submitting...' : 'Submit Order'}
             </button>
           )}
         </div>

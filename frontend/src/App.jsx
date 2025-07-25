@@ -74,7 +74,7 @@ const AppWrapper = () => {
 
             <div className="relative z-0">
                 {/* NAVBAR VALIDATIONS */}
-                {!["/company/register", "/transporter/register", "/order-book", "/driver/register", "/admin/login", "/role-select"].includes(location.pathname) && <Navbar />}
+                {!["/company/register", "/transporter/register", "/orders/book", "/driver/register", "/admin/login", "/role-select"].includes(location.pathname) && <Navbar />}
 
                 <Routes>
                     {/* PAGE LOADER */}
