@@ -1,12 +1,9 @@
-import { useQuery } from "@tanstack/react-query"
-import { getAllNotifications } from "../api/notificationApi"
+import { useQuery } from "@tanstack/react-query";
+import { getAllNotifications } from "../api/notificationApi";
 
-export const useNotification = async () => {
-    return useQuery({
-        queryKey: ['notification'],
-        queryFn: async () => {
-            const data = await getAllNotifications();
-            return data;
-        }
-    })
-}
+export const useNotification = () => {
+  return useQuery({
+    queryKey: ['notification'],
+    queryFn: getAllNotifications, 
+  });
+};

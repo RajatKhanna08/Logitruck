@@ -8,9 +8,6 @@ import transporterModel from "../models/transporterModel.js";
 import companyModel from "../models/companyModel.js";
 import razorpay from '../lib/razorpay.js'; // 
 
-// ----------------------------------------
-// Post: Initiate a new payment
-// ----------------------------------------
 export const initiatePaymentController = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -45,9 +42,6 @@ export const initiatePaymentController = async (req, res) => {
   }
 };
 
-// ----------------------------------------
-// Post: Verify Payment
-// ----------------------------------------
 export const verifyPaymentController = async (req, res) => {
   try {
     const {
@@ -104,9 +98,6 @@ export const verifyPaymentController = async (req, res) => {
   }
 };
 
-// ----------------------------------------
-// Get: Get Payment History
-// ----------------------------------------
 export const getPaymentHistoryController = async (req, res) => {
   try {
     const { userId, userType } = req.query;
@@ -133,9 +124,6 @@ export const getPaymentHistoryController = async (req, res) => {
   }
 };
 
-// ----------------------------------------
-// Get: Get Payment by Order ID
-// ----------------------------------------
 export const getPaymentByIdController = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -159,9 +147,6 @@ export const getPaymentByIdController = async (req, res) => {
   }
 };
 
-// ----------------------------------------
-// Get: Download Invoice PDF
-// ----------------------------------------
 export const downloadInvoiceController = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -199,9 +184,6 @@ export const downloadInvoiceController = async (req, res) => {
   }
 };
 
-// ----------------------------------------
-// Put: Mark Order as Paid
-// ----------------------------------------
 export const markOrderAsPaidController = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -231,9 +213,6 @@ export const markOrderAsPaidController = async (req, res) => {
   }
 };
 
-// ----------------------------------------
-// Post: Request for refund
-// ----------------------------------------
 export const requestRefundController = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -265,9 +244,6 @@ export const requestRefundController = async (req, res) => {
   }
 };
 
-// ----------------------------------------
-// Post: Process for refund
-// ----------------------------------------
 export const processRefundController = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -304,9 +280,6 @@ export const processRefundController = async (req, res) => {
   }
 };
 
-// ----------------------------------------
-// Get: Refund Status
-// ----------------------------------------
 export const getRefundStatusController = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -329,9 +302,6 @@ export const getRefundStatusController = async (req, res) => {
   }
 };
 
-// ----------------------------------------
-// Get: get all payments
-// ----------------------------------------
 export const getAllPaymentsController = async (req, res) => {
   try {
     const payments = await paymentsModel
