@@ -1,7 +1,9 @@
 import orderModel from "../models/orderModel.js";
-import { validationResult } from 'express-validator';
 import reviewModel from "../models/reviewModel.js";
+
+import { validationResult } from 'express-validator';
 import { getORSRoute } from "../utils/getORSRoute.js";
+import { sendNotification } from "../utils/sendNotification.js";
 
 export const createOrderController = async (req, res) => {
   try {
@@ -67,7 +69,30 @@ export const createOrderController = async (req, res) => {
         estimatedDuration: routeData.durationInMin,
       }
     });
-
+    await sendNotification({
+        role: "company",
+        relatedUserId: companyId,
+        relatedBookingId: newOrder._id,
+        title: "New Order Created",
+        message: `Order ID ${newOrder._id} has been created successfully.`,
+        type: "order",
+        metadata: {
+            orderId: newOrder._id
+        }
+    });
+    await sendNotification({
+        role: "transporter", 
+        relatedUserId: null, 
+        relatedBookingId: newOrder._id,
+        title: "New Order Available",
+        message: `A new order is available for bidding.`,
+        type: "order",
+        metadata: {
+            urgency,
+            orderId: newOrder._id
+        }
+    });
+      
     res.status(201).json({ message: "Order created successfully", order: newOrder });
   } catch (err) {
     console.error("Error in createOrderController:", err.message);
@@ -76,35 +101,91 @@ export const createOrderController = async (req, res) => {
 };  
 
 export const uploadEwayBillController = async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ message: errors.array() });
-        }
-        
-        const { orderId, ewayBillNumber } = req.params;
-        if (!req.file || !req.file.path) {
-            return res.status(400).json({ message: "E-way bill file is required" });
-        }
-
-        const order = await orderModel.findById(orderId);
-        if (!order) {
-            return res.status(404).json({ message: "Order not found" });
-        }
-
-        order.eWayBill = {
-            fileURL: req.file.path,
-            billNumber: ewayBillNumber,
-            uploadedBy: req.user?._id,
-            uploadedAt: new Date()
-        };
-        await order.save();
-
-        res.status(200).json({ message: "E-way bill uploaded successfully", eWayBill: order.eWayBill })
-    } catch (err) {
-        console.log("Error in uploadEwayBillController: ", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: errors.array() });
     }
+
+    const { orderId, ewayBillNumber } = req.params;
+    if (!req.file || !req.file.path) {
+      return res.status(400).json({ message: "E-way bill file is required" });
+    }
+
+    const order = await orderModel.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Update order with e-way bill
+    order.eWayBill = {
+      fileURL: req.file.path,
+      billNumber: ewayBillNumber,
+      uploadedBy: req.user?._id,
+      uploadedAt: new Date(),
+    };
+    await order.save();
+
+    // COMPANY Notification
+    await sendNotification({
+      role: "company",
+      relatedUserId: order.customerId,
+      relatedBookingId: order._id,
+      title: "E-Way Bill Uploaded",
+      message: `E-Way Bill ${ewayBillNumber} has been uploaded for Order ${order._id}.`,
+      type: "ewaybill",
+      deliveryMode: "pending",
+      metadata: {
+        task: "Review E-Way Bill",
+        orderId: order._id,
+        ewayBillNumber,
+      },
+    });
+
+    // TRANSPORTER Notification
+    if (order.assignedTransporter) {
+      await sendNotification({
+        role: "transporter",
+        relatedUserId: order.assignedTransporter,
+        relatedBookingId: order._id,
+        title: "E-Way Bill Uploaded",
+        message: `E-Way Bill ${ewayBillNumber} is now available for Order ${order._id}.`,
+        type: "ewaybill",
+        deliveryMode: "pending",
+        metadata: {
+          task: "Verify E-Way Bill Document",
+          orderId: order._id,
+          ewayBillNumber,
+        },
+      });
+    }
+
+    // DRIVER Notification
+    if (order.assignedDriver) {
+      await sendNotification({
+        role: "driver",
+        relatedUserId: order.assignedDriver,
+        relatedBookingId: order._id,
+        title: "E-Way Bill Uploaded",
+        message: `Check the E-Way Bill ${ewayBillNumber} for Order ${order._id}.`,
+        type: "ewaybill",
+        deliveryMode: "pending",
+        metadata: {
+          task: "Carry Valid E-Way Bill During Transit",
+          orderId: order._id,
+          ewayBillNumber,
+        },
+      });
+    }
+
+    res.status(200).json({
+      message: "E-way bill uploaded successfully",
+      eWayBill: order.eWayBill,
+    });
+  } catch (err) {
+    console.log("Error in uploadEwayBillController: ", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const trackOrderController = async (req, res) => {
@@ -149,9 +230,9 @@ export const rateOrderController = async (req, res) => {
         const reviewerId = req.user?._id;
 
         if (!["driver", "transporter"].includes(reviewFor)) {
-            return res.status(400).json({ message: "Invalid review target, must be 'driver' or 'transporter" });
+            return res.status(400).json({ message: "Invalid review target, must be 'driver' or 'transporter'" });
         }
-        
+
         const order = await orderModel.findById(orderId);
         if (!order) {
             return res.status(404).json({ message: "Order not found" });
@@ -187,9 +268,23 @@ export const rateOrderController = async (req, res) => {
             reviewText: reviewText
         });
 
+        await sendNotification({
+            role: reviewFor, // 'driver' or 'transporter'
+            relatedUserId: reviewedEntityId,
+            relatedBookingId: orderId,
+            title: "New Review Received",
+            message: `You have received a ${rating}-star review from the company.`,
+            type: "review",
+            deliveryMode: "unread", // or "pending"
+            metadata: {
+                reviewText,
+                rating
+            }
+        });
+
         res.status(201).json({ message: `Review submitted for ${reviewFor}`, review: newReview });
-    }
-    catch (err) {
+
+    } catch (err) {
         console.log("Error in rateOrderController: ", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
@@ -416,6 +511,10 @@ export const updateOrderStatusController = async (req, res) => {
     let deliveryTimeline = { ...order.deliveryTimeline };
     const now = new Date();
 
+    let notificationType = "";
+    let notificationTitle = "";
+    let notificationMessage = "";
+
     switch (status) {
       case "arrived":
         if (order.status !== "pending") {
@@ -425,6 +524,10 @@ export const updateOrderStatusController = async (req, res) => {
         currentStatus = "in-progress";
         deliveryTimeline.startedAt = deliveryTimeline.startedAt || now;
         deliveryTimeline.lastknownProgress = "in-progress";
+
+        notificationType = "arrived";
+        notificationTitle = "Truck Arrived at Pickup";
+        notificationMessage = `Your assigned truck has arrived at the pickup location for Order ${orderId}.`;
         break;
 
       case "loaded":
@@ -435,10 +538,18 @@ export const updateOrderStatusController = async (req, res) => {
         tripStatus = "In Transit";
         currentStatus = "in-progress";
         deliveryTimeline.lastknownProgress = "in-progress";
+
+        notificationType = "loaded";
+        notificationTitle = "Goods Loaded";
+        notificationMessage = `The truck has been loaded for Order ${orderId}.`;
         break;
 
       case "reached":
         tripStatus = "At Stop";
+
+        notificationType = "reached";
+        notificationTitle = "Reached Stop";
+        notificationMessage = `Truck has reached an intermediate stop for Order ${orderId}.`;
         break;
 
       case "unloaded":
@@ -447,6 +558,10 @@ export const updateOrderStatusController = async (req, res) => {
         tripStatus = "Delivered";
         deliveryTimeline.completedAt = now;
         deliveryTimeline.lastknownProgress = "delivered";
+
+        notificationType = "unloaded";
+        notificationTitle = "Order Delivered";
+        notificationMessage = `Order ${orderId} has been delivered successfully.`;
         break;
 
       default:
@@ -459,7 +574,35 @@ export const updateOrderStatusController = async (req, res) => {
     order.deliveryTimeline = deliveryTimeline;
 
     await order.save();
+
+    // Send Notifications to company and transporter
+    const notificationPayload = {
+      type: notificationType,
+      title: notificationTitle,
+      message: notificationMessage,
+      relatedBookingId: orderId,
+      deliveryMode: currentStatus,
+      metadata: { driverId }
+    };
+
+    // Notify Company
+    await sendNotification({
+      ...notificationPayload,
+      role: "company",
+      relatedUserId: order.customerId,
+    });
+
+    // Notify Transporter
+    if (order.acceptedTransporterId) {
+      await sendNotification({
+        ...notificationPayload,
+        role: "transporter",
+        relatedUserId: order.transporterId,
+      });
+    }
+
     res.status(200).json({ message: "Order status updated successfully", updatedOrder: order });
+
   } catch (err) {
     console.log("Error in updateOrderStatusController: ", err.message);
     res.status(500).json({ message: "Internal Server Error" });
@@ -467,66 +610,131 @@ export const updateOrderStatusController = async (req, res) => {
 };
 
 export const cancelOrderController = async (req, res) => {
-    try {
-        const companyId = req.user?._id;
-        const { orderId } = req.params;
+  try {
+    const companyId = req.user?._id;
+    const { orderId } = req.params;
 
-        if (!companyId) {
-            return res.status(404).json({ message: "Unauthorized access" });
-        }
-
-        const order = await orderModel.findOne({ _id: orderId, customerId: companyId });
-        if (!order) {
-            return res.status(404).json({ message: "Order not found" });
-        }
-
-        if (["delivered", "cancelled"].includes(order.status)) {
-            return res.status(400).json({ message: `Cannot cancel the order that is already ${order.status}` });
-        }
-
-        order.status = "cancelled";
-        order.currentStatus = "cancelled";
-        await order.save();
-
-        res.status(200).json({ message: "Order cancelled successfully", cancelledOrder: order });
+    if (!companyId) {
+      return res.status(404).json({ message: "Unauthorized access" });
     }
-    catch (err) {
-        console.log("Error in cancelOrderController:", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+
+    const order = await orderModel.findOne({ _id: orderId, customerId: companyId });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
     }
+
+    if (["delivered", "cancelled"].includes(order.status)) {
+      return res.status(400).json({ message: `Cannot cancel the order that is already ${order.status}` });
+    }
+
+    order.status = "cancelled";
+    order.currentStatus = "cancelled";
+    await order.save();
+
+    const baseNotification = {
+      type: "cancelled",
+      title: "Order Cancelled",
+      message: `Order ${orderId} has been cancelled by the company.`,
+      relatedBookingId: orderId,
+      deliveryMode: "cancelled",
+      metadata: { companyId },
+    };
+
+    // Notify Driver
+    if (order.acceptedDriverId) {
+      await sendNotification({
+        ...baseNotification,
+        role: "driver",
+        relatedUserId: order.acceptedDriverId,
+      });
+    }
+
+    // Notify Transporter
+    if (order.acceptedTransporterId) {
+      await sendNotification({
+        ...baseNotification,
+        role: "transporter",
+        relatedUserId: order.acceptedTransporterId,
+      });
+    }
+
+    // (Optional) Notify Company
+    await sendNotification({
+      ...baseNotification,
+      role: "company",
+      relatedUserId: companyId,
+      title: "Order Cancelled Confirmation",
+      message: `You have cancelled order ${orderId}.`,
+    });
+
+    res.status(200).json({ message: "Order cancelled successfully", cancelledOrder: order });
+
+  } catch (err) {
+    console.log("Error in cancelOrderController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const updateOrderLocationController = async (req, res) => {
-    try {
-        const { orderId, lat, lng } = req.body;
-        
-        if (!orderId || lat == null || lng == null) {
-            return res.status(400).json({ message: "orderId, lat, and lng are required" });
-        }
-      
-        const order = await orderModel.findById(orderId);
-        if (!order) {
-            return res.status(404).json({ message: "Order not found" });
-        }
-      
-        order.currentLocation = {
-            type: "Point",
-            coordinates: [parseFloat(lng), parseFloat(lat)],
-            updatedAt: new Date(),
-        };
-      
-        order.trackingHistory.push({
-            latitude: parseFloat(lat),
-            longitude: parseFloat(lng),
-            timeStamp: new Date(),
-        });
-      
-        await order.save();
-      
-        res.status(200).json({ message: "Order location updated successfully" });
+  try {
+    const { orderId, lat, lng } = req.body;
+
+    if (!orderId || lat == null || lng == null) {
+      return res.status(400).json({ message: "orderId, lat, and lng are required" });
     }
-    catch(err){
-        console.error("Error updating order location:", error);
-        res.status(500).json({ message: "Internal server error" });
+
+    const order = await orderModel.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
     }
+
+    // Update current location
+    order.currentLocation = {
+      type: "Point",
+      coordinates: [parseFloat(lng), parseFloat(lat)],
+      updatedAt: new Date(),
+    };
+
+    // Append to tracking history
+    const locationUpdate = {
+      latitude: parseFloat(lat),
+      longitude: parseFloat(lng),
+      timeStamp: new Date(),
+    };
+
+    order.trackingHistory.push(locationUpdate);
+
+    await order.save();
+
+    // Notify Company
+    await sendNotification({
+      role: "company",
+      relatedUserId: order.customerId || order.companyId,
+      relatedBookingId: order._id,
+      title: "Order Location Updated",
+      message: `Driver has updated the location.`,
+      type: "tracking",
+      deliveryMode: "info",
+      metadata: locationUpdate,
+    });
+
+    // Notify Transporter (if assigned)
+    if (order.assignedTransporter) {
+      await sendNotification({
+        role: "transporter",
+        relatedUserId: order.assignedTransporter,
+        relatedBookingId: order._id,
+        title: "Order Location Updated",
+        message: `Track the live location for Order ${order._id}.`,
+        type: "tracking",
+        deliveryMode: "info",
+        metadata: locationUpdate,
+      });
+    }
+
+    res.status(200).json({ message: "Order location updated successfully" });
+  } catch (err) {
+    console.error("Error updating order location:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
