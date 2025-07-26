@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { IoClose } from "react-icons/io5";
-import { FaTruck, FaUserTie, FaEnvelope, FaPhone, FaIdBadge } from "react-icons/fa";
+import { FaTruck, FaUserTie, FaEnvelope, FaPhone, FaIdBadge, FaEdit } from "react-icons/fa";
 import { MdLocationOn } from "react-icons/md";
 import { useUserProfile } from "../../hooks/useUserProfile";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { updateTransporterProfile } from "../../api/transporterApi"; // You'll need to create this API function
 
 const mockTrucks = [
   {
@@ -29,30 +31,60 @@ const mockBids = [
 ];
 
 const TransporterProfile = () => {
-    const { data: userProfile, isLoading } = useUserProfile();
-    const transporter = userProfile.transporter;
-    
+  const { data: userProfile, isLoading } = useUserProfile();
+  const queryClient = useQueryClient();
+  
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [formData, setFormData] = useState({ ...mockTransporter });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name.startsWith("address.")) {
-      const addressField = name.split(".")[1];
-      setFormData((prev) => ({
-        ...prev,
-        address: {
-          ...prev.address,
-          [addressField]: value,
-        },
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+  // TanStack Query mutation for updating transporter profile
+  const updateProfileMutation = useMutation({
+    mutationFn: updateTransporterProfile,
+    onSuccess: (data) => {
+      // Invalidate and refetch user profile data
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      
+      // Close the modal
+      setShowUpdateModal(false);
+      
+      // Show success message
+      alert('Transporter profile updated successfully!');
+    },
+    onError: (error) => {
+      console.error('Error updating transporter profile:', error);
+      alert('Failed to update profile. Please try again.');
+    },
+  });
+
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    // Convert FormData to object matching your transporter schema
+    const updatedData = {
+      transporterName: formData.get('transporterName'),
+      ownerName: formData.get('ownerName'),
+      email: formData.get('email'),
+      contactNo: parseInt(formData.get('contactNo')),
+      registrationNumber: formData.get('registrationNumber'),
+      address: {
+        street: formData.get('street'),
+        city: formData.get('city'),
+        state: formData.get('state'),
+        pincode: parseInt(formData.get('pincode')),
+        country: formData.get('country'),
+        landmark: formData.get('landmark'),
+      },
+    };
+
+    // Trigger the mutation
+    updateProfileMutation.mutate(updatedData);
   };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!userProfile || !userProfile.transporter) return <div>No profile data found</div>;
+
+  const transporter = userProfile.transporter;
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -91,9 +123,10 @@ const TransporterProfile = () => {
           <div className="self-end">
             <button
               onClick={() => setShowUpdateModal(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={updateProfileMutation.isPending}
             >
-              Edit Profile
+              <FaEdit /> {updateProfileMutation.isPending ? 'Updating...' : 'Edit Profile'}
             </button>
           </div>
           <div className="mt-10 text-sm text-gray-700">
@@ -156,107 +189,124 @@ const TransporterProfile = () => {
           <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-3xl relative">
             <button
               onClick={() => setShowUpdateModal(false)}
-              className="absolute cursor-pointer top-3 right-3 text-red-500 text-xl"
+              className="absolute cursor-pointer top-3 right-3 text-red-500 text-xl hover:text-red-700 transition"
+              disabled={updateProfileMutation.isPending}
             >
               <IoClose />
             </button>
             <h3 className="text-xl font-bold mb-4 text-blue-800">Edit Transporter Profile</h3>
-            <form className="grid grid-cols-2 gap-4">
-              <input
-                type="text"
+            
+            {/* Show loading state */}
+            {updateProfileMutation.isPending && (
+              <div className="mb-4 p-3 bg-blue-100 text-blue-700 rounded-lg">
+                Updating profile...
+              </div>
+            )}
+            
+            {/* Show error state */}
+            {updateProfileMutation.isError && (
+              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+                Error: {updateProfileMutation.error?.message || 'Failed to update profile'}
+              </div>
+            )}
+
+            <form className="grid grid-cols-2 gap-4" onSubmit={handleSubmit}>
+              <Input
+                label="Transporter Name"
                 name="transporterName"
-                value={transporter.transporterName}
-                onChange={handleChange}
-                className="border p-2 rounded"
+                defaultValue={transporter.transporterName}
                 placeholder="Transporter Name"
+                required
               />
-              <input
-                type="text"
+              <Input
+                label="Owner Name"
                 name="ownerName"
-                value={transporter.ownerName}
-                onChange={handleChange}
-                className="border p-2 rounded"
+                defaultValue={transporter.ownerName}
                 placeholder="Owner Name"
+                required
               />
-              <input
-                type="email"
+              <Input
+                label="Email"
                 name="email"
-                value={transporter.email}
-                onChange={handleChange}
-                className="border p-2 rounded"
+                type="email"
+                defaultValue={transporter.email}
                 placeholder="Email"
+                required
               />
-              <input
-                type="text"
+              <Input
+                label="Contact Number"
                 name="contactNo"
-                value={transporter.contactNo}
-                onChange={handleChange}
-                className="border p-2 rounded"
+                type="tel"
+                defaultValue={transporter.contactNo}
                 placeholder="Phone"
+                required
               />
-              <input
-                type="text"
+              <Input
+                label="Registration Number"
                 name="registrationNumber"
-                value={transporter.registrationNumber}
-                onChange={handleChange}
-                className="border p-2 rounded"
+                defaultValue={transporter.registrationNumber}
                 placeholder="Registration No."
+                required
               />
-              <input
-                type="text"
-                name="address.street"
-                value={transporter.address.street}
-                onChange={handleChange}
-                className="border p-2 rounded"
+              <Input
+                label="Street"
+                name="street"
+                defaultValue={transporter.address.street}
                 placeholder="Street"
+                required
               />
-              <input
-                type="text"
-                name="address.city"
-                value={transporter.address.city}
-                onChange={handleChange}
-                className="border p-2 rounded"
+              <Input
+                label="City"
+                name="city"
+                defaultValue={transporter.address.city}
                 placeholder="City"
+                required
               />
-              <input
-                type="text"
-                name="address.state"
-                value={transporter.address.state}
-                onChange={handleChange}
-                className="border p-2 rounded"
+              <Input
+                label="State"
+                name="state"
+                defaultValue={transporter.address.state}
                 placeholder="State"
+                required
               />
-              <input
-                type="text"
-                name="address.pincode"
-                value={transporter.address.pincode}
-                onChange={handleChange}
-                className="border p-2 rounded"
+              <Input
+                label="Pincode"
+                name="pincode"
+                type="number"
+                defaultValue={transporter.address.pincode}
                 placeholder="Pincode"
+                required
               />
-              <input
-                type="text"
-                name="address.country"
-                value={transporter.address.country}
-                onChange={handleChange}
-                className="border p-2 rounded"
+              <Input
+                label="Country"
+                name="country"
+                defaultValue={transporter.address.country}
                 placeholder="Country"
+                required
               />
-              <input
-                type="text"
-                name="address.landmark"
-                value={transporter.address.landmark}
-                onChange={handleChange}
-                className="border p-2 rounded"
+              <Input
+                label="Landmark"
+                name="landmark"
+                defaultValue={transporter.address.landmark}
                 placeholder="Landmark"
+                required
               />
-              <div className="col-span-2 text-right">
+              
+              <div className="col-span-2 flex justify-end gap-3 mt-4">
                 <button
                   type="button"
                   onClick={() => setShowUpdateModal(false)}
-                  className="bg-blue-600 cursor-pointer text-white px-6 py-2 rounded hover:bg-blue-700"
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded transition"
+                  disabled={updateProfileMutation.isPending}
                 >
-                  Save Changes
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={updateProfileMutation.isPending}
+                >
+                  {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>
@@ -266,5 +316,21 @@ const TransporterProfile = () => {
     </div>
   );
 };
+
+const Input = ({ label, name, defaultValue, type = "text", placeholder, required = false }) => (
+  <div>
+    <label className="block mb-1 font-semibold text-sm text-gray-700">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <input
+      type={type}
+      name={name}
+      defaultValue={defaultValue}
+      placeholder={placeholder}
+      required={required}
+      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+    />
+  </div>
+);
 
 export default TransporterProfile;

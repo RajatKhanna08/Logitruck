@@ -38,3 +38,14 @@ export const getTransporterProfile = async () => {
         console.log("Error in getTransporterProfile: ", err.message);
     }
 }
+
+export const updateTransporterProfile = async (updatedTransporterData) => {
+    try{
+        const res = await axiosInstance.put('/transporter/profile', updatedTransporterData);
+        return res.data;
+    }
+    catch(err){
+        console.log("Error in updateTransporterProfile: ", err.message);
+        throw err;
+    }
+}
