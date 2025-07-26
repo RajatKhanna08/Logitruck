@@ -105,6 +105,7 @@ const AppWrapper = () => {
                     {/* <Route path='/order-booking' element={<OrderBookingPage />} /> */}
                     <Route path='/order-book' element={<BookOrderPage />} />
                     <Route path='/order-track' element={<TrackOrderPage />} />
+                    <Route path='/admin-profile' element={<AdminProfile />} />
 
                     {/* Protected Dashboards */}
                     <Route path='/company/dashboard' element={
