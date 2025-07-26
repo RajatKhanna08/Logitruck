@@ -101,8 +101,8 @@ const ContactUsPage = () => {
                 <p className="text-2xl text-center font-medium">Write To Us</p>
                 <p className="text-xl text-center font-medium">logitruck@gmail.com</p>
               </div>
-            </div>
           </div>
+        </div>
         </div>
 
         {/* RIGHT SECTION */}

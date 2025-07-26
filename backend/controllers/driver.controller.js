@@ -5,6 +5,7 @@ import orderModel from "../models/orderModel.js";
 
 import { sendWelcomeEmail, sendLoginAlertEmail } from "../emails/driverEmail.js";
 import { sendWhatsAppRegistration, sendWhatsAppLogin } from "../services/whatsapp.service.js";
+import { sendNotification } from '../utils/sendNotification.js';
 
 export const registerDriverController = async (req, res) => {
     try {

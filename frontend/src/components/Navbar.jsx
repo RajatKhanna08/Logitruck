@@ -117,8 +117,8 @@ const Navbar = () => {
                     {/* UPPER SECTION WHEN NO ONE IS LOGGED IN */}
                     {!isLoggedIn &&
                         <>
-                            <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'><FaPhone /> +91 1234567890</li>
-                            <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'><IoMail /> logitruck@gmail.com</li>
+                            <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'><FaPhone /> +91 9810508819</li>
+                            <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'><IoMail />support@logitruck.org.in</li>
                             <li className='flex items-center gap-2 cursor-pointer hover:text-yellow-300 transition-all duration-200'><FaGlobe size={25} /></li>
                             <li className='flex items-center bg-white hover:bg-gray-200 text-black px-4 h-10 mt-1 text-[15px] font-bold rounded-xl cursor-pointer transition-all duration-200'>
                                 <Link to="/role-select">Join Us</Link>

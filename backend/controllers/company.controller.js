@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { promises as fsPromises } from 'fs';
 import { validationResult } from "express-validator";
 
 import companyModel from "../models/companyModel.js";
@@ -8,6 +9,7 @@ import driverModel from '../models/driverModel.js';
 
 import { sendCompanyWelcomeEmail, sendCompanyLoginEmail } from "../emails/companyEmail.js";
 import { sendWhatsAppRegistration, sendWhatsAppLogin } from '../services/whatsapp.service.js';
+import { sendNotification } from '../utils/sendNotification.js';
 
 export const registerCompanyController = async (req, res) => {
     try {
@@ -16,7 +18,7 @@ export const registerCompanyController = async (req, res) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const {
+        let {
             companyName,
             companyEmail,
             companyPhone,
@@ -27,11 +29,13 @@ export const registerCompanyController = async (req, res) => {
             contactPerson
         } = req.body;
 
+        companyEmail = companyEmail.toLowerCase();
 
         const existingCompany = await companyModel.findOne({ companyEmail });
         if (existingCompany) {
-            return res.status(409).json({ message: "Email already exists" }); // 409 Conflict
+            return res.status(409).json({ message: "Email already exists" });
         }
+
         const files = req.files;
         if (
             !files?.idProof?.[0] ||
@@ -42,6 +46,20 @@ export const registerCompanyController = async (req, res) => {
                 message: "All documents are required: ID Proof, Business License and GST Certificate"
             });
         }
+
+        // Safely parse JSON fields
+        let parsedContactPerson = {};
+        let parsedAddress = {};
+        try {
+            parsedContactPerson = JSON.parse(contactPerson);
+            parsedAddress = JSON.parse(address);
+        } catch (parseError) {
+            return res.status(400).json({
+                message: "Invalid JSON format in contactPerson or address",
+                error: parseError.message
+            });
+        }
+
         const hashedPassword = await companyModel.hashPassword(password);
         const newCompany = await companyModel.create({
             companyName,
@@ -49,8 +67,8 @@ export const registerCompanyController = async (req, res) => {
             companyPhone,
             password: hashedPassword,
             profileImg: "https://static.vecteezy.com/system/resources/previews/020/911/740/non_2x/user-profile-icon-profile-avatar-user-icon-male-icon-face-icon-profile-icon-free-png.png",
-            contactPerson: JSON.parse(contactPerson),
-            address: JSON.parse(address),
+            contactPerson: parsedContactPerson,
+            address: parsedAddress,
             registrationNumber,
             industry,
             documents: {
@@ -59,8 +77,23 @@ export const registerCompanyController = async (req, res) => {
                 gstCertificate: files.gstCertificate[0].path
             }
         });
+
         await sendCompanyWelcomeEmail(companyEmail, companyName);
         await sendWhatsAppRegistration(newCompany.companyPhone, newCompany.companyName, "company");
+
+        await sendNotification({
+            role: "company",
+            type: "general",
+            title: "Welcome to Logitruck!",
+            message: `Dear ${companyName}, your account has been successfully registered.`,
+            relatedBookingId: "N/A",
+            relatedUserId: newCompany._id.toString(),
+            deliveryMode: "pending",
+            metadata: {
+                industry,
+                registrationNumber
+            }
+        });
 
         const token = newCompany.generateAuthToken();
         res.cookie("jwt", token, {
@@ -68,6 +101,7 @@ export const registerCompanyController = async (req, res) => {
             secure: process.env.NODE_ENV === "production",
             sameSite: "Strict"
         });
+
         res.status(201).json({
             message: "Company registered successfully",
             company: {
@@ -111,6 +145,18 @@ export const loginCompanyController = async (req, res) => {
         });
         await sendCompanyLoginEmail(existingCompany.companyEmail, existingCompany.companyName);
         await sendWhatsAppLogin(existingCompany.companyPhone, existingCompany.companyName, "Company");
+        await sendNotification({
+            role: "company",
+            type: "activity",
+            title: "Login Alert",
+            message: `Hi ${existingCompany.companyName}, your account was just logged in.`,
+            relatedBookingId: "N/A",
+            relatedUserId: existingCompany._id.toString(),
+            deliveryMode: "pending",
+            metadata: {
+                loginTime: new Date().toISOString()
+            }
+        });
         res.status(200).json({
             message: "Company logged in successfully",
             company: existingCompany
@@ -198,6 +244,18 @@ export const uploadCompanyCertificationsController = async (req, res) => {
         }
 
         await company.save();
+        await sendNotification({
+            role: "company",
+            type: "task",
+            title: "Documents Uploaded",
+            message: "Your company documents were successfully uploaded.",
+            relatedBookingId: "DOC_UPLOAD",
+            relatedUserId: company._id.toString(),
+            deliveryMode: "completed",
+            metadata: {
+                uploadedDocs: Object.keys(files).filter(key => files[key]?.length > 0)
+            }
+        });
 
         res.status(200).json({
             message: "Documents uploaded successfully",
@@ -229,7 +287,7 @@ export const getCompanyCertificationsController = async (req, res) => {
     }
 };
 
-export const deleteCompanyCertificationsController = async (req, res) => {
+export const deleteCompanyCertificationsController = async (req, res) => {  
     try {
         const companyId = req.user?._id;
 
@@ -245,19 +303,28 @@ export const deleteCompanyCertificationsController = async (req, res) => {
         const docs = company.documents || {};
         const docKeys = ["idProof", "businessLicense", "gstCertificate"];
 
-        docKeys.forEach((key) => {
+        for (const key of docKeys) {
             const filePath = docs[key];
             if (filePath && fs.existsSync(filePath)) {
-                fs.unlink(filePath, (err) => {
-                    if (err) {
-                        console.log(`Error deleting ${key}:`, err.message);
-                    }
-                });
+                try {
+                    await fsPromises.unlink(filePath);
+                } catch (err) {
+                    console.error(`Error deleting ${key}:`, err.message);
+                }
                 company.documents[key] = undefined;
-            }
-        });
+            }   
+        }
 
         await company.save();
+        await sendNotification({
+            role: "company",
+            type: "alert",
+            title: "Documents Deleted",
+            message: "Your uploaded company documents have been deleted.",
+            relatedBookingId: "DOC_DELETE",
+            relatedUserId: company._id.toString(),
+            deliveryMode: "completed"
+        });
 
         res.status(200).json({
             message: "All documents deleted successfully",
@@ -294,7 +361,7 @@ export const updateCompanyProfileController = async (req, res) => {
         if (updates.industry !== undefined) company.industry = updates.industry;
         if (updates.registrationNumber !== undefined) company.registrationNumber = updates.registrationNumber;
         if (updates.companyPhone !== undefined) company.companyPhone = updates.companyPhone;
-        if (updates.companyEmail !== undefined) company.companyEmail = updates.companyEmail;
+        if (updates.companyEmail !== undefined) company.companyEmail = updates.companyEmail.toLowerCase();
 
         // Nested updates with spread (preserves existing values)
         if (updates.contactPerson) {
@@ -312,7 +379,18 @@ export const updateCompanyProfileController = async (req, res) => {
         }
 
         await company.save();
-
+        await sendNotification({
+            role: "company",
+            type: "task",
+            title: "Profile Updated",
+            message: "Your company profile was successfully updated.",
+            relatedBookingId: "PROFILE_UPDATE", 
+            relatedUserId: company._id.toString(),
+            deliveryMode: "completed",
+            metadata: {
+                updatedFields: Object.keys(updates)
+            }
+        });
         res.status(200).json({
             message: "Company profile updated successfully",
             company: {
@@ -364,43 +442,77 @@ export const getTruckSuggestionsController = async (req, res) => {
 };  
 
 export const uploadEwayBillController = async (req, res) => {
-    try{
-        const companyId = req.user?._id;
-        const { orderId } = req.params;
+  try {
+    const companyId = req.user?._id;
+    const { orderId } = req.params;
 
-        const order = await orderModel.findById(orderId);
-        if(!order){
-            return res.status(404).json({ message: "Order not found" });
-        }
-
-        if(order.customerId.toString() !== companyId.toString()){
-            return res.status(403).json({ message: "Unauthorized to upload eWay Bill on this order" });
-        }
-
-        const files = req.files;
-        const { billNumber } = req.body;
-
-        if(!files || !files.eWayBill){
-            return res.status(400).json({ message: "E-Way Bill file is required" });
-        }
-
-        const eWayBillFile = req.files.eWayBill[0];
-
-        order.documents.eWayBill = {
-            fileURL: eWayBillFile.path,
-            billNumber: billNumber,
-            uploadedAt: new Date()
-        }
-
-        await order.save();
-
-        res.status(200).json({ message: "E Way Bill uploaded successfully", eWayBill: order.documents.eWayBill });
+    const order = await orderModel.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
     }
-    catch(err){
-        console.log("Error in uploadEwayBillController: ", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+
+    if (order.customerId.toString() !== companyId.toString()) {
+      return res.status(403).json({ message: "Unauthorized to upload eWay Bill on this order" });
     }
-}
+
+    const files = req.files;
+    const { billNumber } = req.body;
+
+    if (!files || !files.eWayBill) {
+      return res.status(400).json({ message: "E-Way Bill file is required" });
+    }
+
+    const eWayBillFile = req.files.eWayBill[0];
+
+    order.documents.eWayBill = {
+      fileURL: eWayBillFile.path,
+      billNumber: billNumber,
+      uploadedAt: new Date()
+    };
+
+    await order.save();
+    const notificationPayload = {
+      relatedBookingId: orderId,
+      type: "task",
+      title: "E-Way Bill Uploaded",
+      message: `E-Way Bill (${billNumber}) has been uploaded for Order #${orderId}`,
+    };
+
+    // To company (uploader)
+    await sendNotification({
+      ...notificationPayload,
+      role: "company",
+      relatedUserId: companyId.toString(),
+    });
+
+    // To transporter
+    if (order.transporterId) {
+      await sendNotification({
+        ...notificationPayload,
+        role: "transporter",
+        relatedUserId: order.transporterId.toString(),
+      });
+    }
+
+    // To driver
+    if (order.driverId) {
+      await sendNotification({
+        ...notificationPayload,
+        role: "driver",
+        relatedUserId: order.driverId.toString(),
+      });
+    }
+
+    res.status(200).json({
+      message: "E Way Bill uploaded successfully",
+      eWayBill: order.documents.eWayBill
+    });
+
+  } catch (err) {
+    console.log("Error in uploadEwayBillController: ", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 export const getAvailableTrucksController = async (req, res) => {
     try {

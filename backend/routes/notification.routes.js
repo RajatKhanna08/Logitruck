@@ -1,14 +1,24 @@
-import express from 'express';
-import {
+  import express from 'express';
+  import {
     getAllNotificationsController,
-    deleteAllNotificationsController
-} from '../controllers/notification.controller.js';
-import { isLoggedIn } from '../middlewares/isLoggedIn.js'; 
-const router = express.Router();
+    deleteAllNotificationsController,
+    sendNotificationController
+  } from '../controllers/notification.controller.js';
+  import { body } from 'express-validator';
+  import { isLoggedIn } from '../middlewares/isLoggedIn.js';
 
-// ==================== Notification Routes ====================
+  const router = express.Router();
+  const sendNotificationValidator = [
+    body('role').notEmpty().withMessage('Role is required'),
+    body('relatedUserId').notEmpty().withMessage('Related user ID is required'),
+    body('title').notEmpty().withMessage('Title is required'),
+    body('message').notEmpty().withMessage('Message is required'),
+  ];
 
-router.get('/all', isLoggedIn, getAllNotificationsController);
-router.delete('/all', isLoggedIn, deleteAllNotificationsController);
+  // ==================== Notification Routes ====================
 
-export default router;
+  router.get('/all', isLoggedIn, getAllNotificationsController);
+  router.delete('/all', isLoggedIn, deleteAllNotificationsController);
+  router.post('/send', isLoggedIn, sendNotificationValidator, sendNotificationController);
+
+  export default router;
