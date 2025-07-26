@@ -29,7 +29,7 @@ export const useRegisterDriver = () => {
     }));
 }
 
-export const useLoginDriver = async () => {
+export const useLoginDriver = () => {
     const setUser = useUserStore((state) => state.setUser);
     const queryClient = useQueryClient();
     const navigate = useNavigate();

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     FaPhone, FaEnvelope, FaMapMarkerAlt, FaTruckMoving, FaRoad, FaClock,
-    FaCalendarAlt, FaFileAlt, FaUserTie
+    FaCalendarAlt, FaFileAlt, FaUserTie, FaEdit
 } from 'react-icons/fa';
 import {
     GiSteeringWheel
@@ -9,11 +9,53 @@ import {
 import {
     MdModeOfTravel, MdWorkHistory, MdOutlineLocationOn
 } from 'react-icons/md';
+import { IoClose } from 'react-icons/io5';
 import { useUserProfile } from '../../hooks/useUserProfile';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { updateDriverProfile } from "../../api/driverApi"; // You'll need to create this API function
 
 const DriverProfile = () => {
     const { data: userProfile, isLoading } = useUserProfile();
+    const queryClient = useQueryClient();
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // TanStack Query mutation for updating driver profile
+    const updateProfileMutation = useMutation({
+        mutationFn: updateDriverProfile,
+        onSuccess: (data) => {
+            // Invalidate and refetch user profile data
+            queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+            
+            // Close the modal
+            setIsModalOpen(false);
+            
+            // Show success message
+            alert('Driver profile updated successfully!');
+        },
+        onError: (error) => {
+            console.error('Error updating driver profile:', error);
+            alert('Failed to update profile. Please try again.');
+        },
+    });
+
+    // Handle form submission
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        
+        // Convert FormData to object matching your driver schema
+        const updatedData = {
+            fullName: formData.get('fullName'),
+            email: formData.get('email'),
+            phone: parseInt(formData.get('phone')),
+            vehicleType: formData.get('vehicleType'),
+            experience: parseInt(formData.get('experience')),
+            availabilityStatus: formData.get('availabilityStatus') === 'true',
+        };
+
+        // Trigger the mutation
+        updateProfileMutation.mutate(updatedData);
+    };
 
     if (isLoading) return <div className="text-center py-20 text-blue-600 text-xl font-semibold">Loading driver profile...</div>;
     if (!userProfile || !userProfile.driver) return <div className="text-center py-20 text-red-500 text-xl">No profile data found.</div>;
@@ -54,9 +96,10 @@ const DriverProfile = () => {
                     </div>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="self-end mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
+                        className="self-end mt-4 flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={updateProfileMutation.isPending}
                     >
-                        Update Profile
+                        <FaEdit /> {updateProfileMutation.isPending ? 'Updating...' : 'Update Profile'}
                     </button>
                 </div>
             </div>
@@ -132,7 +175,15 @@ const DriverProfile = () => {
             </Card>
 
             {/* Update Modal */}
-            {isModalOpen && <UpdateDriverModal onClose={() => setIsModalOpen(false)} driver={driver} />}
+            {isModalOpen && (
+                <UpdateDriverModal 
+                    onClose={() => setIsModalOpen(false)} 
+                    driver={driver} 
+                    onSubmit={handleSubmit}
+                    isLoading={updateProfileMutation.isPending}
+                    error={updateProfileMutation.error}
+                />
+            )}
         </div>
     );
 };
@@ -165,21 +216,120 @@ const Card = ({ title, icon, children }) => (
     </div>
 );
 
-// Modal Component (Skeleton, you can customize it more)
-const UpdateDriverModal = ({ onClose, driver }) => {
+// Enhanced Modal Component with Form
+const UpdateDriverModal = ({ onClose, driver, onSubmit, isLoading, error }) => {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
+            <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-3xl relative">
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-red-500 text-2xl hover:text-red-700 transition"
+                    disabled={isLoading}
+                >
+                    <IoClose />
+                </button>
+                
                 <h2 className="text-xl font-bold text-blue-700 mb-6">Update Driver Profile</h2>
-                {/* You can put form fields here for updating driver */}
-                <p className="text-gray-600 mb-4">[Form to update fields like name, phone, truck ID, etc. will go here]</p>
-                <div className="flex justify-end gap-3">
-                    <button onClick={onClose} className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save Changes</button>
-                </div>
+
+                {/* Show loading state */}
+                {isLoading && (
+                    <div className="mb-4 p-3 bg-blue-100 text-blue-700 rounded-lg">
+                        Updating profile...
+                    </div>
+                )}
+                
+                {/* Show error state */}
+                {error && (
+                    <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+                        Error: {error?.message || 'Failed to update profile'}
+                    </div>
+                )}
+
+                <form className="grid grid-cols-2 gap-4" onSubmit={onSubmit}>
+                    <Input
+                        label="Full Name"
+                        name="fullName"
+                        defaultValue={driver.fullName}
+                        required
+                    />
+                    <Input
+                        label="Email"
+                        name="email"
+                        type="email"
+                        defaultValue={driver.email}
+                        required
+                    />
+                    <Input
+                        label="Phone"
+                        name="phone"
+                        type="tel"
+                        defaultValue={driver.phone}
+                        required
+                    />
+                    <Input
+                        label="Vehicle Type"
+                        name="vehicleType"
+                        defaultValue={driver.vehicleType}
+                        required
+                    />
+                    <Input
+                        label="Experience (Years)"
+                        name="experience"
+                        type="number"
+                        defaultValue={driver.experience}
+                        required
+                    />
+                    <div>
+                        <label className="block mb-1 font-semibold text-sm text-gray-700">
+                            Availability Status <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                            name="availabilityStatus"
+                            defaultValue={driver.availabilityStatus}
+                            required
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+                        >
+                            <option value={true}>Available</option>
+                            <option value={false}>Unavailable</option>
+                        </select>
+                    </div>
+
+                    <div className="col-span-2 flex justify-end gap-3 mt-6">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition"
+                            disabled={isLoading}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Saving...' : 'Save Changes'}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );
 };
+
+const Input = ({ label, name, defaultValue, type = "text", required = false }) => (
+    <div>
+        <label className="block mb-1 font-semibold text-sm text-gray-700">
+            {label} {required && <span className="text-red-500">*</span>}
+        </label>
+        <input
+            type={type}
+            name={name}
+            defaultValue={defaultValue}
+            required={required}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+        />
+    </div>
+);
 
 export default DriverProfile;
