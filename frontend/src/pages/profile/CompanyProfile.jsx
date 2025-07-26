@@ -14,36 +14,68 @@ import { IoClose } from "react-icons/io5";
 import { useUserProfile } from "../../hooks/useUserProfile";
 import { useNavigate } from "react-router-dom";
 import { useOrders } from "../../hooks/useOrder";
-
-const dummyOrders = [
-  {
-    id: "ORD12345",
-    destination: "Bangalore, Karnataka",
-    date: "2025-07-14",
-    status: "Delivered",
-  },
-  {
-    id: "ORD12346",
-    destination: "Mumbai, Maharashtra",
-    date: "2025-07-13",
-    status: "In Transit",
-  },
-  {
-    id: "ORD12347",
-    destination: "Hyderabad, Telangana",
-    date: "2025-07-12",
-    status: "Pending",
-  },
-];
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { updateCompanyProfile } from "../../api/companyApi";
 
 const CompanyProfile = () => {
-  const { data: userProfile, isLoading:isProfileLoading } = useUserProfile();
-  const { data: allOrders, isLoading:isOrderLoading } = useOrders();
+  const { data: userProfile, isLoading: isProfileLoading } = useUserProfile();
+  const { data: allOrders, isLoading: isOrderLoading } = useOrders();
+  const queryClient = useQueryClient();
 
   const navigate = useNavigate();
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showContactInfo, setShowContactInfo] = useState(false);
+
+  // TanStack Query mutation for updating profile
+  const updateProfileMutation = useMutation({
+    mutationFn: updateCompanyProfile,
+    onSuccess: (data) => {
+      // Invalidate and refetch user profile data
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      
+      // Close the modal
+      setShowUpdateModal(false);
+      
+      // Show success message (you can replace this with your preferred notification system)
+      alert('Profile updated successfully!');
+    },
+    onError: (error) => {
+      console.error('Error updating profile:', error);
+      alert('Failed to update profile. Please try again.');
+    },
+  });
+
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    // Convert FormData to object matching your company schema
+    const updatedData = {
+      companyName: formData.get('companyName'),
+      industry: formData.get('industry'),
+      companyEmail: formData.get('email'),
+      companyPhone: parseInt(formData.get('phone')),
+      registrationNumber: formData.get('gst'),
+      address: {
+        street: formData.get('street'),
+        landmark: formData.get('landmark'),
+        city: formData.get('city'),
+        state: formData.get('state'),
+        pincode: parseInt(formData.get('pincode')),
+        country: userProfile.company.address.country, // Keep existing country
+      },
+      contactPerson: {
+        name: formData.get('contactName'),
+        phone: parseInt(formData.get('contactPhone')),
+        email: formData.get('contactEmail'),
+      },
+    };
+
+    // Trigger the mutation
+    updateProfileMutation.mutate(updatedData);
+  };
 
   if (isProfileLoading || isOrderLoading) return <div>Loading...</div>;
   if (!userProfile || !userProfile.company) return <div>No profile data found</div>;
@@ -67,9 +99,10 @@ const CompanyProfile = () => {
           </div>
           <button
             onClick={() => setShowUpdateModal(true)}
-            className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-6 py-2 rounded-lg shadow-md transition"
+            className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-6 py-2 rounded-lg shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={updateProfileMutation.isPending}
           >
-            <FaEdit /> Update Profile
+            <FaEdit /> {updateProfileMutation.isPending ? 'Updating...' : 'Update Profile'}
           </button>
         </div>
 
@@ -142,28 +175,57 @@ const CompanyProfile = () => {
           <div className="bg-white mt-16 w-full max-w-2xl rounded-xl shadow-2xl p-6 relative">
             <button
               onClick={() => setShowUpdateModal(false)}
-              className="absolute top-3 right-3 text-red-500 text-2xl"
+              className="absolute top-3 right-3 text-red-500 text-2xl hover:text-red-700 transition"
+              disabled={updateProfileMutation.isPending}
             >
               <IoClose />
             </button>
             <h3 className="text-xl font-bold mb-4 text-blue-900">Edit Profile Details</h3>
-            <form className="grid grid-cols-2 gap-3">
-              <Input label="Company Name" name="companyName" defaultValue={company.companyName} />
-              <Input label="Industry" name="industry" defaultValue={company.industry} />
-              <Input label="Email" name="email" defaultValue={company.companyEmail} />
-              <Input label="Phone" name="phone" defaultValue={company.companyPhone} />
-              <Input label="GST Number" name="gst" defaultValue={company.registrationNumber} />
-              <Input label="Street" name="street" defaultValue={company.address.street} />
-              <Input label="Landmark" name="landmark" defaultValue={company.address.landmark} />
-              <Input label="City" name="city" defaultValue={company.address.city} />
-              <Input label="State" name="state" defaultValue={company.address.state} />
-              <Input label="Pincode" name="pincode" defaultValue={company.address.pincode} />
-              <Input label="Contact Person Name" name="contactName" defaultValue={company.contactPerson.name} />
-              <Input label="Contact Person Phone" name="contactPhone" defaultValue={company.contactPerson.phone} />
-              <Input label="Contact Person Email" name="contactEmail" defaultValue={company.contactPerson.email} />
-              <div className="col-span-2 text-right">
-                <button type="submit" className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-lg font-semibold">
-                  Save Changes
+            
+            {/* Show loading state */}
+            {updateProfileMutation.isPending && (
+              <div className="mb-4 p-3 bg-blue-100 text-blue-700 rounded-lg">
+                Updating profile...
+              </div>
+            )}
+            
+            {/* Show error state */}
+            {updateProfileMutation.isError && (
+              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+                Error: {updateProfileMutation.error?.message || 'Failed to update profile'}
+              </div>
+            )}
+
+            <form className="grid grid-cols-2 gap-3" onSubmit={handleSubmit}>
+              <Input label="Company Name" name="companyName" defaultValue={company.companyName} required />
+              <Input label="Industry" name="industry" defaultValue={company.industry} required />
+              <Input label="Email" name="email" type="email" defaultValue={company.companyEmail} required />
+              <Input label="Phone" name="phone" type="tel" defaultValue={company.companyPhone} required />
+              <Input label="GST Number" name="gst" defaultValue={company.registrationNumber} required />
+              <Input label="Street" name="street" defaultValue={company.address.street} required />
+              <Input label="Landmark" name="landmark" defaultValue={company.address.landmark} required />
+              <Input label="City" name="city" defaultValue={company.address.city} required />
+              <Input label="State" name="state" defaultValue={company.address.state} required />
+              <Input label="Pincode" name="pincode" type="number" defaultValue={company.address.pincode} required />
+              <Input label="Contact Person Name" name="contactName" defaultValue={company.contactPerson.name} required />
+              <Input label="Contact Person Phone" name="contactPhone" type="tel" defaultValue={company.contactPerson.phone} required />
+              <Input label="Contact Person Email" name="contactEmail" type="email" defaultValue={company.contactPerson.email} required />
+              
+              <div className="col-span-2 flex justify-end gap-3 mt-4">
+                <button 
+                  type="button"
+                  onClick={() => setShowUpdateModal(false)}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold transition"
+                  disabled={updateProfileMutation.isPending}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  disabled={updateProfileMutation.isPending}
+                >
+                  {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>
@@ -184,14 +246,17 @@ const ProfileField = ({ icon, label, value }) => (
   </div>
 );
 
-const Input = ({ label, name, defaultValue }) => (
+const Input = ({ label, name, defaultValue, type = "text", required = false }) => (
   <div>
-    <label className="block mb-1 font-semibold text-sm text-gray-700">{label}</label>
+    <label className="block mb-1 font-semibold text-sm text-gray-700">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
     <input
-      type="text"
+      type={type}
       name={name}
       defaultValue={defaultValue}
-      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+      required={required}
+      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition"
     />
   </div>
 );

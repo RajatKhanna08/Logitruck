@@ -112,7 +112,7 @@ const Navbar = () => {
                 </div>
 
                 {/* Right - Auth or User Options */}
-                <ul className={`list-none text-white flex gap-5 text-lg font-medium select-none text-right ${isLoggedIn ? "h-11 items-center" : "ml-173"}`}>
+                <ul className={`list-none text-white flex gap-4 text-lg font-medium select-none text-right ${isLoggedIn ? "h-11 items-center" : "ml-160"}`}>
 
                     {/* UPPER SECTION WHEN NO ONE IS LOGGED IN */}
                     {!isLoggedIn &&
