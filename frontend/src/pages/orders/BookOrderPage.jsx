@@ -411,11 +411,8 @@ export default function BookOrderPage() {
           quantity: parseInt(formData.loadDetails.quantity) || 0,
           description: formData.loadDetails.description
         },
-        // Add other required fields from schema with default values if not user input
         completedStops: formData.completedStops,
         paymentMode: formData.paymentMode,
-        // These fields are not user inputs in this form but are required by schema
-        // You might want to add inputs for these or handle them on the backend
         routeInfo: {
             estimatedDistance: "N/A",
             estimatedDuration: "N/A",
@@ -456,7 +453,7 @@ export default function BookOrderPage() {
       if (orderData.dropLocations.some(d => !d.address || !d.coordinates.coordinates[0] || !d.coordinates.coordinates[1])) {
         throw new Error("Please select all drop locations on the map.");
       }
-      if (!orderData.scheduledAt) {
+      if (!orderData.scheduleAt) {
         throw new Error("Please select a schedule time.");
       }
       if (!orderData.loadDetails.weightInKg || !orderData.loadDetails.volumeInCubicMeters || !orderData.loadDetails.quantity || !orderData.loadDetails.description) {
@@ -913,7 +910,7 @@ export default function BookOrderPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-inter"> {/* Added font-inter class */}
+    <div className="min-h-screen bg-gray-50 font-inter">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
