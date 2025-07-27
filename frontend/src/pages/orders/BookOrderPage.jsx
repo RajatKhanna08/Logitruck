@@ -216,7 +216,7 @@ export default function BookOrderPage() {
     isBiddingEnabled: false,
     biddingExpiresAt: '',
     loadDetails: { // Updated structure for loadDetails
-      weightInKg: '',
+      weightInTon: '',
       volumeInCubicMeters: '',
       type: 'general', // Default value from schema
       quantity: '',
@@ -342,7 +342,7 @@ export default function BookOrderPage() {
         isBiddingEnabled: false,
         biddingExpiresAt: '',
         loadDetails: {
-          weightInKg: '',
+          weightInTon: '',
           volumeInCubicMeters: '',
           type: 'general',
           quantity: '',
@@ -405,7 +405,7 @@ export default function BookOrderPage() {
           expiresAt: formData.biddingExpiresAt ? new Date(formData.biddingExpiresAt) : null
         },
         loadDetails: { // Correctly map the new loadDetails structure
-          weightInKg: parseFloat(formData.loadDetails.weightInKg) || 0,
+          weightInTon: parseFloat(formData.loadDetails.weightInTon) || 0,
           volumeInCubicMeters: parseFloat(formData.loadDetails.volumeInCubicMeters) || 0,
           type: formData.loadDetails.type,
           quantity: parseInt(formData.loadDetails.quantity) || 0,
@@ -456,7 +456,7 @@ export default function BookOrderPage() {
       if (!orderData.scheduleAt) {
         throw new Error("Please select a schedule time.");
       }
-      if (!orderData.loadDetails.weightInKg || !orderData.loadDetails.volumeInCubicMeters || !orderData.loadDetails.quantity || !orderData.loadDetails.description) {
+      if (!orderData.loadDetails.weightInTon || !orderData.loadDetails.volumeInCubicMeters || !orderData.loadDetails.quantity || !orderData.loadDetails.description) {
         throw new Error("Please fill in all load details.");
       }
       if (!orderData.paymentMode) {
@@ -693,13 +693,13 @@ export default function BookOrderPage() {
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="weightInKg" className="block text-sm font-medium text-gray-700 mb-2">Weight in Kg</label>
+                  <label htmlFor="weightInTon" className="block text-sm font-medium text-gray-700 mb-2">Weight in Ton</label>
                   <input
-                    id="weightInKg"
+                    id="weightInTon"
                     type="number"
                     placeholder="e.g., 1000"
-                    value={formData.loadDetails.weightInKg}
-                    onChange={(e) => handleInputChange('loadDetails.weightInKg', e.target.value)}
+                    value={formData.loadDetails.weightInTon}
+                    onChange={(e) => handleInputChange('loadDetails.weightInTon', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     min="0"
                   />
@@ -876,7 +876,7 @@ export default function BookOrderPage() {
                 <div className="space-y-4">
                   <div className="border-b pb-3">
                     <h4 className="font-medium text-gray-700 mb-2">Load Details</h4>
-                    <p className="text-gray-600">Weight: {formData.loadDetails.weightInKg || 'N/A'} Kg</p>
+                    <p className="text-gray-600">Weight: {formData.loadDetails.weightInTon || 'N/A'} Kg</p>
                     <p className="text-gray-600">Volume: {formData.loadDetails.volumeInCubicMeters || 'N/A'} m³</p>
                     <p className="text-gray-600">Type: {formData.loadDetails.type}</p>
                     <p className="text-gray-600">Quantity: {formData.loadDetails.quantity || 'N/A'}</p>

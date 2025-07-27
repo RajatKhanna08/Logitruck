@@ -126,7 +126,7 @@ const orderSchema = new mongoose.Schema({
   },
 
   loadDetails: {
-    weightInKg: {
+    weightInTon: {
       type: Number,
       required: true
     },
