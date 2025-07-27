@@ -1,4 +1,5 @@
 import reviewModel from "../models/reviewModel.js";
+import { sendNotification } from "../utils/sendNotification.js";
 
 export const createReviewController = async (req, res) => {
     try {
@@ -9,9 +10,15 @@ export const createReviewController = async (req, res) => {
             reviewedEntityId,
             reviewedEntityType,
             rating,
-            reviewText,
+            reviewText = "" 
         } = req.body;
 
+        // Check if required fields are present
+        if (!orderId || !reviewerId || !reviewedEntityId || !reviewedEntityType || rating === undefined) {
+            return res.status(400).json({ message: "Missing required fields." });
+        }
+
+        // Check for duplicate review
         const existingReview = await reviewModel.findOne({
             orderId,
             reviewerId,
@@ -22,6 +29,7 @@ export const createReviewController = async (req, res) => {
             return res.status(400).json({ message: "You have already reviewed this entity for this order." });
         }
 
+        // Save the review
         const newReview = new reviewModel({
             orderId,
             reviewerId,
@@ -29,14 +37,25 @@ export const createReviewController = async (req, res) => {
             reviewedEntityId,
             reviewedEntityType,
             rating,
-            reviewText,
+            reviewText: reviewText.trim(),
         });
 
         await newReview.save();
+
+        // Send notification
+        await sendNotification({
+            role: reviewedEntityType,
+            relatedUserId: reviewedEntityId,
+            relatedBookingId: orderId,
+            title: "New Review Received",
+            message: `You received ${rating}★ - "${reviewText?.trim() || "No comment"}"`,
+            type: "activity",
+            deliveryMode: "instant"
+        });
+
         res.status(201).json({ message: "Review created successfully", review: newReview });
-    } 
-    catch(err){
-        console.log("Error in createReviewController:", err.message);
+    } catch (err) {
+        console.error("Error in createReviewController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
@@ -85,7 +104,15 @@ export const deleteReviewController = async (req, res) => {
         if (!deleted) {
             return res.status(404).json({ message: "Review not found" });
         }
-      
+        await sendNotification({
+            role: deleted.reviewerRole,
+            relatedUserId: deleted.reviewerId,
+            relatedBookingId: deleted.orderId,
+            title: "Review Deleted",
+            message: `Your review for order ${deleted.orderId} was removed.`,
+            type: "info",
+            deliveryMode: "instant",
+        });
         res.status(200).json({ message: "Review deleted successfully" });
     } 
     catch(err){

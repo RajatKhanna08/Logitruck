@@ -4,7 +4,6 @@ import { sendNotification } from '../utils/sendNotification.js';
 
 const getUserId = (req) => req.user?._id || req.user?.id || req.query.userId;
 
-// ========== GET ALL NOTIFICATIONS ==========
 export const getAllNotificationsController = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -24,7 +23,6 @@ export const getAllNotificationsController = async (req, res) => {
   }
 };
 
-// ========== DELETE ALL NOTIFICATIONS ==========
 export const deleteAllNotificationsController = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -39,7 +37,6 @@ export const deleteAllNotificationsController = async (req, res) => {
   }
 };
 
-// ========== SEND NOTIFICATION ==========
 export const sendNotificationController = async (req, res) => {
   try {
     const {

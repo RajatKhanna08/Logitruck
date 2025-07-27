@@ -10,105 +10,127 @@ import { sendWhatsAppRegistration, sendWhatsAppLogin } from "../services/whatsap
 import { sendNotification } from '../utils/sendNotification.js';
 
 export const registerTransporterController = async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const {
-            transporterName,
-            ownerName,
-            email,
-            password,
-            contactNo,
-            address,
-            registrationNumber
-        } = req.body;
-
-        const existingTransporter = await transporterModel.findOne({ email });
-        if (existingTransporter) {
-            return res.status(400).json({ message: "User already exists" });
-        }
-
-        const files = req.files;
-        if (
-            !files?.idProof?.[0] ||
-            !files?.businessLicense?.[0] ||
-            !files?.gstCertificate?.[0]
-        ) {
-            return res.status(400).json({
-                message: "All documents are required: ID Proof, Business License and GST Certificate"
-            });
-        }
-
-        const hashedPassword = await transporterModel.hashPassword(password);
-
-        const newTransporter = await transporterModel.create({
-            transporterName,
-            ownerName,
-            contactNo,
-            email,
-            password: hashedPassword,
-            address: JSON.parse(address),
-            registrationNumber,
-            documents: {
-                idProof: files.idProof[0].path,
-                businessLicense: files.businessLicense[0].path,
-                gstCertificate: files.gstCertificate[0].path
-            },
-            profileImg: "https://static.vecteezy.com/system/resources/previews/020/911/740/non_2x/user-profile-icon-profile-avatar-user-icon-male-icon-face-icon-profile-icon-free-png.png"
-        });
-
-        const token = newTransporter.generateAuthToken();
-        res.cookie("jwt", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "Strict",
-        });
-
-        await sendTransporterWelcomeEmail(email, transporterName);
-        await sendWhatsAppRegistration(newTransporter.contactNo, newTransporter.transporterName, "transporter");
-
-        res.status(201).json({
-            message: "Transporter registered successfully",
-            newTransporter,
-        });
-
-    } catch (err) {
-        console.error("Error in registerTransporterController:", err);
-        res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
+
+    const {
+      transporterName,
+      ownerName,
+      email,
+      password,
+      contactNo,
+      address,
+      registrationNumber
+    } = req.body;
+
+    const existingTransporter = await transporterModel.findOne({ email });
+    if (existingTransporter) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const files = req.files;
+    if (
+      !files?.idProof?.[0] ||
+      !files?.businessLicense?.[0] ||
+      !files?.gstCertificate?.[0]
+    ) {
+      return res.status(400).json({
+        message: "All documents are required: ID Proof, Business License and GST Certificate"
+      });
+    }
+
+    const hashedPassword = await transporterModel.hashPassword(password);
+
+    const newTransporter = await transporterModel.create({
+      transporterName,
+      ownerName,
+      contactNo,
+      email,
+      password: hashedPassword,
+      address: JSON.parse(address),
+      registrationNumber,
+      documents: {
+        idProof: files.idProof[0].path,
+        businessLicense: files.businessLicense[0].path,
+        gstCertificate: files.gstCertificate[0].path
+      },
+      profileImg: "https://static.vecteezy.com/system/resources/previews/020/911/740/non_2x/user-profile-icon-profile-avatar-user-icon-male-icon-face-icon-profile-icon-free-png.png"
+    });
+
+    const token = newTransporter.generateAuthToken();
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+    });
+
+    // Send welcome email and WhatsApp
+    await sendTransporterWelcomeEmail(email, transporterName);
+    await sendWhatsAppRegistration(newTransporter.contactNo, newTransporter.transporterName, "transporter");
+    await sendNotification({
+        role: 'transporter',
+        relatedUserId: newTransporter._id,
+        title: 'Welcome to Logitruck!',
+        message: `Hi ${transporterName}, your transporter account has been registered successfully.`,
+        type: 'info',
+        deliveryMode: 'instant',
+    });
+
+    res.status(201).json({
+      message: "Transporter registered successfully",
+      newTransporter,
+    });
+
+  } catch (err) {
+    console.error("Error in registerTransporterController:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const loginTransporterController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+            return res.status(400).json({ errors: errors.array() });
         }
 
         const { email, password } = req.body;
 
         const existingTransporter = await transporterModel.findOne({ email });
         if (!existingTransporter) {
-        return res.status(404).json({ message: "Transporter Not Found" });
+            return res.status(404).json({ message: "Transporter Not Found" });
         }
 
-        const isPasswordCorrect = await existingTransporter.comparePassword(password); 
+        const isPasswordCorrect = await existingTransporter.comparePassword(password);
         if (!isPasswordCorrect) {
-        return res.status(400).json({ message: "Username or password incorrect" });
+            return res.status(400).json({ message: "Username or password incorrect" });
         }
 
         const token = existingTransporter.generateAuthToken();
-        res.cookie("jwt", token);
+        res.cookie("jwt", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "Strict",
+        });
 
+        // Send Emails / WhatsApp
         await sendTransporterLoginEmail(email, existingTransporter.transporterName);
         await sendWhatsAppLogin(existingTransporter.contactNo, existingTransporter.transporterName, "transporter");
-        
+        await sendNotification({
+            role: "transporter",
+            relatedUserId: existingTransporter._id,
+            title: "Login Successful",
+            message: `Welcome back, ${existingTransporter.transporterName}!`,
+            type: "activity",
+        });
+
         res.status(200).json({ message: "Logged in Successfully" });
+
     } catch (err) {
-        console.log("Error in loginTransporterController: ", err.message);
+        console.error("Error in loginTransporterController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
@@ -230,7 +252,7 @@ export const deleteTransporterCertificationsController = async (req, res) => {
     }
 };
 
- export const getTransporterDashboardController = async (req, res) => {
+export const getTransporterDashboardController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -283,55 +305,62 @@ export const deleteTransporterCertificationsController = async (req, res) => {
 };
 
 export const updateTransporterProfileController = async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-        }
-
-        const transporterId = req.user?._id;
-        const {
-        transporterName,
-        ownerName,
-        contactNo,
-        email,
-        address,
-        registrationNumber,
-        fleetSize
-        } = req.body;
-
-        const transporter = await transporterModel.findById(transporterId);
-        if (!transporter) {
-        return res.status(404).json({ message: "Transporter not found" });
-        }
-
-        if (transporterName) transporter.transporterName = transporterName;
-        if (ownerName) transporter.ownerName = ownerName;
-        if (contactNo) transporter.contactNo = contactNo;
-        if (email) transporter.email = email;
-        if (address) transporter.address = address;
-        if (registrationNumber) transporter.registrationNumber = registrationNumber;
-        if (fleetSize !== undefined) transporter.fleetSize = fleetSize;
-
-        await transporter.save();
-
-        res.status(200).json({
-        message: "Transporter profile updated successfully",
-        transporter: {
-            transporterName: transporter.transporterName,
-            ownerName: transporter.ownerName,
-            contactNo: transporter.contactNo,
-            email: transporter.email,
-            address: transporter.address,
-            registrationNumber: transporter.registrationNumber,
-            fleetSize: transporter.fleetSize
-        }
-        });
-    } catch (err) {
-        console.log("Error in updateTransporterProfileController:", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
-};
+
+    const transporterId = req.user?._id;
+    const {
+      transporterName,
+      ownerName,
+      contactNo,
+      email,
+      address,
+      registrationNumber,
+      fleetSize
+    } = req.body;
+
+    const transporter = await transporterModel.findById(transporterId);
+    if (!transporter) {
+      return res.status(404).json({ message: "Transporter not found" });
+    }
+
+    if (transporterName) transporter.transporterName = transporterName;
+    if (ownerName) transporter.ownerName = ownerName;
+    if (contactNo) transporter.contactNo = contactNo;
+    if (email) transporter.email = email;
+    if (address) transporter.address = address;
+    if (registrationNumber) transporter.registrationNumber = registrationNumber;
+    if (fleetSize !== undefined) transporter.fleetSize = fleetSize;
+
+    await transporter.save();
+    await sendNotification({
+      role: "transporter",
+      relatedUserId: transporterId,
+      title: "Profile Updated",
+      message: `Hello ${transporter.transporterName}, your profile was updated successfully.`,
+        type: "task",
+    });
+
+    res.status(200).json({
+      message: "Transporter profile updated successfully",
+      transporter: {
+        transporterName: transporter.transporterName,
+        ownerName: transporter.ownerName,
+        contactNo: transporter.contactNo,
+        email: transporter.email,
+        address: transporter.address,
+        registrationNumber: transporter.registrationNumber,
+        fleetSize: transporter.fleetSize
+      }
+    });
+  } catch (err) {
+    console.log("Error in updateTransporterProfileController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};  
 
 export const updateTransporterPersonController = async (req, res) => {
     try {
@@ -353,6 +382,13 @@ export const updateTransporterPersonController = async (req, res) => {
         if (email) transporter.email = email;
 
         await transporter.save();
+        await sendNotification({
+            role: "transporter",
+            relatedUserId: transporterId,
+            title: "Personal Details Updated",
+            message: `Hello ${transporter.ownerName}, your contact details were updated successfully.`,
+            type: "task",
+        });
 
         res.status(200).json({
         message: "Transporter personal details updated successfully",
@@ -417,6 +453,20 @@ export const addTruckController = async (req, res) => {
         pollutionCertificateValidTill,
         assignedDriverId: assignedDriverId || null,
         status: "active"
+        });
+        await sendNotification({
+            role: "transporter",
+            relatedUserId: transporterId,
+            title: "Truck Added Successfully",
+            message: `Truck with registration number ${registrationNumber} has been added to your fleet.`,
+            type: "activity"
+        });
+        await sendNotification({
+            role: "transporter",
+            relatedUserId: transporterId,
+            title: "Truck Added Successfully",
+            message: `Truck with registration number ${registrationNumber} has been added to your fleet.`,
+            type: "activity"
         });
 
         res.status(201).json({
@@ -511,7 +561,13 @@ export const updateTruckDetailsController = async (req, res) => {
         truck.isActive = typeof isActive === "boolean" ? isActive : truck.isActive;
 
         await truck.save();
-
+        await sendNotification({
+            role: "transporter",
+            relatedUserId: transporterId,
+            title: "Truck Details Updated",
+            message: `The truck with vehicle number ${truck.vehicleNumber} has been updated successfully.`,
+            type: "task"
+        });
         res.status(200).json({
         message: "Truck updated successfully",
         truck: {
@@ -597,6 +653,13 @@ export const updateDriverReferenceController = async (req, res) => {
 
         driver.references = references;
         await driver.save();
+        await sendNotification({
+            role: "driver",
+            relatedUserId: driverId,
+            title: "References Updated",
+            message: `Your references have been successfully updated.`,
+            type: "activity"
+        });
 
         res.status(200).json({
         message: "Driver references updated successfully",
@@ -637,6 +700,14 @@ export const toggleTruckActivationController = async (req, res) => {
         }
 
         await truck.save();
+        await sendNotification({
+            role: "transporter",
+            relatedUserId: transporterId,
+            relatedBookingId: truck._id,
+            title: `Truck ${truck.isActive ? "Activated" : "Deactivated"}`,
+            message: `Truck ${truck.truckNumber || ""} has been ${truck.isActive ? "activated" : "deactivated"} successfully.`,
+            type: "activity",
+        });
 
         res.status(200).json({
         message: `Truck has been ${truck.isActive ? "activated" : "deactivated"} successfully`,
@@ -669,6 +740,13 @@ export const deleteTruckController = async (req, res) => {
         }
 
         await truckModel.deleteOne({ _id: truckId });
+        await sendNotification({
+            role: 'driver',
+            relatedUserId: driverId,
+            title: 'References Updated',
+            message: 'Your references have been successfully updated.',
+            type: 'status',
+        });
 
         res.status(200).json({ message: "Truck deleted successfully" });
 
@@ -705,7 +783,7 @@ export const getMyDriversController = async (req, res) => {
     }
 };
 
- export const getDriverByIdController = async (req, res) => {
+export const getDriverByIdController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -730,7 +808,7 @@ export const getMyDriversController = async (req, res) => {
     }
 };
 
- export const removeDriverController = async (req, res) => {
+export const removeDriverController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -792,7 +870,33 @@ export const uploadBiltyController = async (req, res) => {
         };
 
         await order.save();
-
+        const notificationData = {
+            type: "status",
+            title: "Bilty Uploaded",
+            message: `Bilty has been uploaded for Order ID: ${order._id}`,
+            relatedBookingId: order._id,
+        };
+        if (order.companyId) {
+            await sendNotification({
+                ...notificationData,
+                role: "company",
+                relatedUserId: order.companyId.toString(),
+            });
+        }
+        if (order.transporterId) {
+            await sendNotification({
+                ...notificationData,
+                role: "transporter",
+                relatedUserId: order.transporterId.toString(),
+            });
+        }
+        if (order.driverId) {
+            await sendNotification({
+                ...notificationData,
+                role: "driver",
+                relatedUserId: order.driverId.toString(),
+            });
+        }
         return res.status(200).json({ message: "Bilty uploaded successfully", bilty: order.bilty });
     } catch (err) {
         console.log("Error in uploadBiltyController:", err.message);
@@ -849,4 +953,3 @@ export const deactivateTruckWithDriverController = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
- 

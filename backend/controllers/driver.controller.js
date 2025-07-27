@@ -65,7 +65,17 @@ export const registerDriverController = async (req, res) => {
 
         await sendWelcomeEmail(newDriver);
         await sendWhatsAppRegistration(newDriver.phone, newDriver.fullName, "driver");
-        
+        const adminUser = await userModel.findOne({ role: 'admin' });
+        if (adminUser) {
+            await sendNotification({
+                role: 'admin',
+                relatedUserId: adminUser._id,
+                title: 'New Driver Registered',
+                message: `Driver ${newDriver.fullName} has registered and is awaiting approval.`,
+                type: 'activity'
+            });
+        }
+
         res.status(201).json({
             message: "Driver registered successfully",
             driver: {
@@ -83,48 +93,56 @@ export const registerDriverController = async (req, res) => {
 };
 
 export const loginDriverController = async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const { email, password } = req.body;
-
-        if (!email || !password) {
-            return res.status(400).json({ message: "Email and password are required" });
-        }
-        
-        const existingDriver = await driverModel.findOne({ email: email });
-        if (!existingDriver) {
-            return res.status(404).json({ message: "Driver not found" });
-        }
-
-        const isPasswordCorrect = await existingDriver.comparePassword(password);
-        if (!isPasswordCorrect) {
-            return res.status(400).json({ message: "Incorrect email or password" });
-        }
-
-        const token = existingDriver.generateAuthToken();
-        res.cookie("jwt", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "Strict"
-        });
-        await sendLoginAlertEmail(existingDriver);
-        await sendWhatsAppLogin(existingDriver.phone, existingDriver.fullName, "Driver");
-        res.status(200).json({
-            message: "Driver logged in successfully",
-            driver: {
-                fullName: existingDriver.fullName,
-                email: existingDriver.email
-            }
-        });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
-    catch (err) {
-        console.log("Error in loginDriverController: ", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
     }
+
+    const existingDriver = await driverModel.findOne({ email: email });
+    if (!existingDriver) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
+
+    const isPasswordCorrect = await existingDriver.comparePassword(password);
+    if (!isPasswordCorrect) {
+      return res.status(400).json({ message: "Incorrect email or password" });
+    }
+
+    const token = existingDriver.generateAuthToken();
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict"
+    });
+
+    await sendLoginAlertEmail(existingDriver);
+    await sendWhatsAppLogin(existingDriver.phone, existingDriver.fullName, "Driver");
+    await sendNotification({
+      role: "driver",
+      relatedUserId: existingDriver._id,
+      title: "Login Successful",
+      message: `Welcome back, ${existingDriver.fullName}. You’ve successfully logged in.`,
+      type: "activity"
+    });
+
+    res.status(200).json({
+      message: "Driver logged in successfully",
+      driver: {
+        fullName: existingDriver.fullName,
+        email: existingDriver.email
+      }
+    });
+  } catch (err) {
+    console.log("Error in loginDriverController: ", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const logoutDriverController = async (req, res) => {
@@ -162,74 +180,88 @@ export const getDriverProfileController = async (req, res) => {
 };
 
 export const updateDriverProfileController = async (req, res) => {
-    try {
-        const driverId = req.user?._id;
+  try {
+    const driverId = req.user?._id;
 
-        if (!driverId) {
-            return res.status(400).json({ message: "Unauthorized or missing driver ID" });
-        }
-
-        const {
-            fullName,
-            phone,
-            vehicleType,
-            experience,
-            availabilityStatus
-        } = req.body;
-
-        const driver = await driverModel.findById(driverId).select("-password");
-        if (!driver) {
-            return res.status(404).json({ message: "Driver not found" });
-        }
-
-        if (fullName !== undefined) driver.fullName = fullName;
-        if (phone !== undefined) driver.phone = phone;
-        if (vehicleType !== undefined) driver.vehicleType = vehicleType;
-        if (experience !== undefined) driver.experience = experience;
-        if (availabilityStatus !== undefined) driver.availabilityStatus = availabilityStatus;
-
-        await driver.save();
-
-        res.status(200).json({
-            message: "Driver updated successfully",
-            updatedDriver: driver
-        });
-    } catch (err) {
-        console.log("Error in updateDriverProfileController:", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+    if (!driverId) {
+      return res.status(400).json({ message: "Unauthorized or missing driver ID" });
     }
+
+    const {
+      fullName,
+      phone,
+      vehicleType,
+      experience,
+      availabilityStatus
+    } = req.body;
+
+    const driver = await driverModel.findById(driverId).select("-password");
+    if (!driver) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
+
+    if (fullName !== undefined) driver.fullName = fullName;
+    if (phone !== undefined) driver.phone = phone;
+    if (vehicleType !== undefined) driver.vehicleType = vehicleType;
+    if (experience !== undefined) driver.experience = experience;
+    if (availabilityStatus !== undefined) driver.availabilityStatus = availabilityStatus;
+
+    await driver.save();
+    await sendNotification({
+      role: "driver",
+      relatedUserId: driver._id,
+      title: "Profile Updated",
+      message: `Your profile was successfully updated.`,
+      type: "activity"
+    });
+
+    res.status(200).json({
+      message: "Driver updated successfully",
+      updatedDriver: driver
+    });
+  } catch (err) {
+    console.log("Error in updateDriverProfileController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const uploadDriverDocumentsController = async (req, res) => {
-    try {
-        const driverId = req.user?._id;
+  try {
+    const driverId = req.user?._id;
 
-        if (!driverId) {
-            return res.status(400).json({ message: "Unauthorized or missing driver ID" });
-        }
-
-        const files = req.files;
-
-        if (!files || !files.idProof || !files.license || !files.idProof[0] || !files.license[0]) {
-            return res.status(400).json({ message: "All documents are required" });
-        }
-
-        const driver = await driverModel.findById(driverId);
-        if (!driver) {
-            return res.status(404).json({ message: "Driver not found" });
-        }
-
-        driver.documents = {
-            idProof: files.idProof[0].path,
-            license: files.license[0].path,
-        };
-        await driver.save();
-
-        res.status(200).json({ message: "Documents uploaded successfully" });
-    } catch (err) {
-        console.log("Error in uploadDriverDocumentsController: ", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+    if (!driverId) {
+      return res.status(400).json({ message: "Unauthorized or missing driver ID" });
     }
+
+    const files = req.files;
+
+    if (!files || !files.idProof || !files.license || !files.idProof[0] || !files.license[0]) {
+      return res.status(400).json({ message: "All documents are required" });
+    }
+
+    const driver = await driverModel.findById(driverId);
+    if (!driver) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
+
+    driver.documents = {
+      idProof: files.idProof[0].path,
+      license: files.license[0].path,
+    };
+    await driver.save();
+    await sendNotification({
+      role: "driver",
+      relatedUserId: driver._id,
+      title: "Documents Uploaded",
+      message: "Your ID proof and license have been uploaded successfully.",
+      type: "activity"
+    });
+
+    res.status(200).json({ message: "Documents uploaded successfully" });
+  } catch (err) {
+    console.log("Error in uploadDriverDocumentsController: ", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const deleteDriverDocumentsController = async (req, res) => {
@@ -295,97 +327,126 @@ export const getAssignedOrderController = async (req, res) => {
 };
 
 export const updateOrderByDriverController = async (req, res) => {
-    try {
-        const driverId = req.user?._id;
-        const { orderId } = req.params;
-        const { action, location, currentStatus, completedStops } = req.body;
+  try {
+    const driverId = req.user?._id;
+    const { orderId } = req.params;
+    const { action, location, currentStatus, completedStops } = req.body;
 
-        if (!driverId) {
-            return res.status(401).json({ message: "Unauthorized access" });
-        }
-
-        const order = await orderModel.findOne({ _id: orderId, acceptedDriverId: driverId });
-        if (!order) {
-            return res.status(404).json({ message: "Order not found or not assigned to you" });
-        }
-
-        const now = new Date();
-
-        switch (action) {
-            case "start":
-                if (order.startTime) {
-                    return res.status(400).json({ message: "Order already started" });
-                }
-
-                order.startTime = now;
-                order.currentStatus = "in-progress";
-                order.status = "in_transit";
-                order.deliveryTimeline = {
-                    ...order.deliveryTimeline,
-                    startedAt: now,
-                    lastknownProgress: "in-progress"
-                };
-                break;
-
-            case "update":
-                if (!order.startTime) {
-                    return res.status(400).json({ message: "Order hasn't started yet" });
-                }
-
-                if (currentStatus) {
-                    order.currentStatus = currentStatus;
-                    order.status = currentStatus === "delivered" ? "delivered" : currentStatus;
-                }
-
-                if (typeof completedStops === "number") {
-                    order.completedStops = completedStops;
-                }
-
-                if (location?.latitude && location?.longitude) {
-                    order.currentLocation = {
-                        latitude: location.latitude,
-                        longitude: location.longitude,
-                        updatedAt: now
-                    };
-
-                    order.trackingHistory.push({
-                        latitude: location.latitude,
-                        longitude: location.longitude,
-                        timeStamp: now
-                    });
-                }
-
-                if (order.deliveryTimeline) {
-                    order.deliveryTimeline.lastknownProgress = order.currentStatus;
-                }
-                break;
-
-            case "end":
-                if (!order.startTime) {
-                    return res.status(400).json({ message: "Order hasn't started yet" });
-                }
-
-                order.endTime = now;
-                order.currentStatus = "delivered";
-                order.status = "delivered";
-
-                if (order.deliveryTimeline) {
-                    order.deliveryTimeline.completedAt = now;
-                    order.deliveryTimeline.lastknownProgress = "delivered";
-                }
-                break;
-
-            default:
-                return res.status(400).json({ message: "Invalid action. Use 'start', 'update', or 'end'" });
-        }
-
-        await order.save();
-        res.status(200).json({ message: `Order ${action}ed successfully`, order });
-
-    } catch (err) {
-        console.log("Error in updateOrderByDriverController:", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+    if (!driverId) {
+      return res.status(401).json({ message: "Unauthorized access" });
     }
+
+    const order = await orderModel.findOne({ _id: orderId, acceptedDriverId: driverId });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found or not assigned to you" });
+    }
+
+    const now = new Date();
+    let notificationTitle = "";
+    let notificationMessage = "";
+
+    switch (action) {
+      case "start":
+        if (order.startTime) {
+          return res.status(400).json({ message: "Order already started" });
+        }
+
+        order.startTime = now;
+        order.currentStatus = "in-progress";
+        order.status = "in_transit";
+        order.deliveryTimeline = {
+          ...order.deliveryTimeline,
+          startedAt: now,
+          lastknownProgress: "in-progress"
+        };
+
+        notificationTitle = "Order Started";
+        notificationMessage = `Order ${order._id} has been started by the driver.`;
+        break;
+
+      case "update":
+        if (!order.startTime) {
+          return res.status(400).json({ message: "Order hasn't started yet" });
+        }
+
+        if (currentStatus) {
+          order.currentStatus = currentStatus;
+          order.status = currentStatus === "delivered" ? "delivered" : currentStatus;
+        }
+
+        if (typeof completedStops === "number") {
+          order.completedStops = completedStops;
+        }
+
+        if (location?.latitude && location?.longitude) {
+          order.currentLocation = {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            updatedAt: now
+          };
+
+          order.trackingHistory.push({
+            latitude: location.latitude,
+            longitude: location.longitude,
+            timeStamp: now
+          });
+        }
+
+        if (order.deliveryTimeline) {
+          order.deliveryTimeline.lastknownProgress = order.currentStatus;
+        }
+
+        notificationTitle = "Order Status Updated";
+        notificationMessage = `Order ${order._id} updated to status "${order.currentStatus}".`;
+        break;
+
+      case "end":
+        if (!order.startTime) {
+          return res.status(400).json({ message: "Order hasn't started yet" });
+        }
+
+        order.endTime = now;
+        order.currentStatus = "delivered";
+        order.status = "delivered";
+
+        if (order.deliveryTimeline) {
+          order.deliveryTimeline.completedAt = now;
+          order.deliveryTimeline.lastknownProgress = "delivered";
+        }
+
+        notificationTitle = "Order Delivered";
+        notificationMessage = `Order ${order._id} has been delivered successfully.`;
+        break;
+
+      default:
+        return res.status(400).json({ message: "Invalid action. Use 'start', 'update', or 'end'" });
+    }
+
+    await order.save();
+
+    await sendNotification({
+      role: "company",
+      relatedUserId: order.createdBy,
+      relatedBookingId: order._id,
+      title: notificationTitle,
+      message: notificationMessage,
+      type: "status"
+    });
+
+    await sendNotification({
+      role: "driver",
+      relatedUserId: driverId,
+      relatedBookingId: order._id,
+      title: notificationTitle,
+      message: notificationMessage,
+      type: "activity"
+    });
+
+    res.status(200).json({ message: `Order ${action}ed successfully`, order });
+  } catch (err) {
+    console.log("Error in updateOrderByDriverController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const getWorkModeController = async (req, res) => {
@@ -405,25 +466,32 @@ export const getWorkModeController = async (req, res) => {
 };
 
 export const toggleWorkModeController = async (req, res) => {
-    try {
-        const driverId = req.user?._id;
+  try {
+    const driverId = req.user?._id;
 
-        const driver = await driverModel.findById(driverId).select("currentMode");
-        if (!driver) {
-            return res.status(404).json({ message: "Driver not found" });
-        }
-
-        driver.currentMode = driver.currentMode === "work_mode" ? "rest_mode" : "work_mode";
-        await driver.save();
-
-        res.status(200).json({
-            message: `Driver mode updated to ${driver.currentMode}`,
-            currentMode: driver.currentMode
-        });
-    } catch (err) {
-        console.log("Error in toggleWorkModeController:", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+    const driver = await driverModel.findById(driverId).select("currentMode");
+    if (!driver) {
+      return res.status(404).json({ message: "Driver not found" });
     }
+
+    driver.currentMode = driver.currentMode === "work_mode" ? "rest_mode" : "work_mode";
+    await driver.save();
+    await sendNotification({
+      role: "driver",
+      relatedUserId: driverId,
+      title: "Work Mode Updated",
+      message: `Your mode has been changed to ${driver.currentMode === "work_mode" ? "Work" : "Rest"}.`,
+      type: "activity"
+    });
+
+    res.status(200).json({
+      message: `Driver mode updated to ${driver.currentMode}`,
+      currentMode: driver.currentMode
+    });
+  } catch (err) {
+    console.log("Error in toggleWorkModeController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const getOrdersHistoryController = async (req, res) => {
@@ -466,46 +534,54 @@ export const getOrdersHistoryController = async (req, res) => {
 };
 
 export const requestEWayExtensionController = async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ message: errors.array() });
-        }
-
-        const { orderId } = req.params;
-        const { reason, newExpiryDate } = req.body;
-        const driverId = req.user?._id;
-
-        const order = await orderModel.findById(orderId);
-        if (!order) {
-            return res.status(404).json({ message: "Order not found" });
-        }
-
-        if (order.acceptedDriverId.toString() !== driverId.toString()) {
-            return res.status(403).json({ message: "Unauthorized, not your order" });
-        }
-
-        if (!order.documents?.eWayBill?.fileURL) {
-            return res.status(400).json({ message: "E-way Bill not found for this order" });
-        }
-
-        order.documents.eWayBill.extensionRequest = {
-            requestedAt: new Date(),
-            reason,
-            requestedBy: driverId,
-            newExpiryDate
-        };
-
-        await order.save();
-
-        res.status(200).json({
-            message: "E-way Bill request submitted",
-            extensionRequest: order.documents.eWayBill.extensionRequest
-        });
-    } catch (err) {
-        console.log("Error in requestEWayExtensionController: ", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: errors.array() });
     }
+
+    const { orderId } = req.params;
+    const { reason, newExpiryDate } = req.body;
+    const driverId = req.user?._id;
+
+    const order = await orderModel.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.acceptedDriverId.toString() !== driverId.toString()) {
+      return res.status(403).json({ message: "Unauthorized, not your order" });
+    }
+
+    if (!order.documents?.eWayBill?.fileURL) {
+      return res.status(400).json({ message: "E-way Bill not found for this order" });
+    }
+
+    order.documents.eWayBill.extensionRequest = {
+      requestedAt: new Date(),
+      reason,
+      requestedBy: driverId,
+      newExpiryDate
+    };
+
+    await order.save();
+    await sendNotification({
+      role: "driver",
+      relatedUserId: driverId,
+      relatedBookingId: order._id,
+      title: "E-way Bill Extension Requested",
+      message: `You have requested an extension for the E-way bill of Order #${order._id}.`,
+      type: "activity"
+    });
+
+    res.status(200).json({
+      message: "E-way Bill request submitted",
+      extensionRequest: order.documents.eWayBill.extensionRequest
+    });
+  } catch (err) {
+    console.log("Error in requestEWayExtensionController: ", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const getDriverCurrentLocationController = async (req, res) => {
@@ -584,77 +660,92 @@ export const getDriverDashboardController = async (req, res) => {
 };
 
 export const uploadKataParchiBeforeController = async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ message: errors.array() });
-        }
-
-        const { orderId } = req.params;
-
-        if (!req.file || !req.file.path) {
-            return res.status(400).json({ message: "Kata Parchi before document is required" });
-        }
-
-        const order = await orderModel.findById(orderId);
-        if (!order) {
-            return res.status(404).json({ message: "Order not found" });
-        }
-
-        order.documents.kataParchiBefore = {
-            fileURL: req.file.path,
-            uploadedAt: new Date()
-        };
-
-        await order.save();
-
-        res.status(200).json({
-            message: "Kata Parchi before uploaded successfully",
-            document: order.documents.kataParchiBefore
-        });
-    } catch (err) {
-        console.log("Error in uploadKataParchiBeforeController: ", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: errors.array() });
     }
+
+    const { orderId } = req.params;
+
+    if (!req.file || !req.file.path) {
+      return res.status(400).json({ message: "Kata Parchi before document is required" });
+    }
+
+    const order = await orderModel.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    order.documents.kataParchiBefore = {
+      fileURL: req.file.path,
+      uploadedAt: new Date()
+    };
+
+    await order.save();
+    await sendNotification({
+      role: "driver",
+      relatedUserId: req.user._id,
+      relatedBookingId: order._id,
+      title: "Kata Parchi (Before) Uploaded",
+      message: `The Kata Parchi (before unloading) document has been uploaded for Order #${order._id}.`,
+      type: "activity"
+    });
+
+    res.status(200).json({
+      message: "Kata Parchi before uploaded successfully",
+      document: order.documents.kataParchiBefore
+    });
+  } catch (err) {
+    console.log("Error in uploadKataParchiBeforeController: ", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const uploadKataParchiAfterController = async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ message: errors.array() });
-        }
-
-        const driverId = req.user?._id;
-        if (!driverId) {
-            return res.status(401).json({ message: "Unauthorized access" });
-        }
-
-        const driver = await driverModel.findById(driverId);
-        if (!driver) {
-            return res.status(404).json({ message: "Driver not found" });
-        }
-
-        if (!req.file || !req.file.path) {
-            return res.status(400).json({ message: "Kata Parchi (after delivery) document is required" });
-        }
-
-        driver.kataParchiAfter = {
-            fileURL: req.file.path,
-            uploadedAt: new Date()
-        };
-
-        await driver.save();
-
-        res.status(200).json({
-            message: "Kata Parchi uploaded successfully after delivery",
-            kataParchiAfter: driver.kataParchiAfter
-        });
-
-    } catch (err) {
-        console.log("Error in uploadKataParchiAfterController: ", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: errors.array() });
     }
+
+    const driverId = req.user?._id;
+    if (!driverId) {
+      return res.status(401).json({ message: "Unauthorized access" });
+    }
+
+    const driver = await driverModel.findById(driverId);
+    if (!driver) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
+
+    if (!req.file || !req.file.path) {
+      return res.status(400).json({ message: "Kata Parchi (after delivery) document is required" });
+    }
+
+    driver.kataParchiAfter = {
+      fileURL: req.file.path,
+      uploadedAt: new Date()
+    };
+
+    await driver.save();
+    await sendNotification({
+      role: "driver",
+      relatedUserId: driverId,
+      title: "Kata Parchi (After) Uploaded",
+      message: "The Kata Parchi (after delivery) document has been uploaded successfully.",
+      type: "document"
+    });
+
+    res.status(200).json({
+      message: "Kata Parchi uploaded successfully after delivery",
+      kataParchiAfter: driver.kataParchiAfter
+    });
+
+  } catch (err) {
+    console.log("Error in uploadKataParchiAfterController: ", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const updateDriverLocationController = async (req, res) => {
@@ -676,6 +767,7 @@ export const updateDriverLocationController = async (req, res) => {
             return res.status(404).json({ message: "Driver not found." });
         }
 
+        // Update driver's location
         driver.location = {
             type: "Point",
             coordinates: [parseFloat(longitude), parseFloat(latitude)]
@@ -694,14 +786,45 @@ export const updateDriverLocationController = async (req, res) => {
 
         await driver.save();
 
+        // Fetch active order (optional: based on order status)
+        const activeOrder = await orderModel.findOne({ driverId, status: { $in: ['inProgress', 'dispatched'] } });
+
+        // Notify related parties (if active order exists)
+        if (activeOrder) {
+            const { transporterId, companyId } = activeOrder;
+
+            // Notify transporter
+            if (transporterId) {
+                await sendNotification({
+                    role: "transporter",
+                    relatedUserId: transporterId,
+                    relatedBookingId: activeOrder._id,
+                    title: "Driver Location Update",
+                    message: `Driver has updated their location to (${latitude}, ${longitude}).`,
+                    type: "status"
+                });
+            }
+
+            // Notify company
+            if (companyId) {
+                await sendNotification({
+                    role: "company",
+                    relatedUserId: companyId,
+                    relatedBookingId: activeOrder._id,
+                    title: "Driver Location Update",
+                    message: `Driver has updated their location to (${latitude}, ${longitude}).`,
+                    type: "status"
+                });
+            }
+        }
         res.status(200).json({
             message: "Driver location updated successfully.",
             location: driver.location,
             lastKnownLocation: driver.lastKnownLocation
         });
-    }
-    catch(err){
-        console.error("Error updating driver location:", error);
+
+    } catch (err) {
+        console.error("Error updating driver location:", err);
         res.status(500).json({ message: "Internal server error." });
     }
 };
