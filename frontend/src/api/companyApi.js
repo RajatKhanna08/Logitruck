@@ -140,3 +140,7 @@ export const createOrder = async (orderData) => {
     console.log("Error in createOrder: ", err.message);
   }
 };
+
+export const uploadCompanyDocuments = async () => {
+    
+}

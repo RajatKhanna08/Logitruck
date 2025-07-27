@@ -49,3 +49,14 @@ export const updateTransporterProfile = async (updatedTransporterData) => {
         throw err;
     }
 }
+
+export const getTransporterDashboard = async () => {
+    try{
+        const res = await axiosInstance.get('/transporter/dashboard');
+        return res.data;
+    }
+    catch(err){
+        console.log("Error in getTransporterDashboard: ", err.message);
+        throw err;
+    }
+}
