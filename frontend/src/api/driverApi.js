@@ -59,3 +59,23 @@ export const updateDriverLocation = async ({ lat, lng }) => {
 
     return res.data;
 }
+
+export const toggleWorkMode = async () => {
+    try{
+
+    }
+    catch(err){
+        console.log("Error in toggleWorkMode: ", err.message);
+        throw err;
+    }
+}
+
+export const uploadKataParchi = async () => {
+    try{
+
+    }
+    catch(err){
+        console.log("Error in uploadKataParchi: ", err.message);
+        throw err;
+    }
+}
