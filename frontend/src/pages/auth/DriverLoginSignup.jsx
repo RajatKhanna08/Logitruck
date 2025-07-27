@@ -58,11 +58,11 @@ const DriverLoginSignup = () => {
         }
     };
 
-    const handleNext = () => {
+    const handleNext = (e) => {
         const isValid = validateStep();
         if (isValid) {
             if (step < 3) setStep(step + 1);
-            else handleSignup();
+            else handleSignup(e);
         }
     };
 
