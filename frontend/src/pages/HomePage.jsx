@@ -11,7 +11,6 @@ import TestimonialCard from '../components/home/TestimonialCard.jsx';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import useNewsData from '../hooks/useNewsData.js';
 import NewsCard from '../components/home/NewsCard.jsx';
-import { HiMicrophone } from 'react-icons/hi';
 import { useUserProfile } from '../hooks/useUserProfile.js';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -105,7 +104,9 @@ const HomePage = () => {
 
     return (
         <div className='relative overflow-x-hidden'>
-            <span className='z-100 p-2 h-15 w-15 flex items-center shadow-lg shadow-black justify-center fixed bottom-6 right-5 cursor-pointer bg-yellow-300 rounded-full transition-all duration-200'><HiMicrophone color='black' size={40} /></span>
+            <span className='z-100 p-2 h-13 w-32 text-xl font-bold hover:bg-yellow-400 flex items-center shadow-lg shadow-black justify-center fixed bottom-6 right-5 cursor-pointer bg-yellow-300 rounded-full transition-all duration-200'>
+                <Link to={"/contact"}>Contact Us</Link>
+            </span>
 
             {/* FIRST SECTION */}
             <div className='relative w-screen h-screen'>
