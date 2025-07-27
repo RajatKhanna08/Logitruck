@@ -1,216 +1,216 @@
-import React, { useState } from "react";
-import {
-    FaTruckMoving,
-    FaWeightHanging,
-    FaRoad,
-    FaClock,
-    FaCalendarAlt,
-    FaListAlt,
-    FaShippingFast,
-    FaExpandArrowsAlt,
-} from "react-icons/fa";
+import React, { useState } from 'react';
+import { FaWeightHanging, FaRoad, FaBoxOpen, FaTruck, FaExpandArrowsAlt, FaClock, FaCalendarAlt } from 'react-icons/fa';
+import axios from 'axios';
 
-const PriceEstimator = () => {
-    const [formData, setFormData] = useState({
-        weightInTon: "",
-        distanceInKm: "",
-        isMultiStop: false,
-        loadCategory: "",
-        bodyTypeMultiplier: "",
-        sizeCategoryMultiplier: "",
-        urgencyLevel: "",
-        deliveryTimeline: "",
-    });
+const AiPriceEstimator = () => {
+  const [formData, setFormData] = useState({
+    weightInTon: '',
+    distance: '',
+    loadCategory: '',
+    bodyType: '',
+    sizeCategory: '',
+    urgencyLevel: '',
+    deliveryTimeline: '',
+    multiStop: false,
+  });
 
-    const [estimatedPrice, setEstimatedPrice] = useState(null);
-    const [loading, setLoading] = useState(false);
+  const [estimatedPrice, setEstimatedPrice] = useState(null);
+  const [error, setError] = useState('');
 
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: type === "checkbox" ? checked : value,
-        }));
-    };
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const val = type === 'checkbox' ? checked : value;
+    setFormData((prev) => ({ ...prev, [name]: val }));
+  };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setEstimatedPrice(null);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setEstimatedPrice(null);
+    setError('');
 
-        try {
-            const res = await fetch("http://127.0.0.1:5000/predict", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
-            });
+    try {
+      const res = await axios.post('http://localhost:5000/api/price-estimator', formData);
+      setEstimatedPrice(res.data.estimated_price);
+    } catch (err) {
+      console.error(err);
+      setError('Something went wrong. Please try again.');
+    }
+  };
 
-            const data = await res.json();
-            setEstimatedPrice(data.estimatedPrice || "No price returned");
-        } catch (error) {
-            console.error("Prediction error:", error);
-            setEstimatedPrice("Failed to get estimate");
-        }
-
-        setLoading(false);
-    };
-
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-yellow-300 via-black/60 to-blue-300 flex items-center justify-center p-6">
-            <div className="bg-gray-100 mt-20 rounded-3xl shadow-2xl p-10 max-w-5xl w-full">
-                <h2 className="text-3xl font-bold text-center text-blue-800 mb-10">
-                    AI Transport Price Estimator
-                </h2>
-
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <InputField
-                        icon={<FaWeightHanging className="text-blue-600" />}
-                        label="Weight (in Tons)"
-                        type="number"
-                        name="weightInTon"
-                        value={formData.weightInTon}
-                        onChange={handleChange}
-                        placeholder="e.g. 10"
-                    />
-
-                    <InputField
-                        icon={<FaRoad className="text-blue-600" />}
-                        label="Distance (in KM)"
-                        type="number"
-                        name="distanceInKm"
-                        value={formData.distanceInKm}
-                        onChange={handleChange}
-                        placeholder="e.g. 150"
-                    />
-
-                    <SelectField
-                        icon={<FaListAlt className="text-blue-600" />}
-                        label="Load Category"
-                        name="loadCategory"
-                        value={formData.loadCategory}
-                        onChange={handleChange}
-                        options={["Fragile", "Perishable", "General", "Others"]}
-                    />
-
-                    <SelectField
-                        icon={<FaTruckMoving className="text-blue-600" />}
-                        label="Body Type"
-                        name="bodyTypeMultiplier"
-                        value={formData.bodyTypeMultiplier}
-                        onChange={handleChange}
-                        options={[
-                            "Open Body",
-                            "Closed Container",
-                            "Tanker",
-                            "Refrigerated Truck",
-                            "Heavy Duty Flatbed",
-                        ]}
-                    />
-
-                    <SelectField
-                        icon={<FaExpandArrowsAlt className="text-blue-600" />}
-                        label="Size Category"
-                        name="sizeCategoryMultiplier"
-                        value={formData.sizeCategoryMultiplier}
-                        onChange={handleChange}
-                        options={[
-                            "Small (7-10 ft)",
-                            "Medium (14-17 ft)",
-                            "Large (19-22 ft)",
-                            "XL/Heavy Duty",
-                        ]}
-                    />
-
-                    <SelectField
-                        icon={<FaClock className="text-blue-600" />}
-                        label="Urgency Level"
-                        name="urgencyLevel"
-                        value={formData.urgencyLevel}
-                        onChange={handleChange}
-                        options={["Normal", "Medium", "High"]}
-                    />
-
-                    <InputField
-                        icon={<FaCalendarAlt className="text-blue-600" />}
-                        label="Delivery Timeline (in Days)"
-                        type="number"
-                        name="deliveryTimeline"
-                        value={formData.deliveryTimeline}
-                        onChange={handleChange}
-                        placeholder="e.g. 3"
-                    />
-
-                    <div className="flex items-center gap-3 mt-2">
-                        <input
-                            type="checkbox"
-                            name="isMultiStop"
-                            checked={formData.isMultiStop}
-                            onChange={handleChange}
-                            className="w-5 h-5 text-yellow-500 cursor-pointer focus:ring-yellow-400"
-                        />
-                        <label className="text-gray-700 font-medium">
-                            Multi-Stop Delivery?
-                        </label>
-                    </div>
-
-                    <div className="sm:col-span-3 mt-6 text-center">
-                        <button
-                            type="submit"
-                            className="cursor-pointer bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-3 rounded-xl shadow-lg transition-all duration-300"
-                            disabled={loading}
-                        >
-                            {loading ? "Estimating..." : "Estimate Price 💰"}
-                        </button>
-                    </div>
-                </form>
-
-                <div className="mt-10 min-h-20 flex justify-center items-center">
-                    {estimatedPrice ? (
-                        <div className="text-center text-2xl font-semibold text-green-700">
-                            Estimated Price: ₹{estimatedPrice}
-                        </div>
-                    ) : (
-                        <p>Enter the Details to see the price here</p>
-                    )}
-                </div>
-            </div>
+  return (
+    <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center justify-center">
+      <h1 className="text-3xl font-bold text-blue-800 mb-6">AI Transport Price Estimator</h1>
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6"
+      >
+        {/* Weight */}
+        <div>
+          <label className="flex items-center gap-2 text-gray-700 font-medium">
+            <FaWeightHanging />
+            Weight (in Tons)
+          </label>
+          <input
+            type="number"
+            name="weightInTon"
+            value={formData.weightInTon}
+            onChange={handleChange}
+            placeholder="e.g. 10"
+            className="w-full border border-gray-300 rounded-xl px-4 py-2 mt-1"
+            required
+          />
         </div>
-    );
+
+        {/* Distance */}
+        <div>
+          <label className="flex items-center gap-2 text-gray-700 font-medium">
+            <FaRoad />
+            Distance (in KM)
+          </label>
+          <input
+            type="number"
+            name="distance"
+            value={formData.distance}
+            onChange={handleChange}
+            placeholder="e.g. 150"
+            className="w-full border border-gray-300 rounded-xl px-4 py-2 mt-1"
+            required
+          />
+        </div>
+
+        {/* Load Category */}
+        <div>
+          <label className="flex items-center gap-2 text-gray-700 font-medium">
+            <FaBoxOpen />
+            Load Category
+          </label>
+          <select
+            name="loadCategory"
+            value={formData.loadCategory}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-xl px-4 py-2 mt-1"
+            required
+          >
+            <option value="">Select Load Category</option>
+            <option>Fragile</option>
+            <option>Perishable Goods</option>
+            <option>General Goods</option>
+            <option>Others</option>
+          </select>
+        </div>
+
+        {/* Body Type */}
+        <div>
+          <label className="flex items-center gap-2 text-gray-700 font-medium">
+            <FaTruck />
+            Body Type
+          </label>
+          <select
+            name="bodyType"
+            value={formData.bodyType}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-xl px-4 py-2 mt-1"
+            required
+          >
+            <option value="">Select Body Type</option>
+            <option>Open Body</option>
+            <option>Closed Container</option>
+            <option>Tanker</option>
+            <option>Refrigerated Truck</option>
+            <option>Heavy Duty Flatbed</option>
+          </select>
+        </div>
+
+        {/* Size Category */}
+        <div>
+          <label className="flex items-center gap-2 text-gray-700 font-medium">
+            <FaExpandArrowsAlt />
+            Size Category
+          </label>
+          <select
+            name="sizeCategory"
+            value={formData.sizeCategory}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-xl px-4 py-2 mt-1"
+            required
+          >
+            <option value="">Select Size Category</option>
+            <option>Small (7-10 ft)</option>
+            <option>Medium (14-17 ft)</option>
+            <option>Large (19-22 ft)</option>
+            <option>XL / Heavy Duty</option>
+          </select>
+        </div>
+
+        {/* Urgency Level */}
+        <div>
+          <label className="flex items-center gap-2 text-gray-700 font-medium">
+            <FaClock />
+            Urgency Level
+          </label>
+          <select
+            name="urgencyLevel"
+            value={formData.urgencyLevel}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-xl px-4 py-2 mt-1"
+            required
+          >
+            <option value="">Select Urgency Level</option>
+            <option>Normal</option>
+            <option>Medium</option>
+            <option>High</option>
+          </select>
+        </div>
+
+        {/* Delivery Timeline */}
+        <div>
+          <label className="flex items-center gap-2 text-gray-700 font-medium">
+            <FaCalendarAlt />
+            Delivery Timeline (in Days)
+          </label>
+          <input
+            type="number"
+            name="deliveryTimeline"
+            value={formData.deliveryTimeline}
+            onChange={handleChange}
+            placeholder="e.g. 3"
+            className="w-full border border-gray-300 rounded-xl px-4 py-2 mt-1"
+            required
+          />
+        </div>
+
+        {/* Multi Stop Checkbox */}
+        <div className="flex items-center gap-3 mt-6">
+          <input
+            type="checkbox"
+            name="multiStop"
+            checked={formData.multiStop}
+            onChange={handleChange}
+            className="w-5 h-5 text-blue-600"
+          />
+          <span className="text-gray-700 text-md font-medium">Multi-Stop Delivery?</span>
+        </div>
+
+        {/* Submit Button */}
+        <div className="md:col-span-2 text-center mt-4">
+          <button
+            type="submit"
+            className="bg-blue-700 text-white px-6 py-2 rounded-full shadow hover:bg-blue-800 transition"
+          >
+            Estimate Price
+          </button>
+        </div>
+      </form>
+
+      {/* Result or Error */}
+      {estimatedPrice !== null && (
+        <div className="mt-6 text-xl font-semibold text-green-600">
+          Estimated Price: ₹{Math.round(estimatedPrice)}
+        </div>
+      )}
+      {error && <div className="mt-6 text-red-500">{error}</div>}
+    </div>
+  );
 };
 
-// Reusable Input Field Component
-const InputField = ({ icon, label, ...props }) => (
-    <div>
-        <label className="block mb-2 text-sm font-semibold text-gray-700">
-            <div className="flex items-center gap-2">{icon} {label}</div>
-        </label>
-        <input
-            {...props}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-        />
-    </div>
-);
-
-// Reusable Select Field Component
-const SelectField = ({ icon, label, name, value, onChange, options }) => (
-    <div>
-        <label className="block mb-2 text-sm font-semibold text-gray-700">
-            <div className="flex items-center gap-2">{icon} {label}</div>
-        </label>
-        <select
-            name={name}
-            value={value}
-            onChange={onChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-        >
-            <option value="">Select {label}</option>
-            {options.map((opt, idx) => (
-                <option key={idx} value={opt}>{opt}</option>
-            ))}
-        </select>
-    </div>
-);
-
-export default PriceEstimator;
+export default AiPriceEstimator;

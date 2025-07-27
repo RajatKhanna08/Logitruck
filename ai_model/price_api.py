@@ -3,14 +3,11 @@ import joblib
 import numpy as np
 from flask_cors import CORS
 
-# Initialize Flask app
 app = Flask(__name__)
 CORS(app)
 
-# Load trained model
 model = joblib.load("price_estimator_model.pkl")
 
-# Define mappings
 load_category_map = {
     "Fragile": 0,
     "Perishable Goods": 1,
@@ -49,12 +46,11 @@ def predict_price():
     try:
         print("Received data:", data)
 
-        # Map string inputs to numeric values
         features = [
             float(data.get('weightInTon', 0)),
             float(data.get('distanceInKm', 0)),
-            int(data.get('isMultiStop', 0)),  # already a boolean
-            load_category_map.get(data.get('loadCategory'), 3),  # default to Others
+            int(data.get('isMultiStop', 0)),
+            load_category_map.get(data.get('loadCategory'), 3),
             body_type_map.get(data.get('bodyTypeMultiplier'), 1.0),
             size_category_map.get(data.get('sizeCategoryMultiplier'), 1.0),
             urgency_level_map.get(data.get('urgencyLevel'), 0),
@@ -63,6 +59,10 @@ def predict_price():
 
         prediction_input = np.array(features).reshape(1, -1)
         predicted_price = model.predict(prediction_input)[0]
+
+        # Optional: Add surcharge for Multi-Stop if needed
+        if features[2] == 1:
+            predicted_price *= 1.15  # 15% more for multi-stop
 
         return jsonify({
             'estimatedPrice': round(predicted_price, 2)
