@@ -72,8 +72,8 @@ const ContactUsPage = () => {
           <div className="flex flex-col gap-5">
             <p className="text-5xl font-semibold">Get In Touch</p>
             <p className="text-yellow-300 font-medium text-2xl max-w-150">
-              "LG Transports specializes in smart, reliable, and budget-friendly logistics solutions,
-              connecting verified trucks and drivers across India for fast and secure deliveries."
+              "LogiTruck specializes in smart, reliable, and budget-friendly logistics solutions,
+              connecting verified trucks,transporters and drivers across India for fast and secure deliveries."
             </p>
           </div>
 
@@ -90,7 +90,7 @@ const ContactUsPage = () => {
               </div>
               <div className="flex flex-col justify-center">
                 <p className="text-2xl font-medium">Have any Questions?</p>
-                <p className="text-xl text-center font-medium">+91 1234567890</p>
+                <p className="text-xl text-center font-medium">+91 9810508819</p>
               </div>
             </div>
             <div className="flex justify-start items-center gap-6 z-2">
@@ -99,7 +99,7 @@ const ContactUsPage = () => {
               </div>
               <div className="flex flex-col w-56 justify-center">
                 <p className="text-2xl text-center font-medium">Write To Us</p>
-                <p className="text-xl text-center font-medium">logitruck@gmail.com</p>
+                <p className="text-xl text-center font-medium">support@logitruck.org.in</p>
               </div>
           </div>
         </div>

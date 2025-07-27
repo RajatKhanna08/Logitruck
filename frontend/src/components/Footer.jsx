@@ -37,11 +37,11 @@ const Footer = () => {
 					<img src="/LogiTruckLogoWhite.png" alt="LogiTruck Logo" />
 				</Link>
 
-				<div className='z-10 text-white w-xs'>32 Dora Creek, tuntable creek, New South Wales 2480, Australia</div>
+				<div className='z-10 text-white w-xs'>We offer nationwide service coverage across India.</div>
 
 				<ul className='z-10 text-white w-full mt-3 text-lg flex flex-col gap-2'>
-					<li className='flex items-center justify-start gap-2'><FaPhone /> +91 1234567890</li>
-					<li className='flex items-center justify-start gap-2'><IoMail /> logitruck@gmail.com</li>
+					<li className='flex items-center justify-start gap-2'><FaPhone /> +91 9810508819</li>
+					<li className='flex items-center justify-start gap-2'><IoMail /> support@logitruck.org.in</li>
 					<li className='flex items-center justify-start gap-2'><FaGlobe /><a href='https://www.logitruck.org.in'> www.logitruck.org.in</a></li>
 				</ul>
 
