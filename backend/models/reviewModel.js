@@ -8,7 +8,8 @@ const ratingSchema = new  mongoose.Schema({
     
     reviewerId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'company'
+        required: true,
+        refPath: 'reviewerRole',
     },
     
     reviewerRole: {
@@ -41,7 +42,7 @@ const ratingSchema = new  mongoose.Schema({
         type: String,
         maxLength: 100
     }
-});
+}, { timestamps: true });
 
 const reviewModel = mongoose.model("review",ratingSchema);
 

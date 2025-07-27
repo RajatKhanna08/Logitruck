@@ -19,6 +19,7 @@
   "homepage": "https://github.com/RajatKhanna08/Logitruck#readme",
   "description": "",
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",

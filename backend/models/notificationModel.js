@@ -11,7 +11,7 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     enum: [
       "general", "status", "warning", "rest-mode", "stall-alert", "task",
-      "alert", "info", "activity"
+      "alert", "info", "activity","document"
     ],
     default: "status"
   },
