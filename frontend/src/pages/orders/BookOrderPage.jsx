@@ -393,30 +393,36 @@ export default function BookOrderPage() {
               parseFloat(drop.latitude)
             ]
           },
-          // Ensure these fields are collected from the form or have sensible defaults
-          contactName: drop.contactName || "N/A", // Use value from form, or default
-          contactPhone: drop.contactPhone ? parseInt(drop.contactPhone) : 0, // Use value from form, or default
-          instructions: drop.instructions || "No specific instructions" // Use value from form, or default
+          contactName: drop.contactName || "N/A",
+          contactPhone: drop.contactPhone ? parseInt(drop.contactPhone) : 0,
+          instructions: drop.instructions || "No specific instructions"
         })),
         scheduleAt: formData.scheduledAt ? new Date(formData.scheduledAt) : null,
         urgency: formData.urgency,
-        bidding: {
-          isEnabled: formData.isBiddingEnabled,
-          expiresAt: formData.biddingExpiresAt ? new Date(formData.biddingExpiresAt) : null
-        },
-        loadDetails: { // Correctly map the new loadDetails structure
+
+        //Move bidding info to top-level as expected by backend
+        isBiddingEnabled: formData.isBiddingEnabled === true || formData.isBiddingEnabled === "true",
+        biddingExpiresAt:
+          formData.isBiddingEnabled && formData.biddingExpiresAt
+            ? new Date(formData.biddingExpiresAt).toISOString()
+            : null,
+
+        loadDetails: {
           weightInTon: parseFloat(formData.loadDetails.weightInTon) || 0,
           volumeInCubicMeters: parseFloat(formData.loadDetails.volumeInCubicMeters) || 0,
           type: formData.loadDetails.type,
           quantity: parseInt(formData.loadDetails.quantity) || 0,
           description: formData.loadDetails.description
         },
-        completedStops: formData.completedStops,
+
+        // Ensure completedStops is always an array
+        completedStops: Array.isArray(formData.completedStops) ? formData.completedStops : [],
+
         paymentMode: formData.paymentMode,
         routeInfo: {
-            estimatedDistance: "N/A",
-            estimatedDuration: "N/A",
-            polyline: []
+          estimatedDistance: "N/A",
+          estimatedDuration: "N/A",
+          polyline: []
         },
         startTime: null,
         endTime: null,
@@ -431,42 +437,60 @@ export default function BookOrderPage() {
         refundAmount: 0,
         isRefunded: false,
         currentLocation: {
-            type: "Point",
-            coordinates: []
+          type: "Point",
+          coordinates: []
         },
         trackingHistory: [],
         deliveryRemarks: [],
         deliveryTimeline: {
-            lastknownProgress: "pending"
+          lastknownProgress: "pending"
         },
         tripStatus: "Heading to Pickup",
         currentStopIndex: 0,
         isStalledAt: false,
         isDelayed: false,
-        documents: {} // Assuming documents are handled separately or not required at booking
+        documents: {}
       };
 
-      // Basic validation before mutation
-      if (!orderData.pickupLocation.address || !orderData.pickupLocation.coordinates.coordinates[0] || !orderData.pickupLocation.coordinates.coordinates[1]) {
+      // Basic frontend validation
+      if (
+        !orderData.pickupLocation.address ||
+        !orderData.pickupLocation.coordinates.coordinates[0] ||
+        !orderData.pickupLocation.coordinates.coordinates[1]
+      ) {
         throw new Error("Please select a pickup location on the map.");
       }
-      if (orderData.dropLocations.some(d => !d.address || !d.coordinates.coordinates[0] || !d.coordinates.coordinates[1])) {
+
+      if (
+        orderData.dropLocations.some(
+          (d) => !d.address || !d.coordinates.coordinates[0] || !d.coordinates.coordinates[1]
+        )
+      ) {
         throw new Error("Please select all drop locations on the map.");
       }
+
       if (!orderData.scheduleAt) {
         throw new Error("Please select a schedule time.");
       }
-      if (!orderData.loadDetails.weightInTon || !orderData.loadDetails.volumeInCubicMeters || !orderData.loadDetails.quantity || !orderData.loadDetails.description) {
+
+      if (
+        !orderData.loadDetails.weightInTon ||
+        !orderData.loadDetails.volumeInCubicMeters ||
+        !orderData.loadDetails.quantity ||
+        !orderData.loadDetails.description
+      ) {
         throw new Error("Please fill in all load details.");
       }
+
       if (!orderData.paymentMode) {
         throw new Error("Please select a payment mode.");
       }
 
+      // Send to backend
       bookOrderMutation.mutate(orderData);
     } catch (err) {
       console.error("Error submitting order:", err);
-      alert("Failed to submit order: " + err.message); // Using alert for simplicity, replace with custom UI
+      alert("Failed to submit order: " + err.message);
     }
   };
 

@@ -1,24 +1,53 @@
 import axios from "axios";
 
+const ORS_API_KEY = process.env.ORS_API_KEY;
+
+// Utility to snap a single point to the nearest road
+const snapToRoad = async ([lng, lat]) => {
+  try {
+    const res = await axios.get("https://api.openrouteservice.org/v2/nearest/driving-car", {
+      params: {
+        api_key: ORS_API_KEY,
+        point: `${lat},${lng}`,
+      },
+    });
+
+    const snapped = res.data?.coordinates?.[0]; // [lng, lat]
+    if (!snapped) throw new Error("No snapped point returned");
+    return snapped;
+  } catch (err) {
+    console.error(`Snap-to-road failed for [${lng}, ${lat}]:`, err?.response?.data || err.message);
+    return [lng, lat]; 
+  }
+};
+
 export const getORSRoute = async (start, end, waypoints = []) => {
   if (!Array.isArray(start) || !Array.isArray(end)) {
     throw new Error("Start and End must be coordinate arrays [lng, lat]");
   }
 
-  const apiKey = process.env.ORS_API_KEY;
-  if (!apiKey) {
+  if (!ORS_API_KEY) {
     throw new Error("OpenRouteService API key is missing from environment variables");
   }
 
-  const coordinates = [start, ...waypoints, end];
-
   try {
+    // Snap all coordinates
+    const snappedStart = await snapToRoad(start);
+    const snappedEnd = await snapToRoad(end);
+    const snappedWaypoints = await Promise.all(waypoints.map(snapToRoad));
+
+    const allSnapped = [snappedStart, ...snappedWaypoints, snappedEnd];
+
+    if (allSnapped.includes(null)) {
+      throw new Error("One or more coordinates could not be snapped to a road.");
+    }
+
     const response = await axios.post(
       "https://api.openrouteservice.org/v2/directions/driving-car/geojson",
-      { coordinates },
+      { coordinates: allSnapped },
       {
         headers: {
-          Authorization: apiKey,
+          Authorization: ORS_API_KEY,
           "Content-Type": "application/json",
         },
       }

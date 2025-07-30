@@ -34,3 +34,12 @@ export const updateLiveLocation = async ({ orderId, lat, lng }) => {
 
     return res.data;
 }
+export const getOrderById = async (orderId) => {
+  try {
+    const res = await axiosInstance.get(`/order/${orderId}`);
+    return res.data.order;
+  } catch (err) {
+    console.log("Error in getOrderById:", err.message);
+    throw err;
+  }
+};

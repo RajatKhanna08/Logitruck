@@ -148,10 +148,9 @@ const orderSchema = new mongoose.Schema({
       required: true
     }
   },
-
   completedStops: {
-    type: Number,
-    required: true
+    type: [Number],
+    default: []
   },
   distance: {
     type: Number,

@@ -15,7 +15,8 @@ import {
   getTransporterOrderStatusController,
   getTransporterAllOrdersController,
   getTransporterActiveOrdersController,
-  updateOrderLocationController
+  updateOrderLocationController,
+  getOrderByIdController
 } from '../controllers/order.controller.js';
 
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
@@ -65,6 +66,7 @@ router.post('/company/track/:orderId', isLoggedIn, correctRole("company"), updat
 router.post('/company/rate/:orderId', isLoggedIn, correctRole("company"), rateOrderValidation, rateOrderController);
 router.get('/company/active/:orderId', isLoggedIn, correctRole("company"), param('orderId').isMongoId(), getCurrentOrdersController);
 router.get('/company/all-orders', isLoggedIn, correctRole("company"), getOrdersController);
+router.get('/company/order/:orderId', isLoggedIn, correctRole("company"), param('orderId').isMongoId(), getOrderByIdController);
 router.put('/company/cancel/:orderId', isLoggedIn, correctRole("company"), param('orderId').isMongoId(), cancelOrderController);
 
 // ==================== Driver Routes ====================

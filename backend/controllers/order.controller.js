@@ -1,5 +1,6 @@
 import orderModel from "../models/orderModel.js";
 import reviewModel from "../models/reviewModel.js";
+import transporterModel from "../models/transporterModel.js";
 
 import { validationResult } from 'express-validator';
 import { getORSRoute } from "../utils/getORSRoute.js";
@@ -7,8 +8,17 @@ import { sendNotification } from "../utils/sendNotification.js";
 
 export const createOrderController = async (req, res) => {
   try {
+    console.log("➡️ Incoming Order Create Request");
+    console.log("👉 Body:", req.body);
+    console.log("👉 User:", req.user);
+    
+    if (req.body.isBiddingEnabled === false || req.body.isBiddingEnabled === 'false') {
+      delete req.body.biddingExpiresAt;
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log("❌ Validation Errors:", errors.array());
       return res.status(400).json({ message: errors.array() });
     }
 
@@ -28,20 +38,42 @@ export const createOrderController = async (req, res) => {
     } = req.body;
 
     if (!Array.isArray(dropLocations) || dropLocations.length === 0) {
+      console.log("❌ Drop locations missing or invalid");
       return res.status(400).json({ message: "At least one drop location is required" });
     }
 
     const companyId = req.user?._id;
     if (!companyId) {
+      console.log("❌ Company ID not found (unauthorized)");
       return res.status(401).json({ message: "Unauthorized access" });
     }
 
-    const coordinates = [
-      [parseFloat(pickupLocation.longitude), parseFloat(pickupLocation.latitude)],
-      ...dropLocations.map(loc => [parseFloat(loc.longitude), parseFloat(loc.latitude)])
-    ];
+    const pickupCoords = pickupLocation.coordinates?.coordinates;
+    const dropCoordsList = dropLocations.map(loc => loc.coordinates?.coordinates);
 
-    const routeData = await getORSRoute(coordinates);
+    console.log("Pickup Coordinates (raw):", pickupCoords);
+    console.log("Drop Coordinates List (raw):", dropCoordsList);
+
+    if (
+      !Array.isArray(pickupCoords) || pickupCoords.length !== 2 ||
+      dropCoordsList.some(coord => !Array.isArray(coord) || coord.length !== 2)
+    ) {
+      console.log("❌ Coordinates malformed");
+      return res.status(400).json({ message: "Invalid coordinates format. Expected [lng, lat]" });
+    }
+
+    const orsCoordinates = [pickupCoords, ...dropCoordsList];
+    const start = orsCoordinates[0];
+    const end = orsCoordinates[1];
+    const waypoints = orsCoordinates.slice(2);
+
+    const routeData = await getORSRoute(start, end, waypoints);
+    console.log("📍 ORS Route Data:", routeData);
+
+    const currentLocation = {
+      type: "Point",
+      coordinates: pickupCoords
+    };
 
     const newOrder = await orderModel.create({
       customerId: companyId,
@@ -57,6 +89,7 @@ export const createOrderController = async (req, res) => {
       bodyTypeMultiplier: bodyTypeMultiplier || 1,
       sizeCategoryMultiplier: sizeCategoryMultiplier || 1,
       isMultiStop: isMultiStop ?? dropLocations.length > 1,
+      currentLocation,
       distance: parseFloat(routeData.distanceInKm),
       duration: parseFloat(routeData.durationInMin),
       fare: 0,
@@ -69,36 +102,43 @@ export const createOrderController = async (req, res) => {
         estimatedDuration: routeData.durationInMin,
       }
     });
+
+    console.log("✅ Order created in DB:", newOrder._id);
+
     await sendNotification({
-        role: "company",
-        relatedUserId: companyId,
-        relatedBookingId: newOrder._id,
-        title: "New Order Created",
-        message: `Order ID ${newOrder._id} has been created successfully.`,
-        type: "order",
-        metadata: {
-            orderId: newOrder._id
-        }
+      role: "company",
+      relatedUserId: companyId,
+      relatedBookingId: newOrder._id,
+      title: "New Order Created",
+      message: `Order ID ${newOrder._id} has been created successfully.`,
+      type: "order",
+      metadata: { orderId: newOrder._id }
     });
-    await sendNotification({
-        role: "transporter", 
-        relatedUserId: null, 
+
+    // ✅ Use corrected transporter model
+    const transporters = await transporterModel.find({}, '_id');
+    for (const transporter of transporters) {
+      await sendNotification({
+        role: "transporter",
+        relatedUserId: transporter._id,
         relatedBookingId: newOrder._id,
         title: "New Order Available",
-        message: `A new order is available for bidding.`,
+        message: "A new order is available for bidding.",
         type: "order",
         metadata: {
-            urgency,
-            orderId: newOrder._id
-        }
-    });
-      
+          urgency,
+          orderId: newOrder._id,
+        },
+      });
+    }
+
     res.status(201).json({ message: "Order created successfully", order: newOrder });
   } catch (err) {
-    console.error("Error in createOrderController:", err.message);
+    console.error("❌ Error in createOrderController:", err.message);
+    console.error("🧨 Full error:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
-};  
+};
 
 export const uploadEwayBillController = async (req, res) => {
   try {
@@ -736,5 +776,46 @@ export const updateOrderLocationController = async (req, res) => {
   } catch (err) {
     console.error("Error updating order location:", err);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getOrderByIdController = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    if (!orderId || orderId.length !== 24) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Order ID"
+      });
+    }
+
+    const order = await orderModel.findById(orderId)
+      .populate("customerId", "companyName email") // From company model
+      .populate("acceptedTransporterId", "transporterName contactNumber") // From transporter model
+      .populate("acceptedTruckId", "registrationNumber truckType") // From trucks model
+      .populate("acceptedDriverId", "name phone") // From drivers model
+      .populate("ratingByCustomer", "companyName") // If company gave review
+      .populate("ratingByDriver.reviews", "review stars createdAt") // rating ref model (reviews collection)
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Order fetched successfully",
+      data: order
+    });
+
+  } catch (error) {
+    console.error("❌ Error in getOrderByIdController:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching order"
+    });
   }
 };
