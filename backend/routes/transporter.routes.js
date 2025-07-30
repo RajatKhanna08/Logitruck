@@ -3,7 +3,7 @@ import { body } from 'express-validator';
 
 import { correctRole } from '../middlewares/authorizeRoles.js';
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
-import { transporterFields } from '../middlewares/upload.js';
+import { transporterFields, truckDocFields } from '../middlewares/upload.js';
 
 import {
   registerTransporterController,
@@ -27,8 +27,8 @@ import {
   deleteTransporterCertificationsController,
   getTransporterCertificationsController,
   getTransporterDashboardController,
-  activateTruckWithDriverController,
-  deactivateTruckWithDriverController
+  activateTruckController,
+  deactivateTruckController
 } from '../controllers/transporter.controller.js';
 
 // === Validation chains ===
@@ -85,7 +85,7 @@ const addTruckValidation = [
   body('capacityInTon').isNumeric().withMessage('Capacity in Ton must be a number'),
   body('capacityInCubicMeters').isNumeric().withMessage('Capacity in Cubic Meters must be a number'),
   body('pollutionCertificateValidTill').notEmpty().withMessage('Pollution Certificate Valid Till is required'),
-  body('assignedDriverId').optional().notEmpty().withMessage('Assigned Driver ID cannot be empty if provided')
+  body('assignedDriverId').optional().notEmpty().withMessage('Assigned Driver ID cannot be empty if provided') // This is already optional
 ];
 
 // === Router setup ===
@@ -116,10 +116,10 @@ router.post('/truck/add', isLoggedIn, correctRole("transporter"), addTruckValida
 router.get('/truck/my', isLoggedIn, correctRole("transporter"), getMyTrucksController);
 router.get('/truck/:truckId', isLoggedIn, correctRole("transporter"), getTruckByIdController);
 router.put('/truck/:truckId', isLoggedIn, correctRole("transporter"), updateTruckDetailsController);
-router.post('/truck/upload-docs/:truckId', isLoggedIn, correctRole("transporter"), uploadTruckDocumentsController);
+router.post('/truck/upload-docs/:truckId', isLoggedIn, correctRole("transporter"), truckDocFields, uploadTruckDocumentsController);
 router.put('/truck/driver-ref/:truckId', isLoggedIn, correctRole("transporter"), updateDriverReferenceController);
-router.put('/truck/activate/:truckId', isLoggedIn, correctRole("transporter"), activateTruckWithDriverController);
-router.put('/truck/deactivate/:truckId', isLoggedIn, correctRole("transporter"), deactivateTruckWithDriverController);
+router.put('/truck/activate/:truckId', isLoggedIn, correctRole("transporter"), activateTruckController);
+router.put('/truck/deactivate/:truckId', isLoggedIn, correctRole("transporter"), deactivateTruckController);
 router.delete('/truck/:truckId', isLoggedIn, correctRole("transporter"), deleteTruckController);
 
 // === Drivers ===

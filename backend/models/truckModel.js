@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const trucksSchema = new mongoose.Schema({
     transporterId: {
@@ -42,14 +42,12 @@ const trucksSchema = new mongoose.Schema({
     documents: {
         rcBook: {
             type: String,
-            required: true
         },
         insurance: {
             type: String
         },
         pollutionCertificate: {
             type: String,
-            required: true
         }
     },
   
@@ -61,9 +59,9 @@ const trucksSchema = new mongoose.Schema({
     },
   
     assignedDriverId: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId, 
         ref: 'drivers',
-        required: true
+        required: true 
     },
   
     status: {

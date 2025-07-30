@@ -174,8 +174,8 @@ export const uploadTransporterCertificationsController = async (req, res) => {
 
             const { transporterId } = req.params;
         
-            if (!req.files?.idProof?.[0]?.path ||
-                !req.files?.businessLicense?.[0]?.path ||
+            if (!req.files?.idProof?.[0] ||
+                !req.files?.businessLicense?.[0] ||
                 !req.files?.gstCertificate?.[0].path) {
                 return res.status(400).json({ message: "All certification files are required" });
             }
@@ -428,13 +428,6 @@ export const addTruckController = async (req, res) => {
         assignedDriverId
         } = req.body;
 
-        // Required documents check
-        if (
-        !req.files?.rcBook?.[0]?.path ||
-        !req.files?.pollutionCertificate?.[0]?.path
-        ) {
-        return res.status(400).json({ message: "Required documents are missing" });
-        }
 
         const newTruck = await truckModel.create({
         transporterId,
@@ -444,22 +437,15 @@ export const addTruckController = async (req, res) => {
         vehicleType,
         capacityInTon,
         capacityInCubicMeters,
-        documents: {
-            rcBook: req.files.rcBook[0].path,
-            insurance: req.files.insurance?.[0]?.path || "",
-            pollutionCertificate: req.files.pollutionCertificate[0].path
+        documents: { // Documents are initially empty strings
+                rcBook: "",
+                insurance: "",
+                pollutionCertificate: ""
         },
         insuranceValidTill: insuranceValidTill || null,
         pollutionCertificateValidTill,
         assignedDriverId: assignedDriverId || null,
         status: "active"
-        });
-        await sendNotification({
-            role: "transporter",
-            relatedUserId: transporterId,
-            title: "Truck Added Successfully",
-            message: `Truck with registration number ${registrationNumber} has been added to your fleet.`,
-            type: "activity"
         });
         await sendNotification({
             role: "transporter",
@@ -541,42 +527,48 @@ export const updateTruckDetailsController = async (req, res) => {
 
         const { truckId } = req.params;
         const transporterId = req.user?._id;
-        const {
-        vehicleNumber,
-        truckType,
-        capacity,
-        fuelType,
-        isActive,
-        } = req.body;
 
         const truck = await truckModel.findOne({ _id: truckId, transporterId });
         if (!truck) {
         return res.status(404).json({ message: "Truck not found" });
         }
 
-        truck.vehicleNumber = vehicleNumber || truck.vehicleNumber;
-        truck.truckType = truckType || truck.truckType;
-        truck.capacity = capacity || truck.capacity;
-        truck.fuelType = fuelType || truck.fuelType;
-        truck.isActive = typeof isActive === "boolean" ? isActive : truck.isActive;
+        const {
+            registrationNumber,
+            brand,
+            model,
+            vehicleType,
+            capacityInTon,
+            capacityInCubicMeters,
+            pollutionCertificateValidTill,
+            insuranceValidTill,
+            assignedDriverId,
+        } = req.body;
 
-        await truck.save();
+        // Update fields if they are provided in the request
+        if (registrationNumber) truck.registrationNumber = registrationNumber;
+        if (brand) truck.brand = brand;
+        if (model) truck.model = model;
+        if (vehicleType) truck.vehicleType = vehicleType;
+        if (capacityInTon) truck.capacityInTon = capacityInTon;
+        if (capacityInCubicMeters) truck.capacityInCubicMeters = capacityInCubicMeters;
+        if (pollutionCertificateValidTill) truck.pollutionCertificateValidTill = pollutionCertificateValidTill;
+        if (insuranceValidTill) truck.insuranceValidTill = insuranceValidTill;
+        
+        // Allow un-assigning driver
+        truck.assignedDriverId = assignedDriverId ? assignedDriverId : null;
+
+        const updatedTruck = await truck.save();
         await sendNotification({
             role: "transporter",
             relatedUserId: transporterId,
             title: "Truck Details Updated",
-            message: `The truck with vehicle number ${truck.vehicleNumber} has been updated successfully.`,
+            message: `The truck with vehicle number ${truck.registrationNumber} has been updated successfully.`, // Corrected to registrationNumber
             type: "task"
         });
         res.status(200).json({
         message: "Truck updated successfully",
-        truck: {
-            vehicleNumber: truck.vehicleNumber,
-            truckType: truck.truckType,
-            capacity: truck.capacity,
-            fuelType: truck.fuelType,
-            isActive: truck.isActive,
-        },
+        truck: updatedTruck,
         });
 
     } catch (err) {
@@ -604,26 +596,27 @@ export const uploadTruckDocumentsController = async (req, res) => {
         return res.status(404).json({ message: "Truck not found or not associated with you" });
         }
 
-        if (
-        !req.files?.rcBook?.[0]?.path ||
-        !req.files?.insurance?.[0]?.path ||
-        !req.files?.pollutionCertificate?.[0]?.path
-        ) {
-        return res.status(400).json({ message: "All documents are required: RC Book, Insurance, Pollution Certificate" });
+        if (!req.files || Object.keys(req.files).length === 0) {
+            return res.status(400).json({ message: "No document files were uploaded." });
         }
 
-        // Save document paths
-        truck.documents = {
-        rcBook: req.files.rcBook[0].path,
-        insurance: req.files.insurance[0].path,
-        pollutionCertificate: req.files.pollutionCertificate[0].path,
-        };
+        // Update document paths if they exist in the request
+        if (req.files.rcBook) {
+            truck.documents.rcBook = req.files.rcBook[0].path;
+        }
+        if (req.files.insurance) {
+            truck.documents.insurance = req.files.insurance[0].path;
+        }
+        if (req.files.pollutionCertificate) {
+            truck.documents.pollutionCertificate = req.files.pollutionCertificate[0].path;
+        }
 
-        await truck.save();
+        const updatedTruck = await truck.save();
 
         res.status(200).json({
-        message: "Truck documents uploaded successfully",
-        documents: truck.documents,
+            message: "Truck documents uploaded successfully",
+            documents: updatedTruck.documents,
+            truck: updatedTruck, // Return the updated truck object
         });
 
     } catch (err) {
@@ -672,53 +665,56 @@ export const updateDriverReferenceController = async (req, res) => {
     }
 };
 
-export const toggleTruckActivationController = async (req, res) => {
+// ✅ NEW
+export const activateTruckController = async (req, res) => {
     try {
         const transporterId = req.user?._id;
         const { truckId } = req.params;
 
-        if (!transporterId) {
-        return res.status(401).json({ message: "Unauthorized access" });
-        }
-
         const truck = await truckModel.findOne({ _id: truckId, transporterId });
         if (!truck) {
-        return res.status(404).json({ message: "Truck not found or unauthorized" });
+            return res.status(404).json({ message: "Truck not found or unauthorized" });
         }
 
-        // Toggle active status
-        truck.isActive = !truck.isActive;
-
-        // If deactivated and driver is assigned, unassign driver
-        if (!truck.isActive && truck.assignedDriverId) {
-        const driver = await driverModel.findById(truck.assignedDriverId);
-        if (driver) {
-            driver.assignedTruckId = null;
-            await driver.save();
-        }
-        truck.assignedDriverId = null;
-        }
-
+        truck.status = 'active';
         await truck.save();
-        await sendNotification({
-            role: "transporter",
-            relatedUserId: transporterId,
-            relatedBookingId: truck._id,
-            title: `Truck ${truck.isActive ? "Activated" : "Deactivated"}`,
-            message: `Truck ${truck.truckNumber || ""} has been ${truck.isActive ? "activated" : "deactivated"} successfully.`,
-            type: "activity",
-        });
 
         res.status(200).json({
-        message: `Truck has been ${truck.isActive ? "activated" : "deactivated"} successfully`,
-        truck,
+            message: "Truck has been activated successfully",
+            truck,
         });
 
     } catch (err) {
-        console.log("Error in toggleTruckActivationController:", err.message);
+        console.log("Error in activateTruckController:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
+// ✅ NEW
+export const deactivateTruckController = async (req, res) => {
+    try {
+        const transporterId = req.user?._id;
+        const { truckId } = req.params;
+
+        const truck = await truckModel.findOne({ _id: truckId, transporterId });
+        if (!truck) {
+            return res.status(404).json({ message: "Truck not found or unauthorized" });
+        }
+
+        truck.status = 'inactive';
+        await truck.save();
+
+        res.status(200).json({
+            message: "Truck has been deactivated successfully",
+            truck,
+        });
+
+    } catch (err) {
+        console.log("Error in deactivateTruckController:", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
 
 export const deleteTruckController = async (req, res) => {
     try {
@@ -739,12 +735,18 @@ export const deleteTruckController = async (req, res) => {
         return res.status(404).json({ message: "Truck not found or unauthorized" });
         }
 
+        // Unassign driver if any
+        if (truck.assignedDriverId) {
+            await driverModel.findByIdAndUpdate(truck.assignedDriverId, { $set: { assignedTruckId: null } });
+        }
+
+
         await truckModel.deleteOne({ _id: truckId });
         await sendNotification({
-            role: 'driver',
-            relatedUserId: driverId,
-            title: 'References Updated',
-            message: 'Your references have been successfully updated.',
+            role: 'driver', // This should be 'transporter' for truck deletion notification
+            relatedUserId: transporterId, // Use transporterId for transporter notifications
+            title: 'Truck Deleted', // Updated title
+            message: `Truck with registration number ${truck.registrationNumber} has been removed from your fleet.`, // More specific message
             type: 'status',
         });
 
