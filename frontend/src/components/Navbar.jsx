@@ -208,7 +208,7 @@ const Navbar = () => {
                                         </li>
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <FiPackage />
-                                            <Link to={`/transporter/trucks`}>My Trucks</Link>
+                                            <Link to={`/transporter/view-trucks`}>My Trucks</Link>
                                         </li>
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                              <FaClipboardList />

@@ -100,7 +100,7 @@ const AppWrapper = () => {
                     <Route path='/trans-prof' element={<TransporterProfile />} />
                     <Route path='/driver-prof' element={<DriverProfile />} />
                     <Route path='/driver-dash' element={<DriverDashboard />} />
-                    <Route path='/view-trucks' element={<ViewTrucks />} />
+                    <Route path='/transporter/view-trucks' element={<ViewTrucks />} />
                     <Route path='/bids' element={<BiddingPage />} />
                     {/* <Route path='/order-booking' element={<OrderBookingPage />} /> */}
                     <Route path='/order-book' element={<BookOrderPage />} />

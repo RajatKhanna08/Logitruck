@@ -46,3 +46,9 @@ export const driverFields = upload.fields([
     { name: "idProof", maxCount: 1 },
     { name: "license", maxCount: 1 }
 ]);
+
+export const truckDocFields = upload.fields([
+{ name: 'rcBook', maxCount: 1 },
+{ name: 'insurance', maxCount: 1 },
+{ name: 'pollutionCertificate', maxCount: 1 }
+]);
