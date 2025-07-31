@@ -139,30 +139,51 @@ const CompanyProfile = () => {
 
       {/* Orders Section */}
       <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
-        <h3 onClick={() => navigate('/orders/all')} className="text-2xl cursor-pointer font-bold text-blue-900 mb-6">📦 Your Orders</h3>
+        <h3 onClick={() => navigate('/orders/all')} className="text-2xl cursor-pointer font-bold text-blue-900 mb-6">
+          📦 Your Orders ({allOrders?.length || 0})
+        </h3>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {allOrders.map((order) => (
+          {allOrders?.map((order) => (
             <div
-              key={order.id}
-              className="border rounded-xl p-4 shadow-md bg-blue-50 hover:shadow-lg transition cursor-pointer"
+              key={order._id}
+              onClick={() => navigate(`/orders/${order._id}`)}
+              className="border border-gray-200 rounded-xl p-4 shadow-md bg-blue-50 hover:shadow-lg transition cursor-pointer"
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="font-semibold text-yellow-600">#{order.id}</span>
+                <span className="font-semibold text-yellow-600">#{order._id.slice(-6)}</span>
                 <span
                   className={`text-sm px-3 py-1 rounded-full font-semibold ${
-                    order.status === "Delivered"
+                    order.status === "delivered"
                       ? "bg-green-100 text-green-700"
-                      : order.status === "In Transit"
+                      : order.status === "in_transit"
                       ? "bg-yellow-100 text-yellow-800"
-                      : "bg-red-100 text-red-700"
+                      : order.status === "cancelled"
+                      ? "bg-red-100 text-red-700"
+                      : "bg-blue-100 text-blue-800"
                   }`}
                 >
-                  {order.status}
+                  {order.status.toUpperCase()}
                 </span>
               </div>
-              <div className="text-gray-700"><strong>Destination:</strong> {order.destination}</div>
-              <div className="text-gray-700 flex items-center gap-2">
-                <FaRegCalendarAlt /> {order.date}
+              <div className="space-y-2">
+                <div className="text-gray-700">
+                  <p className="font-medium">From: {order.pickupLocation.address.split(',')[0]}</p>
+                  <p className="font-medium">To: {order.dropLocations[0].address.split(',')[0]}</p>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <div className="text-gray-700 flex items-center gap-2">
+                    <FaRegCalendarAlt /> 
+                    {new Date(order.scheduleAt).toLocaleDateString()}
+                  </div>
+                  <div className="font-semibold text-green-600">
+                    ₹{order.fare}
+                  </div>
+                </div>
+                {order.tripStatus && (
+                  <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full inline-block">
+                    {order.tripStatus}
+                  </div>
+                )}
               </div>
             </div>
           ))}
