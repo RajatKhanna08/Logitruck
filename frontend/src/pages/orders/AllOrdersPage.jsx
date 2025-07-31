@@ -2,11 +2,28 @@ import { FaTruck, FaMoneyBillWave, FaClock, FaBoxOpen, FaMapMarkedAlt, FaTimes, 
 import { useNavigate } from 'react-router-dom';
 import { useOrders } from '../../hooks/useOrder';
 import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { initiatePayment } from '../../api/orderApi';
 
 const AllOrdersPage = () => {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const [cancelModalOrder, setCancelModalOrder] = useState(null);
     const { data: companyOrdersData = [], isLoading } = useOrders();
+
+    const paymentMutation = useMutation({
+        mutationFn: initiatePayment,
+        onSuccess: (data) => {
+            // Handle successful payment initiation (e.g., redirect to payment gateway)
+            if (data.paymentUrl) {
+                window.location.href = data.paymentUrl;
+            }
+        },
+        onError: (error) => {
+            console.error('Payment initiation failed:', error);
+            alert('Failed to initiate payment. Please try again.');
+        }
+    });
 
     const handleCancelOrder = async (orderId) => {
         try {
@@ -140,19 +157,42 @@ const AllOrdersPage = () => {
                             <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                                 <div>
                                     <p className="text-xs text-gray-500">Total Amount</p>
-                                    <p className="text-lg font-semibold text-green-600">₹{order.fare}</p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-lg font-semibold text-green-600">₹{order.fare}</p>
+                                        <span className={`text-xs px-2 py-1 rounded-full ${
+                                            order.paymentStatus === 'paid' 
+                                                ? 'bg-green-100 text-green-700'
+                                                : 'bg-red-100 text-red-700'
+                                        }`}>
+                                            {order.paymentStatus}
+                                        </span>
+                                    </div>
                                 </div>
-                                {order.status !== 'cancelled' && order.status !== 'delivered' && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setCancelModalOrder(order);
-                                        }}
-                                        className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                    >
-                                        Cancel Order
-                                    </button>
-                                )}
+                                <div className="flex gap-2">
+                                    {order.paymentStatus !== 'paid' && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                paymentMutation.mutate(order._id);
+                                            }}
+                                            disabled={paymentMutation.isPending}
+                                            className="px-3 py-1 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors"
+                                        >
+                                            {paymentMutation.isPending ? 'Processing...' : 'Pay Now'}
+                                        </button>
+                                    )}
+                                    {order.status !== 'cancelled' && order.status !== 'delivered' && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setCancelModalOrder(order);
+                                            }}
+                                            className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                        >
+                                            Cancel Order
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
