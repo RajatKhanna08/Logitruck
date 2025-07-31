@@ -38,3 +38,17 @@ export const updateLiveLocation = async ({ orderId, lat, lng }) => {
 
     return res.data;
 }
+
+export const getOrderById = async (orderId) => {
+    try {
+        const res = await axiosInstance.get(`/order/company/order/${orderId}`);
+        if (!res.data || !res.data.data) {
+            throw new Error('Invalid response format from server');
+        }
+        console.log('API Response:', res.data); // Debug log
+        return res.data.data;
+    } catch (error) {
+        console.error('Error in getOrderById:', error);
+        throw error.message || 'Failed to fetch order details';
+    }
+};

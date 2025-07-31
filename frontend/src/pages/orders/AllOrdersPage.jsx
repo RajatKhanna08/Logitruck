@@ -46,6 +46,12 @@ const AllOrdersPage = () => {
         );
     };
 
+    const handleCardClick = (orderId, e) => {
+        // Prevent navigation if clicking cancel button
+        if (e.target.closest('button')) return;
+        navigate(`/orders/${orderId}`);
+    };
+
     return (
         <div className="p-6 min-h-screen bg-gradient-to-br from-blue-50 to-gray-50">
             <h2 className="text-3xl mt-20 font-bold text-blue-900 mb-6 border-b-2 border-yellow-300 pb-2 flex justify-between items-center">
@@ -58,13 +64,17 @@ const AllOrdersPage = () => {
             {/* Orders Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {companyOrdersData.map((order) => (
-                    <div key={order._id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
+                    <div
+                        key={order._id}
+                        onClick={(e) => handleCardClick(order._id, e)}
+                        className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 cursor-pointer"
+                    >
                         {/* Status Header */}
                         <div className="bg-gray-50 px-4 py-2 border-b border-gray-100">
                             {getStatusBadge(order.status, order.tripStatus)}
                         </div>
 
-                        <div className="p-4" onClick={() => navigate(`/orders/${order._id}`)}>
+                        <div className="p-4">
                             {/* Order ID and Time */}
                             <div className="flex justify-between items-start mb-4">
                                 <div>
