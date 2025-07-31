@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { axiosInstance } from "../lib/axios";
 
 export const getAllOrders = async () => {
@@ -12,14 +13,17 @@ export const getAllOrders = async () => {
 }
 
 export const bookOrder = async (orderData) => {
-    try{
-        const res = await axiosInstance.post('/order/create', orderData);
-        return res.data;
-    }
-    catch(err){
-        console.log("Error in bookOrder: ", err.message);
-    }
-}
+  try {
+    const response = await axios.post(`${API_BASE_URL}/api/orders/book`, orderData, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
 
 export const getLiveLocation = async (orderId) => {
     const res  = await axiosInstance.get(`/order/company/track/${orderId}`);
@@ -34,12 +38,3 @@ export const updateLiveLocation = async ({ orderId, lat, lng }) => {
 
     return res.data;
 }
-export const getOrderById = async (orderId) => {
-  try {
-    const res = await axiosInstance.get(`/order/${orderId}`);
-    return res.data.order;
-  } catch (err) {
-    console.log("Error in getOrderById:", err.message);
-    throw err;
-  }
-};
