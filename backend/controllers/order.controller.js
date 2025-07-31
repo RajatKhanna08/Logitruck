@@ -25,7 +25,7 @@ export const createOrderController = async (req, res) => {
     const {
       pickupLocation,
       dropLocations,
-      scheduledAt,
+      scheduleAt,
       isBiddingEnabled,
       biddingExpiresAt,
       loadDetails,
@@ -79,7 +79,7 @@ export const createOrderController = async (req, res) => {
       customerId: companyId,
       pickupLocation,
       dropLocations,
-      scheduleAt: scheduledAt || null,
+      scheduleAt: scheduleAt || null,
       isBiddingEnabled: isBiddingEnabled ?? true,
       biddingExpiresAt: biddingExpiresAt || null,
       loadDetails,
@@ -115,7 +115,7 @@ export const createOrderController = async (req, res) => {
       metadata: { orderId: newOrder._id }
     });
 
-    // ✅ Use corrected transporter model
+    // Use corrected transporter model
     const transporters = await transporterModel.find({}, '_id');
     for (const transporter of transporters) {
       await sendNotification({
