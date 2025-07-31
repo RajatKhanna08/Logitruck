@@ -501,15 +501,12 @@ export const getOrdersHistoryController = async (req, res) => {
             return res.status(400).json({ message: errors.array() });
         }
 
-        const companyId = req.user?._id;
-        if (!companyId) {
+        const driverId = req.user?._id;
+        if (!driverId) {
             return res.status(401).json({ message: "Unauthorized access" });
         }
 
-        const orders = await orderModel.find({
-            customerId: companyId,
-            status: { $in: ["delivered", "cancelled"] }
-        })
+        const orders = await orderModel.find({ acceptedDriverId: driverId })
             .sort({ scheduledAt: -1 })
             .populate("acceptedDriverId", "fullname phone email")
             .populate("acceptedTruckId", "registrationNumber brand model vehicleType")
