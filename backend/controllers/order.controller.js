@@ -32,6 +32,7 @@ export const createOrderController = async (req, res) => {
       completedStops,
       paymentMode,
       urgency,
+      fare,
       bodyTypeMultiplier,
       sizeCategoryMultiplier,
       isMultiStop
@@ -92,7 +93,7 @@ export const createOrderController = async (req, res) => {
       currentLocation,
       distance: parseFloat(routeData.distanceInKm),
       duration: parseFloat(routeData.durationInMin),
-      fare: 0,
+      fare: fare,
       currentStatus: "pending",
       status: "pending",
       tripStatus: "Heading to Pickup",

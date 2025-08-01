@@ -228,7 +228,8 @@ export default function BookOrderPage() {
     urgency: 'low', // Default value from schema
     bodyTypeMultiplier: 1,
     sizeCategoryMultiplier: 1,
-    isMultiStop: false
+    isMultiStop: false,
+    fare: ''  // Add this new field
   });
   
   const [activeLocationInput, setActiveLocationInput] = useState(null);
@@ -449,7 +450,8 @@ export default function BookOrderPage() {
         currentStopIndex: 0,
         isStalledAt: false,
         isDelayed: false,
-        documents: {}
+        documents: {},
+        fare: parseFloat(formData.fare) || 0,  // Add this line
       };
 
       // Basic frontend validation
@@ -484,6 +486,11 @@ export default function BookOrderPage() {
 
       if (!orderData.paymentMode) {
         throw new Error("Please select a payment mode.");
+      }
+
+      // Add validation for fare
+      if (!orderData.fare || orderData.fare <= 0) {
+        throw new Error("Please enter a valid fare amount.");
       }
 
       // Send to backend
@@ -828,6 +835,26 @@ export default function BookOrderPage() {
         return (
           <div className="max-w-2xl mx-auto space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Add Fare Input */}
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
+                  <FaDollarSign className="text-yellow-500" />
+                  Fare Amount
+                </h3>
+                <div className="relative">
+                  <span className="absolute left-3 top-3 text-gray-500">₹</span>
+                  <input
+                    type="number"
+                    value={formData.fare}
+                    onChange={(e) => handleInputChange('fare', e.target.value)}
+                    placeholder="Enter fare amount"
+                    className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              {/* Existing Payment Mode div */}
               <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
                 <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
                   <FaDollarSign className="text-yellow-500" />
@@ -844,22 +871,23 @@ export default function BookOrderPage() {
                   <option value="Net-Banking">Net-Banking</option>
                 </select>
               </div>
+            </div>
 
-              <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-                <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
-                  <FaClock className="text-yellow-500" />
-                  Urgency Level
-                </h3>
-                <select
-                  value={formData.urgency}
-                  onChange={(e) => handleInputChange('urgency', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="low">Low Priority</option>
-                  <option value="medium">Normal</option>
-                  <option value="high">High Priority</option>
-                </select>
-              </div>
+            {/* Existing Urgency Level div */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
+                <FaClock className="text-yellow-500" />
+                Urgency Level
+              </h3>
+              <select
+                value={formData.urgency}
+                onChange={(e) => handleInputChange('urgency', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="low">Low Priority</option>
+                <option value="medium">Normal</option>
+                <option value="high">High Priority</option>
+              </select>
             </div>
           </div>
         );
@@ -921,6 +949,12 @@ export default function BookOrderPage() {
                       Bidding: {formData.isBiddingEnabled ? 'Enabled' : 'Disabled'} | 
                       Multi-Stop: {formData.isMultiStop ? 'Enabled' : 'Disabled'}
                     </p>
+                  </div>
+
+                  <div className="border-b pb-3">
+                    <h4 className="font-medium text-gray-700 mb-2">Payment Details</h4>
+                    <p className="text-gray-600">Fare Amount: ₹{formData.fare || 'Not set'}</p>
+                    <p className="text-gray-600">Payment Mode: {formData.paymentMode || 'Not selected'}</p>
                   </div>
                 </div>
               </div>

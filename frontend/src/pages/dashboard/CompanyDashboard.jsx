@@ -537,7 +537,7 @@ const CompanyDashboard = () => {
                 </div>
                 <div className="flex gap-4 items-center">
                     <button 
-                        onClick={() => setShowBookOrderModal(true)}
+                        onClick={() => navigate('/orders/book')}
                         className="bg-yellow-300 text-[#192a67] font-bold px-6 py-3 rounded hover:bg-yellow-400 transition flex items-center gap-2"
                     >
                         <FaPlus /> Book Order
