@@ -29,7 +29,6 @@ const router = express.Router();
 const createOrderValidation = [
   body('pickupLocation').notEmpty().withMessage('Pickup location is required'),
   body('dropLocations').isArray({ min: 1 }).withMessage('At least one drop location is required'),
-  body('scheduledAt').optional().isISO8601().withMessage('scheduledAt must be a valid date'),
   body('scheduleAt').optional().isISO8601().withMessage('scheduleAt must be a valid date'),
   body('biddingExpiresAt').optional({ nullable: true }).isISO8601().withMessage('biddingExpiresAt must be a valid date'),
   body('loadDetails').notEmpty().withMessage('loadDetails is required'),
@@ -61,8 +60,7 @@ const updateOrderStatusValidation = [
 
 router.post('/create', isLoggedIn, correctRole("company"), createOrderValidation, createOrderController);
 router.post('/company/upload-eway-bill', isLoggedIn, correctRole("company"), uploadEwayBillValidation, uploadEwayBillController);
-router.get('/company/track/:orderId', isLoggedIn, correctRole("company"), param('orderId').isMongoId(), trackOrderController);
-router.post('/company/track/:orderId', isLoggedIn, correctRole("company"), updateOrderLocationController);
+router.post('/company/update-location/:orderId', isLoggedIn, correctRole("company"), param('orderId').isMongoId(), updateOrderLocationController); // 🔁 renamed for clarity
 router.post('/company/rate/:orderId', isLoggedIn, correctRole("company"), rateOrderValidation, rateOrderController);
 router.get('/company/active/:orderId', isLoggedIn, correctRole("company"), param('orderId').isMongoId(), getCurrentOrdersController);
 router.get('/company/all-orders', isLoggedIn, correctRole("company"), getOrdersController);
@@ -78,7 +76,13 @@ router.put('/driver/order/:orderId', isLoggedIn, correctRole("driver"), updateOr
 // ==================== Transporter Routes ====================
 
 router.get('/transporter/all-orders', isLoggedIn, correctRole("transporter"), getTransporterAllOrdersController);
-router.get('/transporter/status/:orderId', isLoggedIn, correctRole("transporter"), param('orderId').isMongoId().withMessage("Invalid order ID"), getTransporterOrderStatusController);
+router.get('/transporter/status/:orderId', isLoggedIn, correctRole("transporter"), param('orderId').isMongoId(), getTransporterOrderStatusController);
 router.get('/transporter/active', isLoggedIn, correctRole("transporter"), getTransporterActiveOrdersController);
+
+// ==================== Tracking Routes (GET only) ====================
+
+router.get('/company/track/:orderId', isLoggedIn, correctRole('company'), param('orderId').isMongoId(), trackOrderController);
+router.get('/transporter/track/:orderId', isLoggedIn, correctRole('transporter'), param('orderId').isMongoId(), trackOrderController);
+router.get('/admin/track/:orderId', isLoggedIn, correctRole('admin'), param('orderId').isMongoId(), trackOrderController);
 
 export default router;
