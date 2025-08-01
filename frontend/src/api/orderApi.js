@@ -14,11 +14,7 @@ export const getAllOrders = async () => {
 
 export const bookOrder = async (orderData) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/api/orders/book`, orderData, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    });
+    const response = await axiosInstance.post('/order/create', orderData);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
