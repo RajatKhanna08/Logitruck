@@ -5,8 +5,9 @@ const ServiceCard = ({ service, index }) => {
     return (
             <Link
                 key={index}
-                to={"/services"}
+                to={"/services/multi-stop-delivery"}
                 className="z-10 bg-white p-5 rounded-2xl shadow-md hover:shadow-yellow-300 transition-shadow duration-300"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             >
                 <img
                   src={service.image}

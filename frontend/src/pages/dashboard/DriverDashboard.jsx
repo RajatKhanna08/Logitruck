@@ -53,7 +53,6 @@ const DriverDashboard = () => {
         mutationFn: toggleWorkMode,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['userProfile'] });
-            alert('Work mode updated successfully!');
         },
         onError: (error) => {
             console.error('Error toggling work mode:', error);

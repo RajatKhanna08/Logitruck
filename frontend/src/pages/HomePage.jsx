@@ -262,7 +262,7 @@ const HomePage = () => {
             {/* TRACKING SECTION */}
             <div className='mt-15 flex justify-center gap-23'>
                 {/* LEFT SECTION */}
-                <div className='flex flex-col gap-5 p-16 rounded-md bg-[#192a67] text-white'>
+                {/* <div className='flex flex-col gap-5 p-16 rounded-md bg-[#192a67] text-white'>
                     <p className='text-6xl font-semibold'>Real Time Tracking</p>
 
                     <div>
@@ -275,14 +275,14 @@ const HomePage = () => {
                     <p className='w-90'>Enter the ID of Your Project To track it’s status(Demo Projects IDs are 1234, 5482 and 5422.</p>
 
                     <p name="" id="" className='bg-white text-black/40 rounded-md p-5 h-60'>Thank you </p>
-                </div>
+                </div> */}
 
                 {/* RIGHT SECTION */}
-                <div className='flex flex-col'>
-                    <p className='text-4xl font-bold text-[#192a67]'>Get  the best logistic service FAQ</p>
+                <div className='flex w-full p-25 box-border flex-col'>
+                    <p className='text-4xl font-bold text-[#192a67] text-center'>Get  the best logistic service FAQ</p>
 
                     {/* ACCORDION */}
-                    <div className='mt-20 flex flex-col gap-10 relative'>
+                    <div className='mt-20 w-full flex flex-col gap-10 relative'>
                         {liveTrackingFaq.map((faq, index) => (
                             <div key={index} className="relative border border-gray-300 rounded-md overflow-visible shadow-sm">
                                 <LiveTrackingFAQCard
