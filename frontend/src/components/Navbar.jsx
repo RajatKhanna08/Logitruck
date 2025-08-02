@@ -328,11 +328,23 @@ const Navbar = () => {
                             </div>
                         </li>
                         <li className="relative group cursor-pointer transition-all duration-200">
-                            <Link to="/help-centre"
-                                className={`${pathname === '/help-centre' ? 'text-yellow-300' : 'hover:text-yellow-300'}`}>
-                                Help Centre
-                                <span className={`absolute left-0 bottom-0 h-[2px] bg-yellow-300 transition-all duration-300 ${pathname === '/help-centre' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
-                            </Link>
+                            <div className="group relative">
+                                <Link to="/help-centre"
+                                    className={`${pathname === '/help-centre' ? 'text-yellow-300' : 'hover:text-yellow-300'}`}>
+                                    Help Centre
+                                    <span className={`absolute left-0 bottom-0 h-[2px] bg-yellow-300 transition-all duration-300 ${pathname === '/help-centre' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                                </Link>
+                                <ul className="absolute bg-white top-full flex flex-col -right-10 w-[200px] shadow-lg rounded-md text-black opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-300 z-50 p-2">
+                                    <li>
+                                        <Link
+                                            to="/e-way"
+                                            className="block px-3 py-2 rounded-md hover:bg-[#192a67] hover:text-yellow-300 text-sm transition-all duration-200"
+                                        >
+                                            E-Way Bill
+                                        </Link>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
                         <li className="relative group cursor-pointer transition-all duration-200">
                             <Link to="/community"

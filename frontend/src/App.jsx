@@ -28,6 +28,7 @@ import TransporterProfile from './pages/profile/TransporterProfile';
 import DriverProfile from './pages/profile/DriverProfile';
 import AdminProfile from './pages/profile/AdminProfile';
 import HelpCentrePage from './pages/HelpCentrePage';
+import EwayBillPage from './pages/EwayBillPage';
 import CommunityCenterPage from './pages/CommunityCenterPage';
 import NotificationPage from './pages/NotificationPage';
 import PriceEstimator from './pages/PriceEstimator';
@@ -87,6 +88,7 @@ const AppWrapper = () => {
                     <Route path='/services/:id' element={<ServicePage />} />
                     <Route path='/contact' element={<ContactUsPage />} />
                     <Route path='/help-centre' element={<HelpCentrePage />} />
+                    <Route path='/e-way' element={<EwayBillPage />} />
                     <Route path='/community' element={<CommunityCenterPage />} />
                     <Route path='/about' element={<AboutUsPage />} />
                     <Route path='/role-select' element={<RoleSelectorPage />} />
