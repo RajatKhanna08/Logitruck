@@ -36,7 +36,7 @@ import { useUserProfile } from '../../hooks/useUserProfile';
 import { useQuery } from '@tanstack/react-query'; 
 
 // Import the API function that makes the actual fetch call
-import { getTransporterDashboard as fetchTransporterDashboardApi } from '../../api/transporterApi'; 
+import { getTransporterDashboard as fetchTransporterDashboardApi, addTruck, updateProfile, uploadDocument } from '../../api/transporterApi'; 
 
 // Custom hook for dashboard stats, wrapping useQuery around the API function
 const useDashboardStats = () => {
@@ -277,6 +277,74 @@ const TransporterDashboard = () => {
     const availableTrucks = trucks.filter(t => 
         t.status === 'available' || !t.status 
     ).length;
+
+    // Add truck form state and handler
+    const [truckForm, setTruckForm] = useState({
+        registrationNumber: '',
+        vehicleType: '',
+        capacity: '',
+        dimensions: { length: '', width: '', height: '' },
+        documents: null
+    });
+
+    const handleAddTruck = async (e) => {
+        e.preventDefault();
+        try {
+            await addTruck(truckForm);
+            setShowAddTruckModal(false);
+            queryClient.invalidateQueries('transporterDashboardStats');
+            alert('Truck added successfully');
+            setTruckForm({
+                registrationNumber: '',
+                vehicleType: '',
+                capacity: '',
+                dimensions: { length: '', width: '', height: '' },
+                documents: null
+            });
+        } catch (error) {
+            alert('Failed to add truck: ' + error.message);
+        }
+    };
+
+    // Profile update form state and handler
+    const [profileForm, setProfileForm] = useState({
+        transporterName: transporterData.transporterName || '',
+        email: transporterData.email || '',
+        contactNo: transporterData.contactNo || '',
+        address: transporterData.address || {}
+    });
+
+    const handleUpdateProfile = async (e) => {
+        e.preventDefault();
+        try {
+            await updateProfile(profileForm);
+            setShowProfileModal(false);
+            queryClient.invalidateQueries('userProfile');
+            alert('Profile updated successfully');
+        } catch (error) {
+            alert('Failed to update profile: ' + error.message);
+        }
+    };
+
+    // Document upload handler
+    const handleDocumentUpload = async (e, type) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('document', file);
+        formData.append('type', type);
+
+        try {
+            await uploadDocument(formData);
+            queryClient.invalidateQueries('userProfile');
+            alert('Document uploaded successfully');
+        } catch (error) {
+            alert('Failed to upload document: ' + error.message);
+        }
+    };
+
+    // ...existing code until modals...
 
     return (
         <div className="min-h-screen bg-gray-100 p-6 text-[#192a67] font-inter">
@@ -572,7 +640,139 @@ const TransporterDashboard = () => {
                             <IoClose />
                         </button>
                         <h3 className="text-2xl font-bold mb-6 text-[#192a67]">Add New Truck</h3>
-                        <p className="text-gray-600">Add truck functionality would be implemented here...</p>
+                        
+                        <form onSubmit={handleAddTruck} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Registration Number
+                                </label>
+                                <input
+                                    type="text"
+                                    value={truckForm.registrationNumber}
+                                    onChange={(e) => setTruckForm({
+                                        ...truckForm,
+                                        registrationNumber: e.target.value
+                                    })}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Vehicle Type
+                                </label>
+                                <select
+                                    value={truckForm.vehicleType}
+                                    onChange={(e) => setTruckForm({
+                                        ...truckForm,
+                                        vehicleType: e.target.value
+                                    })}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    required
+                                >
+                                    <option value="">Select Type</option>
+                                    <option value="container">Container</option>
+                                    <option value="flatbed">Flatbed</option>
+                                    <option value="tipper">Tipper</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Capacity (tons)
+                                </label>
+                                <input
+                                    type="number"
+                                    value={truckForm.capacity}
+                                    onChange={(e) => setTruckForm({
+                                        ...truckForm,
+                                        capacity: e.target.value
+                                    })}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    required
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Length (ft)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={truckForm.dimensions.length}
+                                        onChange={(e) => setTruckForm({
+                                            ...truckForm,
+                                            dimensions: { ...truckForm.dimensions, length: e.target.value }
+                                        })}
+                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Width (ft)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={truckForm.dimensions.width}
+                                        onChange={(e) => setTruckForm({
+                                            ...truckForm,
+                                            dimensions: { ...truckForm.dimensions, width: e.target.value }
+                                        })}
+                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Height (ft)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={truckForm.dimensions.height}
+                                        onChange={(e) => setTruckForm({
+                                            ...truckForm,
+                                            dimensions: { ...truckForm.dimensions, height: e.target.value }
+                                        })}
+                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Documents (RC, Insurance, etc.)
+                                </label>
+                                <input
+                                    type="file"
+                                    onChange={(e) => setTruckForm({
+                                        ...truckForm,
+                                        documents: e.target.files[0]
+                                    })}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-3 mt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddTruckModal(false)}
+                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                >
+                                    Add Truck
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
@@ -586,7 +786,106 @@ const TransporterDashboard = () => {
                             <IoClose />
                         </button>
                         <h3 className="text-2xl font-bold mb-6 text-[#192a67]">Edit Profile</h3>
-                        <p className="text-gray-600">Edit profile functionality would be implemented here...</p>
+                        
+                        <form onSubmit={handleUpdateProfile} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Transporter Name
+                                </label>
+                                <input
+                                    type="text"
+                                    value={profileForm.transporterName}
+                                    onChange={(e) => setProfileForm({
+                                        ...profileForm,
+                                        transporterName: e.target.value
+                                    })}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Email
+                                </label>
+                                <input
+                                    type="email"
+                                    value={profileForm.email}
+                                    onChange={(e) => setProfileForm({
+                                        ...profileForm,
+                                        email: e.target.value
+                                    })}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Contact Number
+                                </label>
+                                <input
+                                    type="text"
+                                    value={profileForm.contactNo}
+                                    onChange={(e) => setProfileForm({
+                                        ...profileForm,
+                                        contactNo: e.target.value
+                                    })}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Address
+                                </label>
+                                <input
+                                    type="text"
+                                    value={profileForm.address.city}
+                                    onChange={(e) => setProfileForm({
+                                        ...profileForm,
+                                        address: { ...profileForm.address, city: e.target.value }
+                                    })}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    placeholder="City"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    State
+                                </label>
+                                <input
+                                    type="text"
+                                    value={profileForm.address.state}
+                                    onChange={(e) => setProfileForm({
+                                        ...profileForm,
+                                        address: { ...profileForm.address, state: e.target.value }
+                                    })}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    placeholder="State"
+                                    required
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-3 mt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowProfileModal(false)}
+                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                >
+                                    Update Profile
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

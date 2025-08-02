@@ -1,40 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import { FaTruck, FaUserTie, FaEnvelope, FaPhone, FaIdBadge, FaEdit } from "react-icons/fa";
 import { MdLocationOn } from "react-icons/md";
 import { useUserProfile } from "../../hooks/useUserProfile";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateTransporterProfile } from "../../api/transporterApi"; // You'll need to create this API function
-
-const mockTrucks = [
-  {
-    truckNumber: "GJ01X1234",
-    driver: {
-      name: "Ajay Sharma",
-      phone: "+91 9001234567",
-      email: "ajay.driver@example.com",
-    },
-  },
-  {
-    truckNumber: "GJ02Y5678",
-    driver: {
-      name: "Suresh Kumar",
-      phone: "+91 9812345678",
-      email: "suresh.driver@example.com",
-    },
-  },
-];
-
-const mockBids = [
-  { orderId: "ORD-1001", amount: "₹ 12,500", status: "Won" },
-  { orderId: "ORD-1012", amount: "₹ 9,800", status: "Won" },
-];
+import { updateTransporterProfile, getTransporterTrucks, getTransporterBids } from "../../api/transporterApi"; // You'll need to create this API function
 
 const TransporterProfile = () => {
   const { data: userProfile, isLoading } = useUserProfile();
   const queryClient = useQueryClient();
   
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [trucks, setTrucks] = useState([]);
+  const [bids, setBids] = useState([]);
+  const [trucksLoading, setTrucksLoading] = useState(true);
+  const [bidsLoading, setBidsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // TanStack Query mutation for updating transporter profile
   const updateProfileMutation = useMutation({
@@ -54,6 +35,33 @@ const TransporterProfile = () => {
       alert('Failed to update profile. Please try again.');
     },
   });
+
+  // Fetch trucks and bids
+  useEffect(() => {
+    const fetchData = async () => {
+      if (userProfile?.transporter?._id) {
+        try {
+          setTrucksLoading(true);
+          setBidsLoading(true);
+
+          const [trucksData, bidsData] = await Promise.all([
+            getTransporterTrucks(userProfile.transporter._id),
+            getTransporterBids(userProfile.transporter._id)
+          ]);
+
+          setTrucks(trucksData.trucks || []);
+          setBids(bidsData.bids || []);
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setTrucksLoading(false);
+          setBidsLoading(false);
+        }
+      }
+    };
+
+    fetchData();
+  }, [userProfile]);
 
   // Handle form submission
   const handleSubmit = (e) => {
@@ -139,48 +147,76 @@ const TransporterProfile = () => {
 
       {/* Trucks + Drivers */}
       <div className="bg-white p-6 rounded-xl shadow-lg mb-6">
-        <h3 className="text-xl font-semibold mb-4 text-blue-800">Assigned Trucks & Drivers</h3>
+        <h3 className="text-xl font-semibold mb-4 text-blue-800">
+          Assigned Trucks & Drivers
+          {trucksLoading && <span className="ml-2 text-sm text-gray-500">Loading...</span>}
+        </h3>
         <div className="grid md:grid-cols-2 gap-6">
-          {mockTrucks.map((truck, index) => (
-            <div
-              key={index}
-              className="border p-4 rounded-lg bg-gray-50 shadow-sm flex flex-col gap-2"
-            >
-              <div className="flex items-center gap-2 text-blue-700 font-semibold">
-                <FaTruck />
-                <span>Truck No: {truck.truckNumber}</span>
+          {trucks.length === 0 && !trucksLoading ? (
+            <p className="text-gray-500 col-span-2 text-center py-4">No trucks assigned yet</p>
+          ) : (
+            trucks.map((truck) => (
+              <div
+                key={truck._id}
+                className="border p-4 rounded-lg bg-gray-50 shadow-sm flex flex-col gap-2"
+              >
+                <div className="flex items-center gap-2 text-blue-700 font-semibold">
+                  <FaTruck />
+                  <span>Truck No: {truck.registrationNumber}</span>
+                </div>
+                {truck.assignedDriver && (
+                  <div className="text-sm pl-6 text-gray-700">
+                    <p><strong>Driver:</strong> {truck.assignedDriver.name}</p>
+                    <p><strong>Phone:</strong> {truck.assignedDriver.phone}</p>
+                    <p><strong>License:</strong> {truck.assignedDriver.licenseNumber}</p>
+                  </div>
+                )}
               </div>
-              <div className="text-sm pl-6 text-gray-700">
-                <p><strong>Driver:</strong> {truck.driver.name}</p>
-                <p><strong>Phone:</strong> {truck.driver.phone}</p>
-                <p><strong>Email:</strong> {truck.driver.email}</p>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
       {/* Bids Section */}
       <div className="bg-white p-6 rounded-xl shadow-lg">
-        <h3 className="text-xl font-semibold mb-4 text-blue-800">Bids Won</h3>
-        <table className="w-full text-left border border-gray-300 rounded-lg overflow-hidden">
-          <thead className="bg-blue-100 text-gray-700">
-            <tr>
-              <th className="px-4 py-2">Order ID</th>
-              <th className="px-4 py-2">Bid Amount</th>
-              <th className="px-4 py-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {mockBids.map((bid, index) => (
-              <tr key={index} className="border-t">
-                <td className="px-4 py-2">{bid.orderId}</td>
-                <td className="px-4 py-2">{bid.amount}</td>
-                <td className="px-4 py-2 text-green-600 font-medium">{bid.status}</td>
+        <h3 className="text-xl font-semibold mb-4 text-blue-800">
+          Recent Bids
+          {bidsLoading && <span className="ml-2 text-sm text-gray-500">Loading...</span>}
+        </h3>
+        {bids.length === 0 && !bidsLoading ? (
+          <p className="text-gray-500 text-center py-4">No bids placed yet</p>
+        ) : (
+          <table className="w-full text-left border border-gray-300 rounded-lg overflow-hidden">
+            <thead className="bg-blue-100 text-gray-700">
+              <tr>
+                <th className="px-4 py-2">Order ID</th>
+                <th className="px-4 py-2">Amount</th>
+                <th className="px-4 py-2">Status</th>
+                <th className="px-4 py-2">Date</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {bids.map((bid) => (
+                <tr key={bid._id} className="border-t">
+                  <td className="px-4 py-2">#{bid.orderId.slice(-6)}</td>
+                  <td className="px-4 py-2">₹{bid.amount.toLocaleString()}</td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      bid.status === 'won' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {bid.status.toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 text-gray-500">
+                    {new Date(bid.createdAt).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Update Modal */}

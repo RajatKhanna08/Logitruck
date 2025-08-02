@@ -60,3 +60,52 @@ export const getTransporterDashboard = async () => {
         throw err;
     }
 }
+
+export const getTransporterTrucks = async (transporterId) => {
+    try {
+        const res = await axiosInstance.get(`/transporter/trucks/${transporterId}`);
+        return res.data;
+    } catch (error) {
+        throw error.message;
+    }
+};
+
+export const getTransporterBids = async (transporterId) => {
+    try {
+        const res = await axiosInstance.get(`/transporter/bids/${transporterId}`);
+        return res.data;
+    } catch (error) {
+        throw error.message;
+    }
+};
+
+export const addTruck = async (truckData) => {
+    try {
+        const res = await axiosInstance.post('/transporter/trucks/add', truckData);
+        return res.data;
+    } catch (error) {
+        throw error.message;
+    }
+};
+
+export const updateProfile = async (profileData) => {
+    try {
+        const res = await axiosInstance.put('/transporter/profile/update', profileData);
+        return res.data;
+    } catch (error) {
+        throw error.message;
+    }
+};
+
+export const uploadDocument = async (formData) => {
+    try {
+        const res = await axiosInstance.post('/transporter/documents/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return res.data;
+    } catch (error) {
+        throw error.message;
+    }
+};
