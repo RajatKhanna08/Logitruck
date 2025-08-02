@@ -1,44 +1,57 @@
 import crypto from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
 import PDFDocument from "pdfkit";
 import { format } from "date-fns";
 import ordersModel from '../models/orderModel.js';
 import paymentsModel from '../models/paymentModel.js';
-import transporterModel from "../models/transporterModel.js";
-import companyModel from "../models/companyModel.js";
-import razorpay from '../lib/razorpay.js'; // 
+import razorpay from '../lib/razorpay.js'; 
 
 export const initiatePaymentController = async (req, res) => {
   try {
-    const { orderId } = req.params;
-    const { amount, customerId, transporterId, currency = 'INR' } = req.body;
+    console.log("Initiating payment for order:", req.params.orderId);
 
-    if (!amount || !customerId || !transporterId || !orderId) {
-      return res.status(400).json({ message: 'Missing required fields.' });
+    const { orderId } = req.params;
+
+    // Check if body exists
+    if (!req.body) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing request body",
+      });
     }
+
+    const { amount, customerId, currency = 'INR' } = req.body;
+
+    // Basic validation
+    if (!amount || !customerId || !orderId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: amount, customerId, or orderId',
+      });
+    }
+
     const options = {
-      amount: amount * 100, // Razorpay uses paisa
+      amount: amount * 100, // Convert to paisa
       currency,
-      receipt: `receipt_${orderId}_${uuidv4()}`,
+      receipt: `o_${orderId.slice(0, 12)}_c_${customerId.slice(0, 12)}`,
       payment_capture: 1,
       notes: {
         internalOrderId: orderId,
         customerId,
-        transporterId
-      }
+      },
     };
+
     const razorpayOrder = await razorpay.orders.create(options);
+
     res.status(200).json({
       success: true,
       message: "Payment order initiated",
       orderDetails: razorpayOrder,
       frontendKey: process.env.RAZORPAY_KEY_ID,
-      linkedOrderId: orderId
+      linkedOrderId: orderId,
     });
-  }
-  catch(err){
-    console.log("Error in initiatePaymentController:", err.message);
-    res.status(500).json({ message: 'Internal Server Error' });
+  } catch (err) {
+    console.error("Error in initiatePaymentController:", err); // ✅ Log full error
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
 
