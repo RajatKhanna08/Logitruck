@@ -54,7 +54,7 @@ app.use('/api/map', mapRoutes);
 app.use('/api/notification', notificationRoutes);
 app.use('/api/order', orderRoutes);
 app.use('/api/bidding', biddingRoutes);
-app.use('/api/order/company/payment', paymentRoutes);
+app.use('/api/payment', paymentRoutes);
 app.use('/api/review', reviewRoutes);
 app.use("/upload", uploadRoutes);
 

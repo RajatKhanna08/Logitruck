@@ -10,69 +10,89 @@ const AllOrdersPage = () => {
     const queryClient = useQueryClient();
     const [cancelModalOrder, setCancelModalOrder] = useState(null);
     const { data: companyOrdersData = [], isLoading } = useOrders()
+    // ✅ FIX: This entire function has been updated to handle the new route and verification
     const handleBackendRazorpayPayment = async (order) => {
-    try {
-        console.log("Full Order Object:", order);
-        console.log("Fare (amount):", order?.fare);
-        console.log("Customer ID:", order.customerId); 
+        try {
+            const amount = order.fare;
+            const customerId = order.customerId;
+            const transporterId = order.acceptedTransporterId;
 
-        const amount = order.fare;
+            if (!amount || !order._id || !customerId || !transporterId) {
+                alert("Missing essential order details (fare, orderId, customerId, or transporterId).");
+                return;
+            }
 
-        if (!amount || !order._id) {
-        alert("Missing essential order details.");
-        return;
+            // 1. Initiate Payment - Using the corrected route
+            const res = await axiosInstance.post(
+                `/payment/initiate/${order._id}`, // Corrected URL
+                { amount, customerId, currency: "INR" }
+            );
+
+            const { orderDetails, frontendKey } = res.data;
+
+            // 2. Open Razorpay Checkout
+            const options = {
+                key: frontendKey,
+                amount: orderDetails.amount,
+                currency: orderDetails.currency,
+                name: "LogiTruck",
+                description: `Payment for Order #${order._id.slice(-6)}`,
+                order_id: orderDetails.id,
+                // 3. Handle the response and send to backend for verification
+                handler: async function (response) {
+                    try {
+                        const verificationData = {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            amount,
+                            currency: "INR",
+                            customerId,
+                            transporterId,
+                        };
+
+                        const verifyRes = await axiosInstance.post(
+                            `/payment/verify/${order._id}`, // Verification route
+                            verificationData
+                        );
+
+                        alert(verifyRes.data.message || "✅ Payment Successful and Verified!");
+                        // Refresh the orders data to show "paid" status
+                        queryClient.invalidateQueries(['orders']);
+
+                    } catch (verifyErr) {
+                        console.error("❌ Payment verification failed:", verifyErr);
+                        alert("❌ Payment verification failed. Please contact support.");
+                    }
+                },
+                prefill: {
+                    name: "Your Company Name",
+                    email: "company@example.com",
+                    contact: "9999999999",
+                },
+                theme: {
+                    color: "#0b5ed7",
+                },
+            };
+
+            const razorpay = new window.Razorpay(options);
+            razorpay.open();
+
+        } catch (err) {
+            console.error("❌ Failed to initiate payment:", err?.response?.data || err.message);
+            alert("❌ Payment initiation failed. Please try again.");
         }
-
-        const res = await axiosInstance.post(
-        `/order/company/payment/initiate/${order._id}`,
-        { amount, customerId: order.customerId, currency: "INR" }
-        );
-
-        const { orderDetails, frontendKey, linkedOrderId } = res.data;
-
-        const options = {
-        key: frontendKey,
-        amount: orderDetails.amount,
-        currency: orderDetails.currency,
-        name: "LogiTruck",
-        description: `Payment for Order #${linkedOrderId}`,
-        order_id: orderDetails.id,
-        handler: function (response) {
-            alert(`✅ Payment Successful!\nPayment ID: ${response.razorpay_payment_id}`);
-        },
-        prefill: {
-            name: "Rajat Khanna",
-            email: "rajat@example.com",
-            contact: "9999999999",
-        },
-        theme: {
-            color: "#0b5ed7",
-        },
-        };
-
-        const razorpay = new window.Razorpay(options);
-        razorpay.open();
-    } catch (err) {
-        console.error("❌ Failed to initiate payment:", err?.response?.data || err.message);
-        alert("❌ Payment initiation failed. Please try again.");
-    }
     };
 
     const handleCancelOrder = async (orderId) => {
         try {
-            const response = await fetch(`/api/orders/${orderId}/cancel`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            if (response.ok) {
-                // Refresh orders data
-                window.location.reload();
-            }
+            // ✅ FIX: Using axiosInstance for cancellation for consistency
+            await axiosInstance.put(`/order/company/cancel/${orderId}`);
+            alert('Order cancelled successfully.');
+            queryClient.invalidateQueries(['orders']); // Refresh data
         } catch (error) {
             console.error('Failed to cancel order:', error);
+            alert('Failed to cancel order.');
         }
         setCancelModalOrder(null);
     };

@@ -55,6 +55,7 @@ export const initiatePaymentController = async (req, res) => {
   }
 };
 
+// ✅ FIXED: This entire controller has been updated
 export const verifyPaymentController = async (req, res) => {
   try {
     const {
@@ -64,52 +65,86 @@ export const verifyPaymentController = async (req, res) => {
       amount,
       currency,
       customerId,
-      transporterId
+      transporterId 
     } = req.body;
+    
+    const { orderId } = req.params; // Get orderId from params
+
+    // 1. Signature Verification (Your existing logic is correct)
     const generated_signature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
 
     if (generated_signature !== razorpay_signature) {
+      console.log("❌ Payment signature verification failed.");
       return res.status(400).json({
         success: false,
         message: "Payment signature verification failed"
       });
     }
+    
+    console.log("✅ Payment signature verified successfully.");
 
-    const invoiceId = 'INV_' + razorpay_order_id + '_' + Date.now();
+    // 2. Create Payment Record (Fixed to match the schema)
+    const invoiceId = 'INV_' + razorpay_order_id.slice(-8) + '_' + Date.now();
     const commission = Math.floor(amount * 0.05); // 5% platform commission
+
     const paymentRecord = new paymentsModel({
-      orderId: req.params.orderId,
+      orderId: orderId,
       customerId,
       transporterId,
       amount,
       commission,
       payoutAmount: amount - commission,
       currency,
-      paymentMode: "UPI", // default, can be overridden by frontend
+      paymentMode: "UPI", // You can make this dynamic if needed
       paymentInvoice: invoiceId,
       paidAt: new Date(),
+      paymentStatus: 'paid', // Set status to paid
       paymentGateway: {
         name: "Razorpay",
-        transactionId: razorpay_payment_id,
-        orderRef: req.params.orderId,
-        response: req.body
+        razorpayOrderId: razorpay_order_id,
+        razorpayPaymentId: razorpay_payment_id,
+        razorpaySignature: razorpay_signature,
+        response: req.body // Save the full response for reference
       }
     });
+
     await paymentRecord.save();
+    console.log(`✅ Payment record created in DB for orderId: ${orderId}`);
+
+    // 3. Update the Order's Payment Status (This part was missing)
+    const updatedOrder = await ordersModel.findByIdAndUpdate(
+      orderId,
+      { 
+        $set: { 
+          paymentStatus: 'paid',
+          paymentMode: "UPI" // Optional: update payment mode in order as well
+        }
+      },
+      { new: true } // Return the updated document
+    );
+
+    if (updatedOrder) {
+      console.log(`✅ Order ${orderId} status updated to 'paid'.`);
+    } else {
+      console.log(`⚠️ Could not find and update order ${orderId}.`);
+    }
+    
     res.status(200).json({
       success: true,
-      message: "Payment verified and saved successfully",
-      paymentRecord
+      message: "Payment verified and order status updated successfully",
+      paymentRecord,
+      updatedOrder
     });
-  }
-  catch(err){
-    console.log("Error verifyPaymentController:", err.message);
+
+  } catch (err) {
+    console.log("❌ Error in verifyPaymentController:", err.message);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 
 export const getPaymentHistoryController = async (req, res) => {
   try {
