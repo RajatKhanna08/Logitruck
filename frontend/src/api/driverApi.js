@@ -62,7 +62,8 @@ export const updateDriverLocation = async ({ lat, lng }) => {
 
 export const toggleWorkMode = async () => {
     try{
-
+        const res = await axiosInstance.put('/driver/mode');
+        return res.data;
     }
     catch(err){
         console.log("Error in toggleWorkMode: ", err.message);
