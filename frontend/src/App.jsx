@@ -38,6 +38,7 @@ import AllOrdersPage from './pages/orders/AllOrdersPage';
 import OrderDetailsPage from './pages/orders/OrderDetailsPage';
 import TrackOrderPage from './pages/orders/TrackOrderPage';
 import ViewBookingsPage from './pages/orders/ViewBookingsPage';
+import ViewBids from './pages/ViewBids';
 // import OrderBookingPage from './pages/orders/OrderBookingPage';
 
 // Utility Components
@@ -103,6 +104,7 @@ const AppWrapper = () => {
                     <Route path='/driver-dash' element={<DriverDashboard />} />
                     <Route path='/transporter/view-trucks' element={<ViewTrucks />} />
                     <Route path='/bids' element={<BiddingPage />} />
+                    <Route path='/active-bids' element={<ViewBids/>} />
                     <Route path='/driver/bookings' element={<ViewBookingsPage />} />
                     {/* <Route path='/order-booking' element={<OrderBookingPage />} /> */}
                     <Route path='/order-book' element={<BookOrderPage />} />

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import { FaGlobe, FaPhone, FaClipboardList, FaUser } from 'react-icons/fa6';
+import { FaGlobe, FaPhone, FaClipboardList, FaUser, FaDollarSign } from 'react-icons/fa6';
 import { IoMail, IoNotifications } from 'react-icons/io5';
 import { FiLogOut, FiMenu, FiPackage } from 'react-icons/fi';
 import { RiDashboardFill } from "react-icons/ri";
@@ -183,7 +183,7 @@ const Navbar = () => {
                         <div className="flex items-center gap-8 relative">
                             <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
                                 <FaClipboardList />
-                                <Link to={`/bids`}>View Bids</Link>
+                                <Link to={`/bids`}>Live Orders</Link>
                             </li>
                             <li className="flex items-center gap-2 cursor-pointer text-black bg-yellow-300 p-2 rounded-md font-bold hover:bg-yellow-400 transition-all duration-200">
                                 <FaClipboardList />
@@ -213,6 +213,11 @@ const Navbar = () => {
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                              <FaClipboardList />
                                              <Link to={`/order-track`}>Track Order</Link>
+                                        </li>
+                                        <li className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md">
+                                            <Link to={`/active-bids`} onClick={() => setShowDropdown(false)} className="flex items-center gap-2">
+                                                <FaDollarSign /> View Bids
+                                            </Link>
                                         </li>
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <IoNotifications />

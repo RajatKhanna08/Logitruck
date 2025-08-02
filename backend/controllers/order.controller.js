@@ -1,3 +1,4 @@
+
 import orderModel from "../models/orderModel.js";
 import reviewModel from "../models/reviewModel.js";
 import transporterModel from "../models/transporterModel.js";
@@ -32,10 +33,10 @@ export const createOrderController = async (req, res) => {
       completedStops,
       paymentMode,
       urgency,
-      fare,
       bodyTypeMultiplier,
       sizeCategoryMultiplier,
-      isMultiStop
+      isMultiStop,
+      fare
     } = req.body;
 
     if (!Array.isArray(dropLocations) || dropLocations.length === 0) {
@@ -116,7 +117,6 @@ export const createOrderController = async (req, res) => {
       metadata: { orderId: newOrder._id }
     });
 
-    // Use corrected transporter model
     const transporters = await transporterModel.find({}, '_id');
     for (const transporter of transporters) {
       await sendNotification({
@@ -186,7 +186,6 @@ export const uploadEwayBillController = async (req, res) => {
     // TRANSPORTER Notification
     if (order.assignedTransporter) {
       await sendNotification({
-        role: "transporter",
         relatedUserId: order.assignedTransporter,
         relatedBookingId: order._id,
         title: "E-Way Bill Uploaded",
@@ -198,13 +197,13 @@ export const uploadEwayBillController = async (req, res) => {
           orderId: order._id,
           ewayBillNumber,
         },
+        role: "transporter"
       });
     }
 
     // DRIVER Notification
     if (order.assignedDriver) {
       await sendNotification({
-        role: "driver",
         relatedUserId: order.assignedDriver,
         relatedBookingId: order._id,
         title: "E-Way Bill Uploaded",
@@ -216,6 +215,7 @@ export const uploadEwayBillController = async (req, res) => {
           orderId: order._id,
           ewayBillNumber,
         },
+        role: "driver"
       });
     }
 
@@ -263,7 +263,7 @@ export const rateOrderController = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ message: errors.array() });
+            return res.status(400).json({ errors: errors.array() });
         }
 
         const { orderId } = req.params;
@@ -310,13 +310,13 @@ export const rateOrderController = async (req, res) => {
         });
 
         await sendNotification({
-            role: reviewFor, // 'driver' or 'transporter'
+            role: reviewFor,
             relatedUserId: reviewedEntityId,
             relatedBookingId: orderId,
             title: "New Review Received",
             message: `You have received a ${rating}-star review from the company.`,
             type: "review",
-            deliveryMode: "unread", // or "pending"
+            deliveryMode: "unread",
             metadata: {
                 reviewText,
                 rating
@@ -362,9 +362,9 @@ export const getOrdersController = async (req, res) => {
 
         const allOrders = await orderModel.find({ customerId: companyId })
             .sort({ scheduleAt: -1 })
-            .populate("acceptedDriverId", "fullName phone")
+            .populate("acceptedDriverId", "fullName email phone")
             .populate("acceptedTruckId", "vehicleNumber truckType")
-            .populate("acceptedTransporterId", "fullName phone");
+            .populate("acceptedTransporterId", "fullName email phone");
 
         if (!allOrders.length) {
             return res.status(200).json({ message: "No orders found", allOrders: [] });
@@ -638,7 +638,7 @@ export const updateOrderStatusController = async (req, res) => {
       await sendNotification({
         ...notificationPayload,
         role: "transporter",
-        relatedUserId: order.transporterId,
+        relatedUserId: order.acceptedTransporterId,
       });
     }
 
@@ -762,7 +762,6 @@ export const updateOrderLocationController = async (req, res) => {
     // Notify Transporter (if assigned)
     if (order.assignedTransporter) {
       await sendNotification({
-        role: "transporter",
         relatedUserId: order.assignedTransporter,
         relatedBookingId: order._id,
         title: "Order Location Updated",
@@ -770,6 +769,7 @@ export const updateOrderLocationController = async (req, res) => {
         type: "tracking",
         deliveryMode: "info",
         metadata: locationUpdate,
+        role: "transporter"
       });
     }
 
@@ -792,12 +792,12 @@ export const getOrderByIdController = async (req, res) => {
     }
 
     const order = await orderModel.findById(orderId)
-      .populate("customerId", "companyName email") // From company model
-      .populate("acceptedTransporterId", "transporterName contactNumber") // From transporter model
-      .populate("acceptedTruckId", "registrationNumber truckType") // From trucks model
-      .populate("acceptedDriverId", "name phone") // From drivers model
-      .populate("ratingByCustomer", "companyName") // If company gave review
-      .populate("ratingByDriver.reviews", "review stars createdAt") // rating ref model (reviews collection)
+      .populate("customerId", "companyName email")
+      .populate("acceptedTransporterId", "transporterName contactNumber")
+      .populate("acceptedTruckId", "registrationNumber truckType")
+      .populate("acceptedDriverId", "name phone")
+      .populate("ratingByCustomer", "companyName")
+      .populate("ratingByDriver.reviews", "review stars createdAt")
 
     if (!order) {
       return res.status(404).json({
@@ -819,4 +819,98 @@ export const getOrderByIdController = async (req, res) => {
       message: "Server error while fetching order"
     });
   }
+};
+
+// ✅ Updated Controller Function
+export const getOpenBiddingOrdersController = async (req, res) => {
+    try {
+        // Sirf pending status waale orders laayeinge.
+        // `acceptedTransporterId: null` wala filter hata diya gaya hai taaki accepted orders bhi list mein dikhe.
+        const availableOrders = await orderModel.find({
+            status: "pending",
+        }).sort({ createdAt: -1 })
+          .populate("customerId", "companyName email");
+
+        if (!availableOrders.length) {
+            return res.status(200).json({ message: "No available orders found at the moment.", orders: [] });
+        }
+        
+        // Orders ke saath-saath, jo transporter logged in hai, uski ID bhi bhejein.
+        res.status(200).json({ 
+            message: "Available orders fetched successfully", 
+            orders: availableOrders,
+            transporterId: req.user._id // Yeh frontend ke liye zaroori hai
+        });
+
+    } catch (err) {
+        console.error("❌ Error in getOpenBiddingOrdersController:", err.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+// ✅ Updated Controller Function
+export const acceptFixedPriceOrderController = async (req, res) => {
+    try {
+        console.log("➡️ Incoming Fixed Price Order Acceptance Request");
+        const { orderId } = req.params;
+        const transporterId = req.user?._id;
+
+        if (!transporterId) {
+            console.log("❌ Transporter ID not found (unauthorized)");
+            return res.status(401).json({ message: "Unauthorized access. Please log in as a Transporter." });
+        }
+
+        const order = await orderModel.findById(orderId);
+
+        if (!order) {
+            console.log("❌ Order not found with ID:", orderId);
+            return res.status(404).json({ message: "Order not found." });
+        }
+
+        if (order.isBiddingEnabled) {
+            console.log("❌ Attempted to accept a bidding-enabled order via fixed price route.");
+            return res.status(400).json({ message: "This order is for bidding, not direct acceptance." });
+        }
+        
+        if (order.status !== 'pending' || order.acceptedTransporterId) {
+            console.log("❌ Order already accepted or not in a valid state.");
+            return res.status(400).json({ message: "This order is no longer available for acceptance." });
+        }
+        
+        // --- Truck se sambandhit logic hata diya gaya hai ---
+
+        // Order ko update karein
+        order.acceptedTransporterId = transporterId;
+        // order.acceptedTruckId wala part hata diya gaya hai
+        order.finalBidAmount = order.fare; 
+        order.biddingStatus = 'accepted';
+
+        await order.save();
+        console.log(`✅ Order ${orderId} accepted by transporter ${transporterId}`);
+
+        // Company ko notification bhejein
+        await sendNotification({
+            role: "company",
+            relatedUserId: order.customerId,
+            relatedBookingId: order._id,
+            title: "Order Accepted!",
+            message: `Your Order #${order._id.toString().slice(-6)} has been accepted by a transporter for the fixed price of ₹${order.fare}.`,
+            type: "order_accepted",
+            metadata: { 
+                orderId: order._id,
+                transporterId: transporterId 
+            }
+        });
+
+        // Frontend ko updated order bhejein taaki UI update ho sake
+        res.status(200).json({ 
+            message: "Order accepted successfully!", 
+            order 
+        });
+
+    } catch (err) {
+        console.error("❌ Error in acceptFixedPriceOrderController:", err.message);
+        console.error("🧨 Full error:", err);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 };

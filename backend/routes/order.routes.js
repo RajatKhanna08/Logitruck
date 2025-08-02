@@ -16,7 +16,9 @@ import {
   getTransporterAllOrdersController,
   getTransporterActiveOrdersController,
   updateOrderLocationController,
-  getOrderByIdController
+  getOrderByIdController,
+  getOpenBiddingOrdersController,
+  acceptFixedPriceOrderController 
 } from '../controllers/order.controller.js';
 
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
@@ -29,7 +31,6 @@ const router = express.Router();
 const createOrderValidation = [
   body('pickupLocation').notEmpty().withMessage('Pickup location is required'),
   body('dropLocations').isArray({ min: 1 }).withMessage('At least one drop location is required'),
-  body('scheduledAt').optional().isISO8601().withMessage('scheduledAt must be a valid date'),
   body('scheduleAt').optional().isISO8601().withMessage('scheduleAt must be a valid date'),
   body('biddingExpiresAt').optional({ nullable: true }).isISO8601().withMessage('biddingExpiresAt must be a valid date'),
   body('loadDetails').notEmpty().withMessage('loadDetails is required'),
@@ -80,5 +81,9 @@ router.put('/driver/order/:orderId', isLoggedIn, correctRole("driver"), updateOr
 router.get('/transporter/all-orders', isLoggedIn, correctRole("transporter"), getTransporterAllOrdersController);
 router.get('/transporter/status/:orderId', isLoggedIn, correctRole("transporter"), param('orderId').isMongoId().withMessage("Invalid order ID"), getTransporterOrderStatusController);
 router.get('/transporter/active', isLoggedIn, correctRole("transporter"), getTransporterActiveOrdersController);
+router.get('/transporter/bidding-orders', isLoggedIn, correctRole("transporter"), getOpenBiddingOrdersController);
+// ✅ Nayi Route: Fixed price order accept karne ke liye
+router.post('/transporter/accept-order/:orderId', isLoggedIn, correctRole("transporter"), param('orderId').isMongoId(), acceptFixedPriceOrderController);
+
 
 export default router;
