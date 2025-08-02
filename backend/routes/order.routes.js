@@ -82,7 +82,6 @@ router.get('/transporter/all-orders', isLoggedIn, correctRole("transporter"), ge
 router.get('/transporter/status/:orderId', isLoggedIn, correctRole("transporter"), param('orderId').isMongoId().withMessage("Invalid order ID"), getTransporterOrderStatusController);
 router.get('/transporter/active', isLoggedIn, correctRole("transporter"), getTransporterActiveOrdersController);
 router.get('/transporter/bidding-orders', isLoggedIn, correctRole("transporter"), getOpenBiddingOrdersController);
-// ✅ Nayi Route: Fixed price order accept karne ke liye
 router.post('/transporter/accept-order/:orderId', isLoggedIn, correctRole("transporter"), param('orderId').isMongoId(), acceptFixedPriceOrderController);
 
 
