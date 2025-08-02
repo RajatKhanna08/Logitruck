@@ -2,28 +2,61 @@ import { FaTruck, FaMoneyBillWave, FaClock, FaBoxOpen, FaMapMarkedAlt, FaTimes, 
 import { useNavigate } from 'react-router-dom';
 import { useOrders } from '../../hooks/useOrder';
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { initiatePayment } from '../../api/orderApi';
+import { useQueryClient } from '@tanstack/react-query';
+import { axiosInstance } from '../../lib/axios';
 
 const AllOrdersPage = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [cancelModalOrder, setCancelModalOrder] = useState(null);
-    const { data: companyOrdersData = [], isLoading } = useOrders();
+    const { data: companyOrdersData = [], isLoading } = useOrders()
+    const handleBackendRazorpayPayment = async (order) => {
+    try {
+        console.log("Full Order Object:", order);
+        console.log("Fare (amount):", order?.fare);
+        console.log("Customer ID:", order.customerId); 
 
-    const paymentMutation = useMutation({
-        mutationFn: initiatePayment,
-        onSuccess: (data) => {
-            // Handle successful payment initiation (e.g., redirect to payment gateway)
-            if (data.paymentUrl) {
-                window.location.href = data.paymentUrl;
-            }
-        },
-        onError: (error) => {
-            console.error('Payment initiation failed:', error);
-            alert('Failed to initiate payment. Please try again.');
+        const amount = order.fare;
+
+        if (!amount || !order._id) {
+        alert("Missing essential order details.");
+        return;
         }
-    });
+
+        const res = await axiosInstance.post(
+        `/order/company/payment/initiate/${order._id}`,
+        { amount, customerId: order.customerId, currency: "INR" }
+        );
+
+        const { orderDetails, frontendKey, linkedOrderId } = res.data;
+
+        const options = {
+        key: frontendKey,
+        amount: orderDetails.amount,
+        currency: orderDetails.currency,
+        name: "LogiTruck",
+        description: `Payment for Order #${linkedOrderId}`,
+        order_id: orderDetails.id,
+        handler: function (response) {
+            alert(`✅ Payment Successful!\nPayment ID: ${response.razorpay_payment_id}`);
+        },
+        prefill: {
+            name: "Rajat Khanna",
+            email: "rajat@example.com",
+            contact: "9999999999",
+        },
+        theme: {
+            color: "#0b5ed7",
+        },
+        };
+
+        const razorpay = new window.Razorpay(options);
+        razorpay.open();
+    } catch (err) {
+        console.error("❌ Failed to initiate payment:", err?.response?.data || err.message);
+        alert("❌ Payment initiation failed. Please try again.");
+    }
+    };
 
     const handleCancelOrder = async (orderId) => {
         try {
@@ -171,14 +204,13 @@ const AllOrdersPage = () => {
                                 <div className="flex gap-2">
                                     {order.paymentStatus !== 'paid' && (
                                         <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                paymentMutation.mutate(order._id);
-                                            }}
-                                            disabled={paymentMutation.isPending}
-                                            className="px-3 py-1 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleBackendRazorpayPayment(order);
+                                        }}
+                                        className="px-3 py-1 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors"
                                         >
-                                            {paymentMutation.isPending ? 'Processing...' : 'Pay Now'}
+                                        Pay Now
                                         </button>
                                     )}
                                     {order.status !== 'cancelled' && order.status !== 'delivered' && (

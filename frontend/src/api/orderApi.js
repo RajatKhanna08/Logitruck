@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { axiosInstance } from "../lib/axios";
 
 export const getAllOrders = async () => {
@@ -46,14 +45,5 @@ export const getOrderById = async (orderId) => {
     } catch (error) {
         console.error('Error in getOrderById:', error);
         throw error.message || 'Failed to fetch order details';
-    }
-};
-
-export const initiatePayment = async (orderId) => {
-    try {
-        const res = await axiosInstance.post(`/order/company/payment/initiate/${orderId}`);
-        return res.data;
-    } catch (error) {
-        throw error.message;
     }
 };
