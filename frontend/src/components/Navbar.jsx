@@ -156,11 +156,7 @@ const Navbar = () => {
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <FiPackage />
                                             <Link to={`/orders/all`}>View Orders</Link>
-                                        </li>
-                                        <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
-                                            <FaClipboardList />
-                                            <Link to={`/order-track`}>Track Order</Link>
-                                        </li>    
+                                        </li>   
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <IoNotifications />
                                             <Link to={`/notifications`}>Notifications</Link>
@@ -209,10 +205,6 @@ const Navbar = () => {
                                         <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
                                             <FiPackage />
                                             <Link to={`/transporter/view-trucks`}>My Trucks</Link>
-                                        </li>
-                                        <li onClick={() => setShowDropdown(!showDropdown)} className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md flex items-center gap-2">
-                                             <FaClipboardList />
-                                             <Link to={`/order-track`}>Track Order</Link>
                                         </li>
                                         <li className="px-4 py-2 hover:bg-yellow-400 hover:rounded-md">
                                             <Link to={`/active-bids`} onClick={() => setShowDropdown(false)} className="flex items-center gap-2">
