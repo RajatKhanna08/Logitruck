@@ -4,14 +4,14 @@ import axios from 'axios';
 
 const AiPriceEstimator = () => {
   const [formData, setFormData] = useState({
-    weightInTon: '',
-    distance: '',
-    loadCategory: '',
-    bodyType: '',
-    sizeCategory: '',
-    urgencyLevel: '',
-    deliveryTimeline: '',
-    multiStop: false,
+  weight_ton: '11',
+  distance_km: '110',
+  delivery_type: 'multi', // or 'single'
+  load_category: 'fragile',
+  truck_body_type: 'open',
+  truck_size_category: 'small',
+  urgency_level: 'medium',
+  delivery_timeline_days: '4',
   });
 
   const [estimatedPrice, setEstimatedPrice] = useState(null);
@@ -29,8 +29,11 @@ const AiPriceEstimator = () => {
     setError('');
 
     try {
-      const res = await axios.post('http://127.0.0.1:5000/predict', formData);
-      setEstimatedPrice(res.data.estimated_price);
+    const res = await axios.post('http://127.0.0.1:5000/predict',
+      formData,
+      { withCredentials: true }  // Only if Flask CORS requires credentials
+    );
+    setEstimatedPrice(res.data.estimated_price);
     } catch (err) {
       console.error(err);
       setError('Something went wrong. Please try again.');

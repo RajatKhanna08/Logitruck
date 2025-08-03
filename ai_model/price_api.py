@@ -5,7 +5,8 @@ import numpy as np
 import pandas as pd
 
 app = Flask(__name__)
-CORS(app)
+
+CORS(app, supports_credentials=True, resources={r"/*": {"origins": "http://localhost:5173"}})
 
 # Load the trained model
 model = joblib.load("price_estimator_model.pkl")
