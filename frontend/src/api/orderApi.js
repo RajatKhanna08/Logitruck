@@ -47,3 +47,30 @@ export const getOrderById = async (orderId) => {
         throw error.message || 'Failed to fetch order details';
     }
 };
+
+export const getBidsForOrder = async (orderId) => {
+    try {
+        const res = await axiosInstance.get(`/bidding/bid/${orderId}`);
+        return res.data;
+    } catch (error) {
+        throw error.message;
+    }
+};
+
+export const acceptBid = async ({ transporterId }) => {
+    try {
+        const res = await axiosInstance.put(`/bidding/accept/${transporterId}`);
+        return res.data;
+    } catch (error) {
+        throw error.message;
+    }
+};
+
+export const rejectBid = async ({ transporterId }) => {
+    try {
+        const res = await axiosInstance.put(`/bid/reject/${transporterId}`);
+        return res.data;
+    } catch (error) {
+        throw error.message;
+    }
+};

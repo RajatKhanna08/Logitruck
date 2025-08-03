@@ -5,10 +5,14 @@ const useNewsData = (size) => {
     const [news, setNews] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const newsAxios = axios.create({
+        withCredentials: false
+    });
+
     useEffect(() => {
         const fetchNews = async () => {
             try{
-                const response = await axios.get("https://newsdata.io/api/1/news", {
+                const response = await newsAxios.get("https://newsdata.io/api/1/news", {
                     params: {
                         apikey: import.meta.env.VITE_NEWS_API_KEY,
                         q: "logistics OR trucking OR roadblock OR weather",
