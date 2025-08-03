@@ -321,7 +321,7 @@ export const updateTransporterProfileController = async (req, res) => {
       email,
       address,
       registrationNumber,
-      fleetSize
+      
     } = req.body;
 
     const transporter = await transporterModel.findById(transporterId);
@@ -335,7 +335,7 @@ export const updateTransporterProfileController = async (req, res) => {
     if (email) transporter.email = email;
     if (address) transporter.address = address;
     if (registrationNumber) transporter.registrationNumber = registrationNumber;
-    if (fleetSize !== undefined) transporter.fleetSize = fleetSize;
+    
 
     await transporter.save();
     await sendNotification({
@@ -746,18 +746,14 @@ export const deleteTruckController = async (req, res) => {
       return res.status(404).json({ message: "Truck not found or unauthorized" });
     }
 
-    const transporter = await transporterModel.findById(transporterId);
-    if (!transporter) {
-      return res.status(404).json({ message: "Transporter not found" });
-    }
-
-    if (transporter.documents?.fleetSize > 0) {
-      transporter.documents.fleetSize -= 1;
-    }
-
-    transporter.trucks.pull(truckId);
-
-    await transporter.save();
+    // fleetSize को घटाने और ट्रक को array से निकालने का सही तरीका
+    await transporterModel.findByIdAndUpdate(
+        transporterId,
+        {
+            $inc: { fleetSize: -1 },
+            $pull: { trucks: truckId }
+        }
+    );
 
     if (truck.assignedDriverId) {
       await driverModel.findByIdAndUpdate(truck.assignedDriverId, {

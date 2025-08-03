@@ -67,8 +67,8 @@ const updateTransporterProfileValidation = [
   body('address.pincode').optional().isNumeric().withMessage('Pincode must be a number'),
   body('address.country').optional().notEmpty().withMessage('Country is required'),
   body('address.landmark').optional().notEmpty().withMessage('Landmark is required'),
-  body('registrationNumber').optional().notEmpty().withMessage('Registration number is required'),
-  body('fleetSize').optional().isNumeric().withMessage('Fleet size must be a number')
+  body('registrationNumber').optional().notEmpty().withMessage('Registration number is required')
+  
 ];
 
 const updateTransporterPersonValidation = [
