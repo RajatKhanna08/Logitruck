@@ -318,9 +318,8 @@ const TransporterDashboard = () => {
     const activeOrdersCount = dashboardStats?.activeOrders ?? 0; // Fallback to 0
     const completedOrdersCount = dashboardStats?.deliveredOrders ?? 0; // Fallback to 0
     
-    // Available trucks still needs individual truck status, which is not in dashboardStats.
     const availableTrucks = trucks.filter(t => 
-        t.status === 'available' || !t.status 
+        t.status === 'active' || !t.status 
     ).length;
 
     // Add truck form state and handler
