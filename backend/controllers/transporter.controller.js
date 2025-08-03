@@ -679,7 +679,6 @@ export const updateDriverReferenceController = async (req, res) => {
     }
 };
 
-// ✅ NEW
 export const activateTruckController = async (req, res) => {
     try {
         const transporterId = req.user?._id;
@@ -704,7 +703,6 @@ export const activateTruckController = async (req, res) => {
     }
 };
 
-// ✅ NEW
 export const deactivateTruckController = async (req, res) => {
     try {
         const transporterId = req.user?._id;
@@ -728,7 +726,6 @@ export const deactivateTruckController = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
-
 
 export const deleteTruckController = async (req, res) => {
     try {

@@ -10,7 +10,7 @@ const AllOrdersPage = () => {
     const queryClient = useQueryClient();
     const [cancelModalOrder, setCancelModalOrder] = useState(null);
     const { data: companyOrdersData = [], isLoading } = useOrders()
-    // ✅ FIX: This entire function has been updated to handle the new route and verification
+    // This entire function has been updated to handle the new route and verification
     const handleBackendRazorpayPayment = async (order) => {
         try {
             const amount = order.fare;

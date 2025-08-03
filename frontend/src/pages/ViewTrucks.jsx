@@ -427,7 +427,7 @@ const ViewTrucks = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
                 type="text"
-                placeholder="Registration Number *"
+                placeholder="Truck Number *"
                 value={formData.registrationNumber}
                 onChange={(e) => handleInputChange('registrationNumber', e.target.value)}
                 className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
