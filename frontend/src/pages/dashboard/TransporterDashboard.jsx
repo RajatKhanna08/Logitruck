@@ -1,6 +1,6 @@
-import React, { useLayoutEffect, useState, useRef } from 'react';
+import React, { useLayoutEffect, useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
@@ -32,11 +32,8 @@ import { IoClose } from 'react-icons/io5';
 // Assuming useUserProfile is correctly configured to send auth tokens
 import { useUserProfile } from '../../hooks/useUserProfile'; 
 
-// Import useQuery for the custom hook definition
-import { useQuery } from '@tanstack/react-query'; 
-
 // Import the API function that makes the actual fetch call
-import { getTransporterDashboard as fetchTransporterDashboardApi, addTruck, updateProfile, uploadDocument } from '../../api/transporterApi'; 
+import { getTransporterDashboard as fetchTransporterDashboardApi, addTruck, updateProfile, uploadDocument, getTransporterStats } from '../../api/transporterApi'; 
 
 // Custom hook for dashboard stats, wrapping useQuery around the API function
 const useDashboardStats = () => {
@@ -62,9 +59,15 @@ const TransporterDashboard = () => {
     const { 
         data: dashboardStats, 
     } = useDashboardStats(); // Correctly call the custom hook here
-    
+
+    // Stats query
+    const { data: statsData, isLoading: statsLoading } = useQuery({
+        queryKey: ['transporterStats'],
+        queryFn: getTransporterStats,
+        refetchInterval: 30000, // Refetch every 30 seconds
+    });
+
     // State for modals
-    const [showAddTruckModal, setShowAddTruckModal] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [showDocumentsModal, setShowDocumentsModal] = useState(false);
 
@@ -265,8 +268,50 @@ const TransporterDashboard = () => {
     }, []);
 
     // Calculate stats using dashboardStats where available
-    // totalRevenue will now be 0 as individual order data is not available
-    const totalRevenue = 0; 
+    const [totalRevenue, setTotalRevenue] = useState(0);
+    const [revenueLoading, setRevenueLoading] = useState(false);
+
+    // Function to fetch and calculate total revenue
+    const calculateTotalRevenue = async () => {
+        if (!transporterData.assignedBookings || transporterData.assignedBookings.length === 0) {
+            setTotalRevenue(0);
+            return;
+        }
+
+        setRevenueLoading(true);
+        try {
+            // You'll need to create this API function to fetch order details by IDs
+            const orderDetailsPromises = transporterData.assignedBookings.map(orderId => 
+                fetch(`/api/orders/${orderId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                }).then(res => res.json())
+            );
+
+            const orderDetails = await Promise.all(orderDetailsPromises);
+
+            const revenue = orderDetails.reduce((total, order) => {
+                // Check different possible amount fields in your order model
+                const orderAmount = order.finalBidAmount || order.fare || order.amount || order.price || 0;
+                return total + orderAmount;
+            }, 0);
+
+            setTotalRevenue(revenue);
+        } catch (error) {
+            console.error('Error calculating revenue:', error);
+            setTotalRevenue(0);
+        } finally {
+            setRevenueLoading(false);
+        }
+    };
+
+    // Call this function when component mounts or when assignedBookings change
+    useEffect(() => {
+        if (transporterData && transporterData.assignedBookings) {
+            calculateTotalRevenue();
+        }
+    }, [transporterData.assignedBookings])
     
     // Use dashboardStats for aggregate counts as provided by the backend controller
     const totalTrucks = dashboardStats?.totalTrucks ?? (transporterData.trucks?.length || 0); 
@@ -286,25 +331,6 @@ const TransporterDashboard = () => {
         dimensions: { length: '', width: '', height: '' },
         documents: null
     });
-
-    const handleAddTruck = async (e) => {
-        e.preventDefault();
-        try {
-            await addTruck(truckForm);
-            setShowAddTruckModal(false);
-            queryClient.invalidateQueries('transporterDashboardStats');
-            alert('Truck added successfully');
-            setTruckForm({
-                registrationNumber: '',
-                vehicleType: '',
-                capacity: '',
-                dimensions: { length: '', width: '', height: '' },
-                documents: null
-            });
-        } catch (error) {
-            alert('Failed to add truck: ' + error.message);
-        }
-    };
 
     // Profile update form state and handler
     const [profileForm, setProfileForm] = useState({
@@ -399,7 +425,7 @@ const TransporterDashboard = () => {
                             <FaEdit /> Edit Profile
                         </button>
                         <button 
-                            onClick={() => setShowAddTruckModal(true)}
+                            onClick={() => navigate("/transporter/view-trucks")}
                             className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center gap-2"
                         >
                             <FaPlus /> Add Truck
@@ -413,7 +439,8 @@ const TransporterDashboard = () => {
                 {[
                     { 
                         title: "Total Revenue", 
-                        value: `₹${totalRevenue.toLocaleString()}`, // Will be ₹0
+                        value: `₹${totalRevenue.toLocaleString()}`, 
+                        subtitle: "Requires order data population",
                         icon: <FaWallet />,
                         color: "text-green-500",
                         bgColor: "bg-green-50"
@@ -421,6 +448,7 @@ const TransporterDashboard = () => {
                     { 
                         title: "Active Orders", 
                         value: activeOrdersCount, 
+                        subtitle: `${activeOrdersCount} assigned bookings`,
                         icon: <FaClipboardList />,
                         color: "text-blue-500",
                         bgColor: "bg-blue-50"
@@ -428,6 +456,7 @@ const TransporterDashboard = () => {
                     { 
                         title: "Fleet Size", 
                         value: totalTrucks, 
+                        subtitle: "Total registered trucks",
                         icon: <FaTruck />,
                         color: "text-purple-500",
                         bgColor: "bg-purple-50"
@@ -435,6 +464,7 @@ const TransporterDashboard = () => {
                     { 
                         title: "Available Trucks", 
                         value: availableTrucks, 
+                        subtitle: "Ready for assignment",
                         icon: <FaRoute />,
                         color: "text-yellow-500",
                         bgColor: "bg-yellow-50"
@@ -445,9 +475,12 @@ const TransporterDashboard = () => {
                             <div className={`${stat.color} ${stat.bgColor} p-3 rounded-lg text-2xl`}>
                                 {stat.icon}
                             </div>
-                            <div>
+                            <div className="flex-1">
                                 <p className="text-gray-500 text-sm">{stat.title}</p>
                                 <p className="text-2xl font-bold text-[#192a67]">{stat.value}</p>
+                                {stat.subtitle && (
+                                    <p className="text-xs text-gray-400 mt-1">{stat.subtitle}</p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -550,7 +583,7 @@ const TransporterDashboard = () => {
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-xl font-bold">Fleet Status</h2>
                         <button 
-                            onClick={() => setShowAddTruckModal(true)}
+                            onClick={() => navigate("/transporter/view-trucks")}
                             className="text-green-600 hover:text-green-800 flex items-center gap-2"
                         >
                             <FaPlus /> Add Truck
@@ -562,7 +595,7 @@ const TransporterDashboard = () => {
                                 <FaTruck className="text-gray-400 text-4xl mx-auto mb-2" />
                                 <p className="text-gray-500 mb-2">No trucks added yet</p>
                                 <button 
-                                    onClick={() => setShowAddTruckModal(true)}
+                                    onClick={() => navigate("/transporter/view-trucks")}
                                     className="text-blue-600 hover:text-blue-800 text-sm font-semibold"
                                 >
                                     Add your first truck
@@ -630,152 +663,6 @@ const TransporterDashboard = () => {
             </div>
 
             {/* Modals would go here - Add Truck Modal, Profile Modal etc. */}
-            {showAddTruckModal && (
-                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
-                    <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl p-6 relative">
-                        <button
-                            onClick={() => setShowAddTruckModal(false)}
-                            className="absolute top-4 right-4 text-red-500 text-2xl hover:text-red-700 transition"
-                        >
-                            <IoClose />
-                        </button>
-                        <h3 className="text-2xl font-bold mb-6 text-[#192a67]">Add New Truck</h3>
-                        
-                        <form onSubmit={handleAddTruck} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Registration Number
-                                </label>
-                                <input
-                                    type="text"
-                                    value={truckForm.registrationNumber}
-                                    onChange={(e) => setTruckForm({
-                                        ...truckForm,
-                                        registrationNumber: e.target.value
-                                    })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Vehicle Type
-                                </label>
-                                <select
-                                    value={truckForm.vehicleType}
-                                    onChange={(e) => setTruckForm({
-                                        ...truckForm,
-                                        vehicleType: e.target.value
-                                    })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                                    required
-                                >
-                                    <option value="">Select Type</option>
-                                    <option value="container">Container</option>
-                                    <option value="flatbed">Flatbed</option>
-                                    <option value="tipper">Tipper</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Capacity (tons)
-                                </label>
-                                <input
-                                    type="number"
-                                    value={truckForm.capacity}
-                                    onChange={(e) => setTruckForm({
-                                        ...truckForm,
-                                        capacity: e.target.value
-                                    })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                                    required
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Length (ft)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={truckForm.dimensions.length}
-                                        onChange={(e) => setTruckForm({
-                                            ...truckForm,
-                                            dimensions: { ...truckForm.dimensions, length: e.target.value }
-                                        })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Width (ft)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={truckForm.dimensions.width}
-                                        onChange={(e) => setTruckForm({
-                                            ...truckForm,
-                                            dimensions: { ...truckForm.dimensions, width: e.target.value }
-                                        })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Height (ft)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={truckForm.dimensions.height}
-                                        onChange={(e) => setTruckForm({
-                                            ...truckForm,
-                                            dimensions: { ...truckForm.dimensions, height: e.target.value }
-                                        })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Documents (RC, Insurance, etc.)
-                                </label>
-                                <input
-                                    type="file"
-                                    onChange={(e) => setTruckForm({
-                                        ...truckForm,
-                                        documents: e.target.files[0]
-                                    })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                />
-                            </div>
-
-                            <div className="flex justify-end gap-3 mt-6">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowAddTruckModal(false)}
-                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                >
-                                    Add Truck
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
             {showProfileModal && (
                 <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
                     <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl p-6 relative">
