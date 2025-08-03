@@ -728,56 +728,59 @@ export const deactivateTruckController = async (req, res) => {
 };
 
 export const deleteTruckController = async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-        return res.status(400).json({ message: errors.array() });
-        }
-
-        const transporterId = req.user?._id;
-        const { truckId } = req.params;
-
-        if (!transporterId) {
-        return res.status(401).json({ message: "Unauthorized access" });
-        }
-
-        const truck = await truckModel.findOne({ _id: truckId, transporterId });
-        if (!truck) {
-        return res.status(404).json({ message: "Truck not found or unauthorized" });
-        }
-        
-        // <<< START OF CHANGE >>>
-        // Decrement fleet size and remove truck reference from transporter
-        await transporterModel.findByIdAndUpdate(
-            transporterId,
-            {
-                $inc: { fleetSize: -1 }, // fleetSize ko 1 se ghatao
-                $pull: { trucks: truckId } // truck ki ID ko trucks array se nikalo
-            }
-        );
-        // <<< END OF CHANGE >>>
-
-        // Unassign driver if any
-        if (truck.assignedDriverId) {
-            await driverModel.findByIdAndUpdate(truck.assignedDriverId, { $set: { assignedTruckId: null } });
-        }
-
-        await truckModel.deleteOne({ _id: truckId });
-
-        await sendNotification({
-            role: 'transporter', // Corrected role to transporter
-            relatedUserId: transporterId, 
-            title: 'Truck Deleted', 
-            message: `Truck with registration number ${truck.registrationNumber} has been removed from your fleet.`, 
-            type: 'status',
-        });
-
-        res.status(200).json({ message: "Truck deleted successfully" });
-
-    } catch (err) {
-        console.log("Error in deleteTruckController:", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: errors.array() });
     }
+
+    const transporterId = req.user?._id;
+    const { truckId } = req.params;
+
+    if (!transporterId) {
+      return res.status(401).json({ message: "Unauthorized access" });
+    }
+
+    const truck = await truckModel.findOne({ _id: truckId, transporterId });
+    if (!truck) {
+      return res.status(404).json({ message: "Truck not found or unauthorized" });
+    }
+
+    const transporter = await transporterModel.findById(transporterId);
+    if (!transporter) {
+      return res.status(404).json({ message: "Transporter not found" });
+    }
+
+    if (transporter.documents?.fleetSize > 0) {
+      transporter.documents.fleetSize -= 1;
+    }
+
+    transporter.trucks.pull(truckId);
+
+    await transporter.save();
+
+    if (truck.assignedDriverId) {
+      await driverModel.findByIdAndUpdate(truck.assignedDriverId, {
+        $set: { assignedTruckId: null }
+      });
+    }
+
+    await truckModel.deleteOne({ _id: truckId });
+
+    await sendNotification({
+      role: 'transporter',
+      relatedUserId: transporterId,
+      title: 'Truck Deleted',
+      message: `Truck with registration number ${truck.registrationNumber} has been removed from your fleet.`,
+      type: 'status',
+    });
+
+    res.status(200).json({ message: "Truck deleted successfully" });
+
+  } catch (err) {
+    console.log("Error in deleteTruckController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const getMyDriversController = async (req, res) => {
