@@ -1,4 +1,3 @@
-
 import orderModel from "../models/orderModel.js";
 import reviewModel from "../models/reviewModel.js";
 import transporterModel from "../models/transporterModel.js";
@@ -134,7 +133,7 @@ export const createOrderController = async (req, res) => {
     }
 
     res.status(201).json({ message: "Order created successfully", order: newOrder });
-  } catch (err) {
+  }catch (err) {
     console.error("❌ Error in createOrderController:", err.message);
     console.error("🧨 Full error:", err);
     res.status(500).json({ message: "Internal Server Error" });
@@ -821,7 +820,6 @@ export const getOrderByIdController = async (req, res) => {
   }
 };
 
-// ✅ Updated Controller Function
 export const getOpenBiddingOrdersController = async (req, res) => {
     try {
         // Sirf pending status waale orders laayeinge.
@@ -848,7 +846,6 @@ export const getOpenBiddingOrdersController = async (req, res) => {
     }
 };
 
-// ✅ Updated Controller Function
 export const acceptFixedPriceOrderController = async (req, res) => {
     try {
         console.log("➡️ Incoming Fixed Price Order Acceptance Request");
