@@ -17,7 +17,7 @@ const AllOrdersPage = () => {
             const customerId = order.customerId;
             const transporterId = order.acceptedTransporterId;
 
-            if (!amount || !order._id || !customerId ) {
+            if (!amount || !order._id || !customerId || !transporterId) {
                 alert("Missing essential order details (fare, orderId, customerId, or transporterId).");
                 return;
             }
