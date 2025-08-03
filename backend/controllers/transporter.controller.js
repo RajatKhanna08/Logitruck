@@ -155,7 +155,8 @@ export const getTransporterProfileController = async (req, res) => {
 
         const transporter = await transporterModel.findById(transporterId)
             .select("-password")
-            .populate('trucks');
+            .populate('trucks')
+            .populate('assignedBookings');
         if (!transporter) {
         return res.status(404).json({ message: "Transporter not found" });
         }

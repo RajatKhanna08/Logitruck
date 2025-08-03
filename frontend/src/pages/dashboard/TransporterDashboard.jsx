@@ -33,17 +33,7 @@ import { IoClose } from 'react-icons/io5';
 import { useUserProfile } from '../../hooks/useUserProfile'; 
 
 // Import the API function that makes the actual fetch call
-import { getTransporterDashboard as fetchTransporterDashboardApi, addTruck, updateProfile, uploadDocument, getTransporterStats } from '../../api/transporterApi'; 
-
-// Custom hook for dashboard stats, wrapping useQuery around the API function
-const useDashboardStats = () => {
-    return useQuery({
-        queryKey: ['transporterDashboardStats'],
-        queryFn: fetchTransporterDashboardApi, // Correctly pass the API function here
-        staleTime: 5 * 60 * 1000, 
-        cacheTime: 10 * 60 * 1000,
-    });
-};
+import { getTransporterDashboard as updateProfile, uploadDocument } from '../../api/transporterApi'; 
 
 
 const TransporterDashboard = () => {
@@ -54,18 +44,6 @@ const TransporterDashboard = () => {
     const { 
         data: userProfile
     } = useUserProfile();
-
-    // Fetch dashboard statistics using the custom hook
-    const { 
-        data: dashboardStats, 
-    } = useDashboardStats(); // Correctly call the custom hook here
-
-    // Stats query
-    const { data: statsData, isLoading: statsLoading } = useQuery({
-        queryKey: ['transporterStats'],
-        queryFn: getTransporterStats,
-        refetchInterval: 30000, // Refetch every 30 seconds
-    });
 
     // State for modals
     const [showProfileModal, setShowProfileModal] = useState(false);
@@ -80,7 +58,7 @@ const TransporterDashboard = () => {
     
     // Since useOrders is removed, we no longer have 'allOrders' to filter.
     // assignedOrders will now be an empty array.
-    const assignedOrders = []; // This will remain empty as no individual order data is fetched here
+    const assignedOrders = transporterData.assignedBookings || []; // This will remain empty as no individual order data is fetched here
     
     // Get trucks data from transporter profile (assuming userProfile returns populated truck objects)
     const trucks = transporterData.trucks || [];
@@ -88,17 +66,97 @@ const TransporterDashboard = () => {
     // Generate revenue and orders data for charts - now returns mock data
     // These functions will return zeros as individual order data is not available
     const generateRevenueData = () => {
-        return [
-            { month: 'Jan', value: 0 }, { month: 'Feb', value: 0 }, { month: 'Mar', value: 0 },
-            { month: 'Apr', value: 0 }, { month: 'May', value: 0 }, { month: 'Jun', value: 0 }
-        ];
+        // If no assigned orders, return zeros
+        if (!assignedOrders || assignedOrders.length === 0) {
+            return [
+                { month: 'Jan', value: 0 }, { month: 'Feb', value: 0 }, { month: 'Mar', value: 0 },
+                { month: 'Apr', value: 0 }, { month: 'May', value: 0 }, { month: 'Jun', value: 0 }
+            ];
+        }
+    
+        // Create an object to sum revenue by month
+        const monthRevenue = {
+            'Jan': 0, 'Feb': 0, 'Mar': 0, 'Apr': 0, 'May': 0, 'Jun': 0,
+            'Jul': 0, 'Aug': 0, 'Sep': 0, 'Oct': 0, 'Nov': 0, 'Dec': 0
+        };
+    
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        // Sum revenue by month from assignedOrders (only for completed/delivered orders)
+        assignedOrders.forEach(order => {
+            // Only count revenue for completed orders
+            if (order.status === 'completed' || order.status === 'delivered' || order.currentStatus === 'completed' || order.currentStatus === 'delivered') {
+                // Use scheduleAt if available, otherwise use createdAt
+                const orderDate = new Date(order.scheduleAt || order.createdAt);
+                const monthName = monthNames[orderDate.getMonth()];
+                
+                // Use fare field as the primary revenue source
+                const orderAmount = order.fare || 0;
+                
+                if (monthRevenue.hasOwnProperty(monthName)) {
+                    monthRevenue[monthName] += orderAmount;
+                }
+            }
+        });
+    
+        // Return data for last 6 months
+        const currentMonth = new Date().getMonth();
+        const last6Months = [];
+        
+        for (let i = 5; i >= 0; i--) {
+            const monthIndex = (currentMonth - i + 12) % 12;
+            const monthName = monthNames[monthIndex];
+            last6Months.push({
+                month: monthName,
+                value: monthRevenue[monthName]
+            });
+        }
+    
+        return last6Months;
     };
 
     const generateOrdersData = () => {
-        return [
-            { month: 'Jan', value: 0 }, { month: 'Feb', value: 0 }, { month: 'Mar', value: 0 },
-            { month: 'Apr', value: 0 }, { month: 'May', value: 0 }, { month: 'Jun', value: 0 }
-        ];
+        // If no assigned orders, return zeros
+        if (!assignedOrders || assignedOrders.length === 0) {
+            return [
+                { month: 'Jan', value: 0 }, { month: 'Feb', value: 0 }, { month: 'Mar', value: 0 },
+                { month: 'Apr', value: 0 }, { month: 'May', value: 0 }, { month: 'Jun', value: 0 }
+            ];
+        }
+    
+        // Create an object to count orders by month
+        const monthCounts = {
+            'Jan': 0, 'Feb': 0, 'Mar': 0, 'Apr': 0, 'May': 0, 'Jun': 0,
+            'Jul': 0, 'Aug': 0, 'Sep': 0, 'Oct': 0, 'Nov': 0, 'Dec': 0
+        };
+    
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        // Count orders by month from assignedOrders
+        assignedOrders.forEach(order => {
+            // Use scheduleAt if available, otherwise use createdAt
+            const orderDate = new Date(order.scheduleAt || order.createdAt);
+            const monthName = monthNames[orderDate.getMonth()];
+            
+            if (monthCounts.hasOwnProperty(monthName)) {
+                monthCounts[monthName]++;
+            }
+        });
+    
+        // Return data for last 6 months (you can modify this logic as needed)
+        const currentMonth = new Date().getMonth();
+        const last6Months = [];
+        
+        for (let i = 5; i >= 0; i--) {
+            const monthIndex = (currentMonth - i + 12) % 12;
+            const monthName = monthNames[monthIndex];
+            last6Months.push({
+                month: monthName,
+                value: monthCounts[monthName]
+            });
+        }
+    
+        return last6Months;
     };
 
     // Revenue Chart
@@ -314,9 +372,9 @@ const TransporterDashboard = () => {
     }, [transporterData.assignedBookings])
     
     // Use dashboardStats for aggregate counts as provided by the backend controller
-    const totalTrucks = dashboardStats?.totalTrucks ?? (transporterData.trucks?.length || 0); 
-    const activeOrdersCount = dashboardStats?.activeOrders ?? 0; // Fallback to 0
-    const completedOrdersCount = dashboardStats?.deliveredOrders ?? 0; // Fallback to 0
+    const totalTrucks = transporterData.trucks?.length; 
+    const activeOrdersCount = assignedOrders.length; // Fallback to 0
+    const completedOrdersCount = transporterData.deliveredOrders ?? 0; // Fallback to 0
     
     const availableTrucks = trucks.filter(t => 
         t.status === 'active' || !t.status 
@@ -397,7 +455,7 @@ const TransporterDashboard = () => {
                             <div className="flex items-center gap-4 mt-2">
                                 <div className="flex items-center gap-1">
                                     <FaStar className="text-yellow-400" />
-                                    <span className="font-semibold">{dashboardStats?.rating || transporterData.rating || 0}</span> 
+                                    <span className="font-semibold">{transporterData.rating || transporterData.rating || 0}</span> 
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <FaShieldAlt className={`${transporterData.isVerified ? 'text-green-500' : 'text-red-500'}`} />

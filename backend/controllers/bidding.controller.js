@@ -2,6 +2,7 @@ import biddingModel from "../models/biddingModel.js";
 import axios from "axios";
 import truckModel from "../models/truckModel.js";
 import orderModel from "../models/orderModel.js";
+import transporterModel from '../models/transporterModel.js';
 
 // --- MAPPINGS (No Changes Here) ---
 const load_category_map_reverse = {
@@ -415,6 +416,10 @@ export const acceptBidController = async (req, res) => {
         if (!bidFound) {
             return res.status(404).json({ message: "Transporter's bid not found for this order" });
         }
+
+        const transporter = await transporterModel.findOne({ _id: transporterId });
+        transporter.assignedBookings = orderId;
+        await transporter.save();
 
         bidding.isClosed = true;
         await bidding.save();

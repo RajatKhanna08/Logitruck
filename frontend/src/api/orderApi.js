@@ -40,7 +40,6 @@ export const getOrderById = async (orderId) => {
         if (!res.data || !res.data.data) {
             throw new Error('Invalid response format from server');
         }
-        console.log('API Response:', res.data); // Debug log
         return res.data.data;
     } catch (error) {
         console.error('Error in getOrderById:', error);
@@ -57,9 +56,9 @@ export const getBidsForOrder = async (orderId) => {
     }
 };
 
-export const acceptBid = async ({ transporterId }) => {
+export const acceptBid = async ({ transporterId, orderId }) => {
     try {
-        const res = await axiosInstance.put(`/bidding/accept/${transporterId}`);
+        const res = await axiosInstance.put(`/bidding/accept/${transporterId}/${orderId}`);
         return res.data;
     } catch (error) {
         throw error.message;

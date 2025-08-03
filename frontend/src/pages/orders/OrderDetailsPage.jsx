@@ -29,6 +29,7 @@ const OrderDetailsPage = () => {
         queryFn: () => getBidsForOrder(orderId),
         enabled: !!orderId && !order?.acceptedTransporterId,
     });
+    console.log(bidsData);
 
     // Add mutations for accepting/rejecting bids
     const acceptBidMutation = useMutation({
@@ -198,7 +199,8 @@ const OrderDetailsPage = () => {
                                                     <div className="flex gap-2">
                                                         <button
                                                             onClick={() => acceptBidMutation.mutate({
-                                                                transporterId: bid.transporterId
+                                                                transporterId: bid.transporterId,
+                                                                orderId: bidsData.orderId
                                                             })}
                                                             disabled={acceptBidMutation.isPending}
                                                             className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"

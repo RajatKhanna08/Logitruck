@@ -63,16 +63,16 @@ export const getTransporterDashboard = async () => {
 
 export const getTransporterTrucks = async (transporterId) => {
     try {
-        const res = await axiosInstance.get(`/transporter/trucks/${transporterId}`);
+        const res = await axiosInstance.get(`/transporter/truck/my`);
         return res.data;
     } catch (error) {
         throw error.message;
     }
 };
 
-export const getTransporterBids = async (transporterId) => {
+export const getTransporterBids = async () => {
     try {
-        const res = await axiosInstance.get(`/transporter/bids/${transporterId}`);
+        const res = await axiosInstance.get(`/bidding/my-bids`);
         return res.data;
     } catch (error) {
         throw error.message;

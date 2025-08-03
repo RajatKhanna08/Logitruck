@@ -46,7 +46,7 @@ const TransporterProfile = () => {
 
           const [trucksData, bidsData] = await Promise.all([
             getTransporterTrucks(userProfile.transporter._id),
-            getTransporterBids(userProfile.transporter._id)
+            getTransporterBids()
           ]);
 
           setTrucks(trucksData.trucks || []);
@@ -198,19 +198,20 @@ const TransporterProfile = () => {
             <tbody>
               {bids.map((bid) => (
                 <tr key={bid._id} className="border-t">
-                  <td className="px-4 py-2">#{bid.orderId.slice(-6)}</td>
-                  <td className="px-4 py-2">₹{bid.amount.toLocaleString()}</td>
+                    {console.log(bid)}
+                  <td className="px-4 py-2">#{bid.orderInfo._id.slice(-6)}</td>
+                  <td className="px-4 py-2">₹{bid.myBid.bidAmount.toLocaleString()}</td>
                   <td className="px-4 py-2">
                     <span className={`px-2 py-1 rounded-full text-xs ${
                       bid.status === 'won' 
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-yellow-100 text-yellow-800'
                     }`}>
-                      {bid.status.toUpperCase()}
+                      {bid.myBid.status.toUpperCase()}
                     </span>
                   </td>
                   <td className="px-4 py-2 text-gray-500">
-                    {new Date(bid.createdAt).toLocaleDateString()}
+                    {new Date(bid.myBid.bidTime).toLocaleDateString()}
                   </td>
                 </tr>
               ))}

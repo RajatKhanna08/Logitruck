@@ -28,12 +28,12 @@ router.post('/price-suggestion/:orderId', isLoggedIn, correctRole("transporter")
 
 router.post('/place/:orderId', isLoggedIn, correctRole("transporter"), validateMongoId('orderId'), placeBidController);
 router.delete('/cancel/:orderId', isLoggedIn, correctRole("transporter"), validateMongoId('orderId'), cancelBidController);
-router.get('/bid/:orderId', isLoggedIn, correctRole("transporter"), validateMongoId('orderId'), getBidStatusController);
+router.get('/bid/:orderId', isLoggedIn, correctRole("company") || correctRole("transporter"), validateMongoId('orderId'), getBidStatusController);
 router.put('/update/:orderId', isLoggedIn, correctRole("transporter"), validateMongoId('orderId'), updateBidController);
 
 // These routes are for the company to manage bids on their order
-router.put('/accept/:transporterId', isLoggedIn, correctRole("company"), validateMongoId('transporterId'), acceptBidController);
-router.put('/reject/:transporterId', isLoggedIn, correctRole("company"), validateMongoId('transporterId'), rejectBidController);
+router.put('/accept/:transporterId/:orderId', isLoggedIn, correctRole("company"), validateMongoId('transporterId'), acceptBidController);
+router.put('/reject/:transporterId/:orderId', isLoggedIn, correctRole("company"), validateMongoId('transporterId'), rejectBidController);
 // ✅ FIXED: Added route to view bids for a specific transporter
 router.get('/my-bids', isLoggedIn, correctRole("transporter"), validateMongoId('transporterId'), getViewBidsController);
 
