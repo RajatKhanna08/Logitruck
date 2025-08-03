@@ -47,7 +47,7 @@ const notificationSchema = new mongoose.Schema({
 
   deliveryMode: {
     type: String,
-    enum: ["pending", "accepted", "ongoing", "completed", "cancelled"],
+    enum: ["pending", "accepted", "ongoing", "completed", "cancelled","instant"],
     default: "pending",
   },
 
