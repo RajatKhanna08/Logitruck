@@ -1,13 +1,14 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FaTruck, FaUserTie, FaMapMarkerAlt, FaClock, FaWeightHanging, FaMoneyBill, 
          FaCalendarAlt, FaArrowLeft, FaBox, FaPhoneAlt, FaEnvelope, FaFileAlt } from 'react-icons/fa';
-import { getOrderById } from '../../api/orderApi';
+import { getOrderById, getBidsForOrder, acceptBid, rejectBid } from '../../api/orderApi';
 
 const OrderDetailsPage = () => {
     const { orderId } = useParams();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
 
     const { data: order, isLoading, error } = useQuery({
         queryKey: ['order', orderId],
@@ -20,6 +21,29 @@ const OrderDetailsPage = () => {
         onError: (err) => {
             console.error('Error fetching order:', err);
         }
+    });
+
+    // Add new query for bids
+    const { data: bidsData, isLoading: bidsLoading } = useQuery({
+        queryKey: ['bids', orderId],
+        queryFn: () => getBidsForOrder(orderId),
+        enabled: !!orderId && !order?.acceptedTransporterId,
+    });
+
+    // Add mutations for accepting/rejecting bids
+    const acceptBidMutation = useMutation({
+        mutationFn: acceptBid,
+        onSuccess: () => {
+            queryClient.invalidateQueries(['order', orderId]);
+            queryClient.invalidateQueries(['bids', orderId]);
+        },
+    });
+
+    const rejectBidMutation = useMutation({
+        mutationFn: rejectBid,
+        onSuccess: () => {
+            queryClient.invalidateQueries(['bids', orderId]);
+        },
     });
 
     if (isLoading) {
@@ -148,43 +172,109 @@ const OrderDetailsPage = () => {
                         )}
                     </div>
 
-                    {/* Side Panel */}
-                    <div className="space-y-6">
-                        {/* Order Status & Timeline */}
+                    {/* Add Bids Section */}
+                    {!order.acceptedTransporterId && (
                         <div className="bg-white rounded-xl shadow-sm p-6">
-                            <h3 className="text-lg font-semibold text-blue-800 mb-4">Order Information</h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <p className="text-gray-500">Schedule</p>
-                                    <p className="font-medium">{new Date(order.scheduleAt).toLocaleString()}</p>
+                            <h3 className="text-lg font-semibold text-blue-800 flex items-center gap-2 mb-4">
+                                <FaMoneyBill /> Bids
+                            </h3>
+                            {bidsLoading ? (
+                                <div className="text-center py-4">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                                 </div>
-                                <div>
-                                    <p className="text-gray-500">Trip Status</p>
-                                    <p className="font-medium">{order.tripStatus}</p>
+                            ) : bidsData?.bids?.length > 0 ? (
+                                <div className="space-y-4">
+                                    {bidsData.bids.map((bid) => (
+                                        <div key={bid.transporterId} 
+                                             className="border rounded-lg p-4 hover:bg-gray-50">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <p className="font-medium">Bid Amount: ₹{bid.bidAmount}</p>
+                                                    <p className="text-sm text-gray-500">
+                                                        Status: {bid.status.toUpperCase()}
+                                                    </p>
+                                                </div>
+                                                {bid.status === 'pending' && (
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => acceptBidMutation.mutate({
+                                                                transporterId: bid.transporterId
+                                                            })}
+                                                            disabled={acceptBidMutation.isPending}
+                                                            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                                                        >
+                                                            Accept
+                                                        </button>
+                                                        <button
+                                                            onClick={() => rejectBidMutation.mutate({
+                                                                transporterId: bid.transporterId
+                                                            })}
+                                                            disabled={rejectBidMutation.isPending}
+                                                            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                                                        >
+                                                            Reject
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {bid.message && (
+                                                <p className="text-sm text-gray-600 mt-2">{bid.message}</p>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
-                                <div>
-                                    <p className="text-gray-500">Payment Status</p>
-                                    <p className={`font-medium ${
-                                        order.paymentStatus === 'paid' ? 'text-green-600' : 'text-red-600'
-                                    }`}>
-                                        {order.paymentStatus.toUpperCase()}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-gray-500">Amount</p>
-                                    <p className="text-xl font-semibold text-green-600">₹{order.fare}</p>
-                                </div>
+                            ) : (
+                                <p className="text-center text-gray-500 py-4">No bids received yet</p>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* Side Panel */}
+                <div className="space-y-6">
+                    {/* Order Status & Timeline */}
+                    <div className="bg-white mt-5 rounded-xl shadow-sm p-6">
+                        <h3 className="text-lg font-semibold text-blue-800 mb-4">Order Information</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-gray-500">Schedule</p>
+                                <p className="font-medium">{new Date(order.scheduleAt).toLocaleString()}</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-500">Trip Status</p>
+                                <p className="font-medium">{order.tripStatus}</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-500">Payment Status</p>
+                                <p className={`font-medium ${
+                                    order.paymentStatus === 'paid' ? 'text-green-600' : 'text-red-600'
+                                }`}>
+                                    {order.paymentStatus.toUpperCase()}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-gray-500">Amount</p>
+                                <p className="text-xl font-semibold text-green-600">₹{order.fare}</p>
                             </div>
                         </div>
-
-                        {/* Transporter Info if assigned */}
-                        {order.acceptedTransporterId && (
-                            <div className="bg-white rounded-xl shadow-sm p-6">
-                                <h3 className="text-lg font-semibold text-blue-800 mb-4">Transport Details</h3>
-                                {/* Add transporter details here */}
-                            </div>
-                        )}
                     </div>
+
+                    {/* Transporter Info if assigned */}
+                    {order.acceptedTransporterId && (
+                        <div className="bg-white rounded-xl shadow-sm p-6">
+                            <h3 className="text-lg font-semibold text-blue-800 mb-4">Transport Details</h3>
+                            <div className="space-y-3">
+                                <p className="font-medium">
+                                    Selected Bid: ₹{order.finalBidAmount}
+                                </p>
+                                <div className="flex items-center gap-2 text-gray-600">
+                                    <FaUserTie />
+                                    <span>{order.acceptedTransporterId.transporterName}</span>
+                                </div>
+                                {/* Add more transporter details as needed */}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

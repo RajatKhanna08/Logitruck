@@ -153,7 +153,9 @@ export const getTransporterProfileController = async (req, res) => {
         return res.status(400).json({ message: "Profile not found" });
         }
 
-        const transporter = await transporterModel.findById(transporterId).select("-password");
+        const transporter = await transporterModel.findById(transporterId)
+            .select("-password")
+            .populate('trucks');
         if (!transporter) {
         return res.status(404).json({ message: "Transporter not found" });
         }
@@ -430,23 +432,35 @@ export const addTruckController = async (req, res) => {
 
 
         const newTruck = await truckModel.create({
-        transporterId,
-        registrationNumber,
-        brand,
-        model,
-        vehicleType,
-        capacityInTon,
-        capacityInCubicMeters,
-        documents: { // Documents are initially empty strings
-                rcBook: "",
-                insurance: "",
-                pollutionCertificate: ""
-        },
-        insuranceValidTill: insuranceValidTill || null,
-        pollutionCertificateValidTill,
-        assignedDriverId: assignedDriverId || null,
-        status: "active"
+            transporterId,
+            registrationNumber,
+            brand,
+            model,
+            vehicleType,
+            capacityInTon,
+            capacityInCubicMeters,
+            documents: { // Documents are initially empty strings
+                    rcBook: "",
+                    insurance: "",
+                    pollutionCertificate: ""
+            },
+            insuranceValidTill: insuranceValidTill || null,
+            pollutionCertificateValidTill,
+            assignedDriverId: assignedDriverId || null,
+            status: "active"
         });
+
+        // <<< START OF CHANGE >>>
+        // Increment fleet size and add truck reference to transporter
+        await transporterModel.findByIdAndUpdate(
+            transporterId,
+            {
+                $inc: { fleetSize: 1 }, // fleetSize ko 1 se badhao
+                $push: { trucks: newTruck._id } // naye truck ki ID ko trucks array me daalo
+            }
+        );
+        // <<< END OF CHANGE >>>
+
         await sendNotification({
             role: "transporter",
             relatedUserId: transporterId,
@@ -456,8 +470,8 @@ export const addTruckController = async (req, res) => {
         });
 
         res.status(201).json({
-        message: "Truck added successfully",
-        truck: newTruck
+            message: "Truck added successfully",
+            truck: newTruck
         });
 
     } catch (err) {
@@ -665,7 +679,6 @@ export const updateDriverReferenceController = async (req, res) => {
     }
 };
 
-// ✅ NEW
 export const activateTruckController = async (req, res) => {
     try {
         const transporterId = req.user?._id;
@@ -690,7 +703,6 @@ export const activateTruckController = async (req, res) => {
     }
 };
 
-// ✅ NEW
 export const deactivateTruckController = async (req, res) => {
     try {
         const transporterId = req.user?._id;
@@ -715,7 +727,6 @@ export const deactivateTruckController = async (req, res) => {
     }
 };
 
-
 export const deleteTruckController = async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -734,19 +745,30 @@ export const deleteTruckController = async (req, res) => {
         if (!truck) {
         return res.status(404).json({ message: "Truck not found or unauthorized" });
         }
+        
+        // <<< START OF CHANGE >>>
+        // Decrement fleet size and remove truck reference from transporter
+        await transporterModel.findByIdAndUpdate(
+            transporterId,
+            {
+                $inc: { fleetSize: -1 }, // fleetSize ko 1 se ghatao
+                $pull: { trucks: truckId } // truck ki ID ko trucks array se nikalo
+            }
+        );
+        // <<< END OF CHANGE >>>
 
         // Unassign driver if any
         if (truck.assignedDriverId) {
             await driverModel.findByIdAndUpdate(truck.assignedDriverId, { $set: { assignedTruckId: null } });
         }
 
-
         await truckModel.deleteOne({ _id: truckId });
+
         await sendNotification({
-            role: 'driver', // This should be 'transporter' for truck deletion notification
-            relatedUserId: transporterId, // Use transporterId for transporter notifications
-            title: 'Truck Deleted', // Updated title
-            message: `Truck with registration number ${truck.registrationNumber} has been removed from your fleet.`, // More specific message
+            role: 'transporter', // Corrected role to transporter
+            relatedUserId: transporterId, 
+            title: 'Truck Deleted', 
+            message: `Truck with registration number ${truck.registrationNumber} has been removed from your fleet.`, 
             type: 'status',
         });
 

@@ -109,3 +109,12 @@ export const uploadDocument = async (formData) => {
         throw error.message;
     }
 };
+
+export const getTransporterStats = async () => {
+    try {
+        const res = await axiosInstance.get('/transporter/dashboard/stats');
+        return res.data;
+    } catch (error) {
+        throw error.message;
+    }
+};

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import jwt from 'jsonwebtoken';
 import bcrypt from "bcryptjs";
 
-const companySchema = new  mongoose.Schema({
+const companySchema = new mongoose.Schema({
     role: {
         type: String,
         enum:["company","transporter","driver","admin"],

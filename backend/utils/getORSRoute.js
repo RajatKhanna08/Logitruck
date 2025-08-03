@@ -1,30 +1,29 @@
 import axios from "axios";
 
 const ORS_API_KEY = process.env.ORS_API_KEY;
+
 export const getORSRoute = async (start, end, waypoints = []) => {
   if (!Array.isArray(start) || !Array.isArray(end)) {
     throw new Error("Start and End must be coordinate arrays [lng, lat]");
   }
 
   if (!ORS_API_KEY) {
-    throw new Error("OpenRouteService API key is missing from environment variables");
+    throw new Error("OpenRouteService API key is missing");
   }
 
   try {
-    // Snap all coordinates
-    const snappedStart = await snapToRoad(start);
-    const snappedEnd = await snapToRoad(end);
-    const snappedWaypoints = await Promise.all(waypoints.map(snapToRoad));
+    const allCoordinates = [start, ...waypoints, end];
 
-    const allSnapped = [snappedStart, ...snappedWaypoints, snappedEnd];
-
-    if (allSnapped.includes(null)) {
-      throw new Error("One or more coordinates could not be snapped to a road.");
-    }
+    // The 'radiuses' parameter tells ORS to snap each point.
+    // -1 means an unlimited search radius for the nearest road.
+    const body = {
+      coordinates: allCoordinates,
+      radiuses: allCoordinates.map(() => -1) 
+    };
 
     const response = await axios.post(
       "https://api.openrouteservice.org/v2/directions/driving-car/geojson",
-      { coordinates: allSnapped },
+      body, // Use the new body with coordinates and radiuses
       {
         headers: {
           Authorization: ORS_API_KEY,

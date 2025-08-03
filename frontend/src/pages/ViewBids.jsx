@@ -124,7 +124,7 @@ const ViewBids = () => {
                                                 <span className="font-bold text-lg text-blue-800">{formatCurrency(bidItem.fairPrice)}</span>
                                             </div>
                                             <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200">
-                                                <span className="text-gray-600 font-medium flex items-center gap-2"><Tag size={16} />AI Price</span>
+                                                <span className="text-blue-700 font-medium flex items-center gap-2"><Tag size={16} />AI Price</span>
                                                 <span className="font-bold text-lg text-blue-800">{formatCurrency(bidItem.aiPrice)}</span>
                                             </div>
                                             <div className="flex items-center justify-between">
