@@ -94,8 +94,6 @@ export const getFairPriceSuggestionsController = async (req, res) => {
             1 // Default delivery timeline
         );
 
-        // --- NEW LOGIC START ---
-        // Save or Update the fair price in the Bidding collection
         if (fairPrice) {
             try {
                 await biddingModel.findOneAndUpdate(
@@ -112,7 +110,6 @@ export const getFairPriceSuggestionsController = async (req, res) => {
                 // We can still proceed to show the price even if DB save fails
             }
         }
-        // --- NEW LOGIC END ---
         
         const minPrice = Math.round(fairPrice * 0.9);
         const maxPrice = Math.round(fairPrice * 1.1);
