@@ -8,9 +8,9 @@ import { sendNotification } from "../utils/sendNotification.js";
 
 export const createOrderController = async (req, res) => {
   try {
-    console.log("➡️ Incoming Order Create Request");
-    console.log("👉 Body:", req.body);
-    console.log("👉 User:", req.user);
+    console.log("Incoming Order Create Request");
+    console.log("Body:", req.body);
+    console.log("User:", req.user);
     
     if (req.body.isBiddingEnabled === false || req.body.isBiddingEnabled === 'false') {
       delete req.body.biddingExpiresAt;
@@ -18,7 +18,7 @@ export const createOrderController = async (req, res) => {
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log("❌ Validation Errors:", errors.array());
+      console.log("Validation Errors:", errors.array());
       return res.status(400).json({ message: errors.array() });
     }
 
@@ -39,13 +39,13 @@ export const createOrderController = async (req, res) => {
     } = req.body;
 
     if (!Array.isArray(dropLocations) || dropLocations.length === 0) {
-      console.log("❌ Drop locations missing or invalid");
+      console.log("Drop locations missing or invalid");
       return res.status(400).json({ message: "At least one drop location is required" });
     }
 
     const companyId = req.user?._id;
     if (!companyId) {
-      console.log("❌ Company ID not found (unauthorized)");
+      console.log("Company ID not found (unauthorized)");
       return res.status(401).json({ message: "Unauthorized access" });
     }
 
@@ -59,7 +59,7 @@ export const createOrderController = async (req, res) => {
       !Array.isArray(pickupCoords) || pickupCoords.length !== 2 ||
       dropCoordsList.some(coord => !Array.isArray(coord) || coord.length !== 2)
     ) {
-      console.log("❌ Coordinates malformed");
+      console.log("Coordinates malformed");
       return res.status(400).json({ message: "Invalid coordinates format. Expected [lng, lat]" });
     }
 
@@ -69,7 +69,7 @@ export const createOrderController = async (req, res) => {
     const waypoints = orsCoordinates.slice(2);
 
     const routeData = await getORSRoute(start, end, waypoints);
-    console.log("📍 ORS Route Data:", routeData);
+    console.log("ORS Route Data:", routeData);
 
     const currentLocation = {
       type: "Point",
@@ -104,7 +104,7 @@ export const createOrderController = async (req, res) => {
       }
     });
 
-    console.log("✅ Order created in DB:", newOrder._id);
+    console.log("Order created in DB:", newOrder._id);
 
     await sendNotification({
       role: "company",
@@ -134,8 +134,8 @@ export const createOrderController = async (req, res) => {
 
     res.status(201).json({ message: "Order created successfully", order: newOrder });
   }catch (err) {
-    console.error("❌ Error in createOrderController:", err.message);
-    console.error("🧨 Full error:", err);
+    console.error("Error in createOrderController:", err.message);
+    console.error("Full error:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

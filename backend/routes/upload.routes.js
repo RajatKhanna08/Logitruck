@@ -5,6 +5,6 @@ import { uploadOrderDocumentController } from "../controllers/upload.controller.
 const router = express.Router();
 
 // ==================== Document Upload Route ====================
-router.post("/:entityType/:entityId",upload.single("file"),uploadOrderDocumentController);
+router.post("/:orderId/:docType", upload.single("file"), uploadOrderDocumentController);
 
 export default router;

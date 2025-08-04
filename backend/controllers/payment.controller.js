@@ -50,12 +50,11 @@ export const initiatePaymentController = async (req, res) => {
       linkedOrderId: orderId,
     });
   } catch (err) {
-    console.error("Error in initiatePaymentController:", err); // ✅ Log full error
+    console.error("Error in initiatePaymentController:", err); 
     res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
 
-// ✅ FIXED: This entire controller has been updated
 export const verifyPaymentController = async (req, res) => {
   try {
     const {
@@ -70,21 +69,21 @@ export const verifyPaymentController = async (req, res) => {
     
     const { orderId } = req.params; // Get orderId from params
 
-    // 1. Signature Verification (Your existing logic is correct)
+    // 1. Signature Verification 
     const generated_signature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
 
     if (generated_signature !== razorpay_signature) {
-      console.log("❌ Payment signature verification failed.");
+      console.log("Payment signature verification failed.");
       return res.status(400).json({
         success: false,
         message: "Payment signature verification failed"
       });
     }
     
-    console.log("✅ Payment signature verified successfully.");
+    console.log("Payment signature verified successfully.");
 
     // 2. Create Payment Record (Fixed to match the schema)
     const invoiceId = 'INV_' + razorpay_order_id.slice(-8) + '_' + Date.now();
@@ -112,7 +111,7 @@ export const verifyPaymentController = async (req, res) => {
     });
 
     await paymentRecord.save();
-    console.log(`✅ Payment record created in DB for orderId: ${orderId}`);
+    console.log(`Payment record created in DB for orderId: ${orderId}`);
 
     // 3. Update the Order's Payment Status (This part was missing)
     const updatedOrder = await ordersModel.findByIdAndUpdate(
@@ -120,16 +119,16 @@ export const verifyPaymentController = async (req, res) => {
       { 
         $set: { 
           paymentStatus: 'paid',
-          paymentMode: "UPI" // Optional: update payment mode in order as well
+          paymentMode: "UPI" 
         }
       },
       { new: true } // Return the updated document
     );
 
     if (updatedOrder) {
-      console.log(`✅ Order ${orderId} status updated to 'paid'.`);
+      console.log(`Order ${orderId} status updated to 'paid'.`);
     } else {
-      console.log(`⚠️ Could not find and update order ${orderId}.`);
+      console.log(`Could not find and update order ${orderId}.`);
     }
     
     res.status(200).json({
@@ -140,11 +139,10 @@ export const verifyPaymentController = async (req, res) => {
     });
 
   } catch (err) {
-    console.log("❌ Error in verifyPaymentController:", err.message);
+    console.log("Error in verifyPaymentController:", err.message);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
-
 
 export const getPaymentHistoryController = async (req, res) => {
   try {
