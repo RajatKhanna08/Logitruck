@@ -16,7 +16,7 @@ import {
   requestEWayExtensionController,
   getDriverCurrentLocationController,
   getDriverDashboardController,
-  // NEW CONTROLLERS FOR DOCUMENTS
+  // CONTROLLERS FOR DOCUMENTS
   uploadKataParchiBeforeController,
   uploadKataParchiAfterController,
   updateOrderByDriverController

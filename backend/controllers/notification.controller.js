@@ -18,7 +18,7 @@ export const getAllNotificationsController = async (req, res) => {
 
     res.status(200).json({ success: true, notifications });
   } catch (err) {
-    console.log("❌ Error fetching notifications", err.message);
+    console.log("Error fetching notifications", err.message);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -32,7 +32,7 @@ export const deleteAllNotificationsController = async (req, res) => {
 
     res.status(200).json({ success: true, message: 'All notifications deleted' });
   } catch (error) {
-    console.error('❌ Error deleting notifications:', error.message);
+    console.error('Error deleting notifications:', error.message);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
@@ -72,7 +72,7 @@ export const sendNotificationController = async (req, res) => {
 
     res.status(200).json({ success: true, message: 'Notification sent successfully', notification });
   } catch (error) {
-    console.error('❌ Error sending notification:', error.message);
+    console.error('Error sending notification:', error.message);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };

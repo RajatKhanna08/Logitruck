@@ -1,4 +1,3 @@
-import axios from "axios";
 import driverModel from "../models/driverModel.js";
 import orderModel from "../models/orderModel.js";
 import { geocodeAddress } from "../utils/geocodeAddress.js";
