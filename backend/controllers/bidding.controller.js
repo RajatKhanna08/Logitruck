@@ -46,13 +46,13 @@ const getEstimatedPrice = async (
             delivery_timeline_days: parseFloat(deliveryTimeline || 1)
         };
 
-        console.log("➡️ Sending to Flask API on Port 5000:", requestBodyToFlask);
+        console.log("Sending to Flask API on Port 5000:", requestBodyToFlask);
         const response = await axios.post("http://127.0.0.1:5000/predict", requestBodyToFlask);
         
-        console.log("💡 Received from Flask API:", response.data);
+        console.log("Received from Flask API:", response.data);
         return response.data.estimated_price;
     } catch (error) {
-        console.error("❌ Error calling AI Price Estimator API:", error.message);
+        console.error("Error calling AI Price Estimator API:", error.message);
         if (error.response) {
             console.error("Flask API Response Error Data:", error.response.data);
             console.error("Flask API Response Status:", error.response.status);
@@ -106,9 +106,9 @@ export const getFairPriceSuggestionsController = async (req, res) => {
                     },
                     { upsert: true, new: true }
                 );
-                console.log(`✅ AI Fair Price ${Math.round(fairPrice)} saved to DB for Order ID: ${orderId}`);
+                console.log(`AI Fair Price ${Math.round(fairPrice)} saved to DB for Order ID: ${orderId}`);
             } catch (dbError) {
-                console.error("❌ Error saving fair price to DB:", dbError.message);
+                console.error("Error saving fair price to DB:", dbError.message);
                 // We can still proceed to show the price even if DB save fails
             }
         }
@@ -125,7 +125,7 @@ export const getFairPriceSuggestionsController = async (req, res) => {
             note: "This is an estimated fair price based on AI model.",
         });
     } catch (err) {
-        console.log("❌ Error in getFairPriceSuggestionsController:", err.message);
+        console.log("Error in getFairPriceSuggestionsController:", err.message);
         res.status(500).json({ message: "Failed to get AI price suggestion." });
     }
 };

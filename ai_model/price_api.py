@@ -56,7 +56,7 @@ urgency_level_map = {
 def predict():
     try:
         data = request.get_json()
-        print("✅ Received data for prediction:", data)
+        print("Received data for prediction:", data)
 
         # --- FEATURE PREPARATION BASED ON THE MODEL'S TRAINING ---
         # The order of features MUST match the training data columns
@@ -102,16 +102,16 @@ def predict():
             delivery_timeline_days
         ]])
 
-        print("➡️ Processed input for model:", input_data)
+        print("Processed input for model:", input_data)
 
         # Predict the price
         prediction = model.predict(input_data)[0]
 
-        print("💡 AI Model Prediction:", prediction)
+        print("AI Model Prediction:", prediction)
         return jsonify({'estimated_price': round(prediction, 2)})
 
     except Exception as e:
-        print("❌ Error during prediction:", e)
+        print("Error during prediction:", e)
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':

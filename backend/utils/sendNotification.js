@@ -26,15 +26,15 @@ export const sendNotification = async ({
       metadata,
     });
 
-    console.log("📦 Creating Notification:", notification);
+    console.log("Creating Notification:", notification);
 
     await notification.save();
 
-    console.log("✅ Notification saved successfully:", notification);
+    console.log("Notification saved successfully:", notification);
     return notification;
 
   } catch (error) {
-    console.error('❌ Error sending notification:', error.message);
+    console.error('Error sending notification:', error.message);
     return { error: true, message: error.message };
   }
 };
