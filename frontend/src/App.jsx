@@ -40,7 +40,6 @@ import OrderDetailsPage from './pages/orders/OrderDetailsPage';
 import TrackOrderPage from './pages/orders/TrackOrderPage';
 import ViewBookingsPage from './pages/orders/ViewBookingsPage';
 import ViewBids from './pages/ViewBids';
-// import OrderBookingPage from './pages/orders/OrderBookingPage';
 
 // Utility Components
 const ProtectedRoute = ({ children, allowedRoles, role }) => {
@@ -108,7 +107,6 @@ const AppWrapper = () => {
                     <Route path='/bids' element={<BiddingPage />} />
                     <Route path='/active-bids' element={<ViewBids/>} />
                     <Route path='/driver/bookings' element={<ViewBookingsPage />} />
-                    {/* <Route path='/order-booking' element={<OrderBookingPage />} /> */}
                     <Route path='/order-book' element={<BookOrderPage />} />
                     <Route path='/order-track' element={<TrackOrderPage />} />
                     <Route path='/admin-profile' element={<AdminProfile />} />
@@ -163,11 +161,6 @@ const AppWrapper = () => {
                             <BookOrderPage />
                         </ProtectedRoute>
                     } />
-                    {/* <Route path='/orders/track' element={
-                        <ProtectedRoute role={role} allowedRoles={['company', 'transporter', 'driver', 'admin']}>
-                            <TrackOrderPage />
-                        </ProtectedRoute>
-                    } /> */}
                     <Route path='/orders/all' element={
                         <ProtectedRoute role={role} allowedRoles={['company', 'admin', 'transporter']}>
                             <AllOrdersPage />

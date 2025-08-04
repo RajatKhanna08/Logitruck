@@ -22,7 +22,6 @@ const AdminLogin = () => {
         if (!validateLogin()) return;
 
         console.log("Admin login submitted:", adminData);
-        // Add API call here
     };
 
     const validateLogin = () => {
