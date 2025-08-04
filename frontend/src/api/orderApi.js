@@ -56,9 +56,9 @@ export const getBidsForOrder = async (orderId) => {
     }
 };
 
-export const acceptBid = async ({ transporterId, orderId }) => {
+export const acceptBid = async ({ transporterId, orderId, acceptedTruckId }) => {
     try {
-        const res = await axiosInstance.put(`/bidding/accept/${transporterId}/${orderId}`);
+        const res = await axiosInstance.put(`/bidding/accept/${transporterId}/${orderId}/${acceptedTruckId}`);
         return res.data;
     } catch (error) {
         throw error.message;

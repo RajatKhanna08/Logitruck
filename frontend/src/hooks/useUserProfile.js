@@ -19,7 +19,7 @@ const fetchUserProfile = async () => {
             }
           }
         catch(err){
-            if (err.response?.status === 401) {
+            if (err.response?.status === 401 || err.response?.status === 404) {
                 continue;
             } else {
                 throw err;
@@ -37,9 +37,14 @@ export const useUserProfile = () => {
     return useQuery({
         queryKey: ['userProfile'],
         queryFn: async () => {
-            const data = await fetchUserProfile();
-            setUser(data);
-            return data;
+            try{
+                const data = await fetchUserProfile();
+                setUser(data);
+                return data;
+            }
+            catch(err){
+                console.log(err);
+            }
         },
         staleTime: 1000 * 60 * 5,
         retry: false,

@@ -35,10 +35,7 @@ const registerCompanyValidation = [
     body('address.state').notEmpty().withMessage('State is required'),
     body('address.pincode').isNumeric().withMessage('Pincode must be a number'),
     body('address.country').notEmpty().withMessage('Country is required'),
-    body('address.landmark').notEmpty().withMessage('Landmark is required'),
-    body('idProof').notEmpty().withMessage('ID Proof is required'),
-    body('businessLicense').notEmpty().withMessage('Business License is required'),
-    body('gstCertificate').notEmpty().withMessage('GST Certificate is required')
+    body('address.landmark').notEmpty().withMessage('Landmark is required')
 ];
 
 const loginCompanyValidation = [
@@ -71,7 +68,7 @@ const router = express.Router();
 
 // ==================== Company Profile Routes ====================
 
-router.post('/register', registerCompanyValidation, companyFields, registerCompanyController);
+router.post('/register', companyFields, registerCompanyController);
 router.post('/login', loginCompanyValidation, loginCompanyController);
 router.delete('/logout', isLoggedIn, correctRole("company"), logoutCompanyController);
 router.get('/profile', isLoggedIn, correctRole("company"), getCompanyProfileController);

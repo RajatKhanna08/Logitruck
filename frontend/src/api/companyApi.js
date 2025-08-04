@@ -6,7 +6,7 @@ export const registerCompany = async (companyRegisterData) => {
         return res.data;
     }
     catch(err){
-        console.log("Error in registerCompany: ", err.message);
+        console.log("Error in registerCompany: ", err);
     }
 }
 

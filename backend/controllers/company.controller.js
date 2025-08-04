@@ -29,6 +29,9 @@ export const registerCompanyController = async (req, res) => {
             contactPerson
         } = req.body;
 
+        console.log(address);
+        console.log(contactPerson);
+
         companyEmail = companyEmail.toLowerCase();
 
         const existingCompany = await companyModel.findOne({ companyEmail });

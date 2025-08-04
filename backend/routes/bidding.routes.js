@@ -31,7 +31,7 @@ router.get('/bid/:orderId', isLoggedIn, correctRole("company") || correctRole("t
 router.put('/update/:orderId', isLoggedIn, correctRole("transporter"), validateMongoId('orderId'), updateBidController);
 
 // These routes are for the company to manage bids on their order
-router.put('/accept/:transporterId/:orderId', isLoggedIn, correctRole("company"), validateMongoId('transporterId'), acceptBidController);
+router.put('/accept/:transporterId/:orderId/:acceptedTruckId', isLoggedIn, correctRole("company"), validateMongoId('transporterId'), acceptBidController);
 router.put('/reject/:transporterId/:orderId', isLoggedIn, correctRole("company"), validateMongoId('transporterId'), rejectBidController);
 router.get('/my-bids', isLoggedIn, correctRole("transporter"), validateMongoId('transporterId'), getViewBidsController);
 

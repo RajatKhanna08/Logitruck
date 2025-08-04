@@ -390,8 +390,9 @@ export const updateBidController = async (req, res) => {
 
 export const acceptBidController = async (req, res) => {
   try {
-    const { orderId, transporterId } = req.params;
+    const { orderId, transporterId, acceptedTruckId } = req.params;
     const bidding = await biddingModel.findOne({ orderId });
+    console.log(acceptedTruckId);
 
     if (!bidding) {
       return res.status(404).json({ message: "No bidding record found for this order" });
@@ -412,8 +413,15 @@ export const acceptBidController = async (req, res) => {
       return res.status(404).json({ message: "Transporter's bid not found for this order" });
     }
 
+    const truck = await truckModel.findById(acceptedTruckId);
+    const order = await orderModel.findById(orderId);
+    order.acceptedTransporterId = transporterId;
+    order.acceptedTruckId = acceptedTruckId;
+    order.acceptedDriverId = truck.assignedDriverId;
+    await order.save();
+
     const transporter = await transporterModel.findById(transporterId);
-    transporter.assignedBookings = orderId;
+    transporter.assignedBookings.push = orderId;
     await transporter.save();
 
     bidding.isClosed = true;

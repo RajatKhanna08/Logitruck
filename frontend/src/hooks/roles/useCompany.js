@@ -19,6 +19,7 @@ export const useRegisterCompany = () => {
             }
             catch(err){
                 console.log("Failed to fetch profile after signup", err.data.message);
+                throw err;
             }
         },
 

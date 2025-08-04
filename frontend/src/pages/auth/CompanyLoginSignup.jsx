@@ -144,6 +144,7 @@ const CompanyLoginSignup = () => {
         e.preventDefault();
         if (!validateLogin()) return;
 
+        console.log('Login data being sent:', loginData);
         loginCompanyMutation(loginData);
     };
 
@@ -460,11 +461,17 @@ const CompanyLoginSignup = () => {
     const validateLogin = () => {
         const loginErrors = {};
 
-        if (!loginData.companyEmail.trim()) loginErrors.email = "Email is required";
-        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginData.companyEmail)) loginErrors.email = "Invalid email format";
+        if (!loginData.companyEmail.trim()) {
+            loginErrors.companyEmail = "Email is required";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginData.companyEmail)) {
+            loginErrors.companyEmail = "Invalid email format";
+        }
 
-        if (!loginData.password.trim()) loginErrors.password = "Password is required";
-        else if (loginData.password.length < 6) loginErrors.password = "Password must be at least 6 characters";
+        if (!loginData.password.trim()) {
+            loginErrors.password = "Password is required";
+        } else if (loginData.password.length < 6) {
+            loginErrors.password = "Password must be at least 6 characters";
+        }
 
         setErrors(loginErrors);
         return Object.keys(loginErrors).length === 0;
@@ -489,11 +496,11 @@ const CompanyLoginSignup = () => {
                                 type="email"
                                 name="companyEmail"
                                 placeholder="Email"
-                                value={loginData.email}
+                                value={loginData.companyEmail}
                                 onChange={handleChange}
                                 className="p-2 border-2 border-gray-300 rounded outline-none"
                             />
-                            {errors.email && <p className="text-red-500 absolute top-38 right-12 text-xs">{errors.email}</p>}
+                            {errors.companyEmail && <p className="text-red-500 absolute top-38 right-12 text-xs">{errors.companyEmail}</p>}
                             <input
                                 type="password"
                                 name="password"
@@ -549,7 +556,7 @@ const CompanyLoginSignup = () => {
                     </div>
                     
                     <div className='flex w-full h-1/2 flex-col justify-end gap-3'>
-                        {!isSignUp && <p className='text-center'>New to LogiTruck?<br /> Let’s set up your company account!</p>}
+                        {!isSignUp && <p className='text-center'>New to LogiTruck?<br /> Let's set up your company account!</p>}
                         {isSignUp && <p className='text-center'>Your journey started?<br /> Pick up where you left off.</p>}
                         <button
                             onClick={() => {
@@ -579,9 +586,10 @@ const CompanyLoginSignup = () => {
                                         gstCertificate: null
                                     }
                                 });
-                                setLoginData({ email: '', password: '' });
+                                setLoginData({ companyEmail: '', password: '' });
                                 setStep(1);
-                                setIsSignUp(!isSignUp); // Make sure to toggle the form view too
+                                setErrors({});
+                                setIsSignUp(!isSignUp);
                             }}
                             className="bg-yellow-300 cursor-pointer text-black font-semibold px-6 py-2 rounded"
                         >

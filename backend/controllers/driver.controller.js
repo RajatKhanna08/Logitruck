@@ -2,6 +2,7 @@ import fs from "fs";
 import { validationResult } from "express-validator";
 import driverModel from "../models/driverModel.js";
 import orderModel from "../models/orderModel.js";
+import adminModel from '../models/adminModel.js';
 
 import { sendWelcomeEmail, sendLoginAlertEmail } from "../emails/driverEmail.js";
 import { sendWhatsAppRegistration, sendWhatsAppLogin } from "../services/whatsapp.service.js";
@@ -65,7 +66,7 @@ export const registerDriverController = async (req, res) => {
 
         await sendWelcomeEmail(newDriver);
         await sendWhatsAppRegistration(newDriver.phone, newDriver.fullName, "driver");
-        const adminUser = await userModel.findOne({ role: 'admin' });
+        const adminUser = await adminModel.findOne({ role: 'admin' });
         if (adminUser) {
             await sendNotification({
                 role: 'admin',
