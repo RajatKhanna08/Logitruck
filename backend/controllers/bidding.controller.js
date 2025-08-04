@@ -4,7 +4,7 @@ import truckModel from "../models/truckModel.js";
 import orderModel from "../models/orderModel.js";
 import transporterModel from '../models/transporterModel.js';
 
-// --- MAPPINGS (No Changes Here) ---
+// --- MAPPINGS ---
 const load_category_map_reverse = {
     "general": "others",
     "fragile": "fragile",
@@ -130,8 +130,6 @@ export const getFairPriceSuggestionsController = async (req, res) => {
     }
 };
 
-// ... (rest of the file is unchanged)
-// ... (placeBidController and other controllers remain the same as provided in the previous answer)
 export const placeBidController = async (req, res) => {
     try {
         const {
@@ -394,45 +392,50 @@ export const updateBidController = async (req, res) => {
 };
 
 export const acceptBidController = async (req, res) => {
-    try {
-        const { orderId, transporterId } = req.params;
-        const bidding = await biddingModel.findOne({ orderId });
+  try {
+    const { orderId, transporterId } = req.params;
+    const bidding = await biddingModel.findOne({ orderId });
 
-        if (!bidding) {
-            return res.status(404).json({ message: "No bidding record found for this order" });
-        }
-
-        let bidFound = false;
-        bidding.bids = bidding.bids.map((bid) => {
-            if (bid.transporterId.toString() === transporterId) {
-                bid.status = "accepted";
-                bidFound = true;
-            } else {
-                bid.status = "rejected";
-            }
-            return bid;
-        });
-
-        if (!bidFound) {
-            return res.status(404).json({ message: "Transporter's bid not found for this order" });
-        }
-
-        const transporter = await transporterModel.findOne({ _id: transporterId });
-        transporter.assignedBookings = orderId;
-        await transporter.save();
-
-        bidding.isClosed = true;
-        await bidding.save();
-
-        return res.status(200).json({
-            message: "Bid accepted successfully",
-            orderId,
-            acceptedTransporterId: transporterId,
-        });
-    } catch (err) {
-        console.log("Error in acceptBidController:", err.message);
-        res.status(500).json({ message: "Internal Server Error" });
+    if (!bidding) {
+      return res.status(404).json({ message: "No bidding record found for this order" });
     }
+
+    let bidFound = false;
+    bidding.bids = bidding.bids.map((bid) => {
+      if (bid.transporterId.toString() === transporterId) {
+        bid.status = "accepted";
+        bidFound = true;
+      } else {
+        bid.status = "rejected";
+      }
+      return bid;
+    });
+
+    if (!bidFound) {
+      return res.status(404).json({ message: "Transporter's bid not found for this order" });
+    }
+
+    const transporter = await transporterModel.findById(transporterId);
+    transporter.assignedBookings = orderId;
+    await transporter.save();
+
+    bidding.isClosed = true;
+    await bidding.save();
+
+    await orderModel.updateOne(
+      { _id: orderId },
+      { $set: { acceptedTransporterId: transporterId } }
+    );
+
+    return res.status(200).json({
+      message: "Bid accepted successfully",
+      orderId,
+      acceptedTransporterId: transporterId,
+    });
+  } catch (err) {
+    console.log("Error in acceptBidController:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const rejectBidController = async (req, res) => {
