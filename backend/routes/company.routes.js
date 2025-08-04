@@ -3,19 +3,19 @@ import { body, param } from 'express-validator';
 
 import { companyFields, upload } from '../middlewares/upload.js';
 import {
-    registerCompanyController,              // Controller for company registration
-    loginCompanyController,                 // Controller for company login
-    logoutCompanyController,                // Controller for company logout
-    getCompanyProfileController,            // Controller to get company profile
-    uploadCompanyCertificationsController,  // Controller to upload company certifications
-    getCompanyCertificationsController,     // Controller to get company certifications
-    deleteCompanyCertificationsController,// Controller to delete company certifications
-    updateCompanyProfileController,         // Controller to update company profile
-    getTruckSuggestionsController,          // Controller to get truck suggestions for an order
-    uploadEwayBillController,               // Controller to upload e-way bill for an order
-    getAvailableTrucksController,           // Controller to get available trucks
-    filterTrucksController,                 // Controller to filter trucks
-    getDriverByTruckController              // Controller to get driver by truck ID
+    registerCompanyController,            
+    loginCompanyController,                
+    logoutCompanyController,                
+    getCompanyProfileController,            
+    uploadCompanyCertificationsController,  
+    getCompanyCertificationsController,     
+    deleteCompanyCertificationsController,
+    updateCompanyProfileController,         
+    getTruckSuggestionsController,          
+    uploadEwayBillController,               
+    getAvailableTrucksController,           
+    filterTrucksController,                 
+    getDriverByTruckController              
 } from '../controllers/company.controller.js';
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
 import { correctRole } from '../middlewares/authorizeRoles.js';
@@ -71,8 +71,7 @@ const router = express.Router();
 
 // ==================== Company Profile Routes ====================
 
-router.post('/register',  companyFields, registerCompanyController);
-
+router.post('/register', registerCompanyValidation, companyFields, registerCompanyController);
 router.post('/login', loginCompanyValidation, loginCompanyController);
 router.delete('/logout', isLoggedIn, correctRole("company"), logoutCompanyController);
 router.get('/profile', isLoggedIn, correctRole("company"), getCompanyProfileController);
