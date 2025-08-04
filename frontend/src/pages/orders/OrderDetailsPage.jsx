@@ -201,7 +201,8 @@ const OrderDetailsPage = () => {
                                                             onClick={() => acceptBidMutation.mutate({
                                                                 transporterId: bid.transporterId,
                                                                 orderId: bidsData.orderId,
-                                                                acceptedTruckId: bid.truckId
+                                                                acceptedTruckId: bid.truckId,
+                                                                acceptedBid: bid.bidAmount
                                                             })}
                                                             disabled={acceptBidMutation.isPending}
                                                             className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"

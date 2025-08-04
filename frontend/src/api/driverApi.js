@@ -84,6 +84,7 @@ export const uploadKataParchi = async () => {
 export const orderHistory = async () => {
     try{
         const res = await axiosInstance.get('/driver/order-history');
+        console.log(res);
         return res.data.orderHistory;
     }
     catch(err){

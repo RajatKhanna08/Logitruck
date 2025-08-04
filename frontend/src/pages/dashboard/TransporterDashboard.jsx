@@ -59,6 +59,7 @@ const TransporterDashboard = () => {
     // Since useOrders is removed, we no longer have 'allOrders' to filter.
     // assignedOrders will now be an empty array.
     const assignedOrders = transporterData.assignedBookings || []; // This will remain empty as no individual order data is fetched here
+    console.log(transporterData);
     
     // Get trucks data from transporter profile (assuming userProfile returns populated truck objects)
     const trucks = transporterData.trucks || [];

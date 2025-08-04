@@ -391,6 +391,8 @@ export const updateBidController = async (req, res) => {
 export const acceptBidController = async (req, res) => {
   try {
     const { orderId, transporterId, acceptedTruckId } = req.params;
+    const { acceptedBid } = req.body;
+    console.log(acceptedBid);
     const bidding = await biddingModel.findOne({ orderId });
     console.log(acceptedTruckId);
 
@@ -418,10 +420,12 @@ export const acceptBidController = async (req, res) => {
     order.acceptedTransporterId = transporterId;
     order.acceptedTruckId = acceptedTruckId;
     order.acceptedDriverId = truck.assignedDriverId;
+    order.fare = acceptedBid;
+    order.finalBidAmount = acceptedBid;
     await order.save();
 
     const transporter = await transporterModel.findById(transporterId);
-    transporter.assignedBookings.push = orderId;
+    transporter.assignedBookings.push(orderId);
     await transporter.save();
 
     bidding.isClosed = true;
